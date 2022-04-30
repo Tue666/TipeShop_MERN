@@ -1,6 +1,15 @@
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
-import { Stack, Card, CardContent, CardActions, Typography, IconButton } from '@mui/material';
+import {
+	Stack,
+	Card,
+	CardContent,
+	CardActions,
+	Typography,
+	IconButton,
+	Tooltip,
+} from '@mui/material';
 import { AddShoppingCart, FindInPage } from '@mui/icons-material';
 
 // components
@@ -8,6 +17,8 @@ import ImageLoader from './ImageLoader';
 import Stars from './Stars';
 // utils
 import { toVND } from '../utils/formatMoney';
+// config
+import { apiConfig } from '../config';
 // constant
 import { CARD_WIDTH } from '../constant';
 
@@ -16,13 +27,19 @@ const CARD = {
 	HEIGHT: 'auto',
 };
 
-const ProductCard = () => {
+const propTypes = {
+	products: PropTypes.object,
+};
+
+const ProductCard = ({ product }) => {
+	const { _id, name, images, discount, discount_rate, original_price, price, quantity_sold, slug } =
+		product;
 	return (
 		<RootStyle>
-			<Link to="/">
+			<Link to={`${slug}/pid${_id}`}>
 				<ImageLoader
-					src="https://salt.tikicdn.com/cache/400x400/ts/product/a8/95/83/f78f7caa2f3c0b1032c04470e35be2c2.jpg"
-					alt="Image..."
+					src={`${apiConfig.image_url}/${images[0]}`}
+					alt={name}
 					sx={{
 						borderRadius: '5px',
 						transition: '0.3s',
@@ -36,18 +53,26 @@ const ProductCard = () => {
 				/>
 				<CardContent sx={{ height: '100px' }}>
 					{/* Product Name */}
-					<Name variant="body2" title="Điện Thoại iPhone 13 128GB - Hàng Chính Hãng Hàng Chính Hãng">
-						Điện Thoại iPhone 13 128GB - Hàng Chính Hãng Hàng Chính Hãng
-					</Name>
+					<Tooltip placement="top" title={name} arrow>
+						<Name variant="body2">{name}</Name>
+					</Tooltip>
 					{/* Product rating & sold */}
 					<Stack direction="row" spacing={1} alignItems="center">
 						<Stars total={5} rating={4.6} sx={{ fontSize: '15px' }} />
-						<Typography variant="caption">1000+ Sold</Typography>
+						<Tooltip placement="top" title={quantity_sold.value} arrow>
+							<Typography variant="caption">{quantity_sold.text}</Typography>
+						</Tooltip>
 					</Stack>
 					{/* Product Price */}
 					<Stack direction="row" spacing={1} alignItems="center">
-						<Price tag="sale">{toVND(20450000)}</Price>
-						<SaleTag>-10%</SaleTag>
+						<Price tag={discount_rate !== 0 ? 'sale' : 'normal'}>
+							{discount_rate === 0 ? toVND(original_price) : toVND(price)}
+						</Price>
+						{discount_rate !== 0 && (
+							<Tooltip placement="top" title={`-${toVND(discount)}`} arrow>
+								<SaleTag>-{discount_rate}%</SaleTag>
+							</Tooltip>
+						)}
 					</Stack>
 				</CardContent>
 			</Link>
@@ -55,7 +80,7 @@ const ProductCard = () => {
 				<IconButton>
 					<AddShoppingCart />
 				</IconButton>
-				<Link to="/">
+				<Link to={`${slug}/pid${_id}`}>
 					<IconButton>
 						<FindInPage />
 					</IconButton>
@@ -114,5 +139,7 @@ const Price = styled(Typography)(({ tag, theme }) => ({
 	fontSize: '16px',
 	color: tag === 'sale' ? 'red' : theme.palette.text.primary,
 }));
+
+ProductCard.propTypes = propTypes;
 
 export default ProductCard;

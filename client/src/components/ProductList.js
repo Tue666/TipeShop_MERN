@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 import { Stack, Typography } from '@mui/material';
 
 // components
-import ProductCard from './ProductCard';
+// import ProductCard from './ProductCard';
 
 const propTypes = {
 	id: PropTypes.string,
@@ -15,7 +15,7 @@ const ProductList = ({ id, title }) => {
 		<Stack id={id}>
 			<Typography variant="h6">{title}</Typography>
 			<Wrapper>
-				<ProductCard />
+				{/* <ProductCard /> */}
 				<LoadMore>
 					<LoadButton>
 						<Typography variant="subtitle2">Load more</Typography>
