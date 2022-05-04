@@ -6,6 +6,139 @@ const Category = require('../models/Category');
 const cloudinaryUpload = require('../../utils/cloudinaryUpload');
 
 class CategoriesAPI {
+	// [GET] /categories
+	async findAllRoot(req, res, next) {
+		try {
+			const categories = await Category.find({
+				parent_id: null,
+				status: 'active',
+			}).select('_id name image slug');
+			res.status(200).json(categories);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [GET] /categories/:_id
+	/*
+		_id: Number
+	*/
+	async findById(req, res, next) {
+		try {
+			let { _id } = req.params;
+			_id = parseInt(_id);
+
+			// get parent categories
+			const result = await Category.aggregate([
+				{
+					$match: {
+						_id,
+						status: 'active',
+					},
+				},
+				{
+					// get all attribute of category
+					$lookup: {
+						from: 'attributes',
+						localField: 'attributes',
+						foreignField: '_id',
+						as: 'attributes',
+					},
+				},
+				{
+					// get all value of the attributes
+					$lookup: {
+						from: 'attributevalues',
+						localField: 'attributes.query_name',
+						foreignField: 'attribute_query_name',
+						as: 'values',
+					},
+				},
+				{
+					// get all parent of category
+					$graphLookup: {
+						from: 'categories',
+						startWith: '$parent_id',
+						connectFromField: 'parent_id',
+						connectToField: '_id',
+						as: 'parent',
+					},
+				},
+				{
+					// get all children of category
+					$lookup: {
+						from: 'categories',
+						localField: '_id',
+						foreignField: 'parent_id',
+						as: 'children',
+					},
+				},
+				{
+					$addFields: {
+						attributes: {
+							// map and push value filtered to attribute object
+							$map: {
+								input: '$attributes',
+								as: 'attribute',
+								in: {
+									$mergeObjects: [
+										'$$attribute',
+										{
+											values: {
+												$filter: {
+													input: '$values',
+													as: 'value',
+													cond: {
+														$eq: ['$$value.attribute_query_name', '$$attribute.query_name'],
+													},
+												},
+											},
+										},
+									],
+								},
+							},
+						},
+					},
+				},
+				{
+					$project: {
+						name: 1,
+						image: 1,
+						banners: 1,
+						slug: 1,
+						attributes: {
+							_id: 1,
+							query_name: 1,
+							display_name: 1,
+							collapsed: 1,
+							multi_select: 1,
+							values: {
+								_id: 1,
+								display_value: 1,
+							},
+						},
+						parent: {
+							_id: 1,
+							name: 1,
+							slug: 1,
+						},
+						children: {
+							_id: 1,
+							name: 1,
+							slug: 1,
+						},
+					},
+				},
+			]);
+			const category = result[0];
+			res.status(200).json(category);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /categories
 	/*
 		name: String,
@@ -51,7 +184,7 @@ class CategoriesAPI {
 				attributes: attributeObjs,
 			});
 			await category.save();
-			res.status(200).json({
+			res.status(201).json({
 				msg: 'Insert category successfully!',
 				category,
 			});

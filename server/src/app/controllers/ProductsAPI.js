@@ -6,6 +6,35 @@ const Product = require('../models/Product');
 const cloudinaryUpload = require('../../utils/cloudinaryUpload');
 
 class ProductsAPI {
+	// [GET] /products/:page/:number
+	/*
+		page: Number,
+		number: Number
+	*/
+	async findAllWithPagination(req, res) {
+		try {
+			let { page, number } = req.params;
+			page = parseInt(page);
+			number = parseInt(number);
+
+			const totalProduct = await Product.count({ inventory_status: 'availabel' });
+			const totalPage = Math.ceil(totalProduct / number);
+			const products = await Product.find({ inventory_status: 'availabel' })
+				.skip((page - 1) * number)
+				.limit(number);
+			res.status(200).json({
+				products,
+				pagination: {
+					totalPage,
+					currentPage: page,
+				},
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [GET] /products/ranking/:type/:number
 	/*
 		type: String [sold, view, favorite],
@@ -118,7 +147,7 @@ class ProductsAPI {
 				specifications: specificationObjs,
 			});
 			await product.save();
-			res.status(200).json({
+			res.status(201).json({
 				msg: 'Insert product successfully!',
 				product,
 			});

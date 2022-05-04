@@ -1,6 +1,12 @@
 import axiosInstance from './axiosInstance';
 
 const productApi = {
+	// [GET] /products/:page/:number
+	findAllWithPagination: (page, number) => {
+		const url = `/products/${page}/${number}`;
+		return axiosInstance.get(url);
+	},
+
 	// [GET] /products/ranking/:type/:number
 	findRankingProducts: (type, number) => {
 		const url = `/products/ranking/${type}/${number}`;

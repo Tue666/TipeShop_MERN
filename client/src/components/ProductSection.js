@@ -11,13 +11,6 @@ import { settingProductSection } from './_external_/slick-carousel/Settings';
 // components
 import ProductCard from './ProductCard';
 
-const propTypes = {
-	id: PropTypes.string,
-	type: PropTypes.string,
-	title: PropTypes.string,
-	sx: PropTypes.object,
-};
-
 const SkeletonLoad = [...Array(6)].map((_, index) => (
 	<Stack key={index} sx={{ p: 2 }}>
 		<Skeleton variant="rectangular" width={180} height={180} />
@@ -26,6 +19,13 @@ const SkeletonLoad = [...Array(6)].map((_, index) => (
 		<Skeleton variant="text" width={130} />
 	</Stack>
 ));
+
+const propTypes = {
+	id: PropTypes.string,
+	type: PropTypes.string,
+	title: PropTypes.string,
+	sx: PropTypes.object,
+};
 
 const ProductSection = ({ id, type, title, sx }) => {
 	const limit = 10;

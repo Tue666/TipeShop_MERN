@@ -8,5 +8,6 @@ const upload = require('../app/middlewares/upload');
 
 router.post('/', upload(false).array('images', 10), productsAPI.insert);
 router.get('/ranking/:type/:number', productsAPI.findRankingProducts);
+router.get('/:page/:number', productsAPI.findAllWithPagination);
 
 module.exports = router;

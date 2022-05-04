@@ -15,11 +15,12 @@ const Logo = ({ children, sx }) => (
 		<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 			<Box
 				component="img"
-				src="https://www.graphicsprings.com/filestorage/stencils/bdc5649fb67a5ab2fc8b4a0dc0eac951.png?width=500&height=500"
-				alt=""
+				src="/logo.png"
+				alt="Tipe Logo"
+				mr={1}
 				sx={{
-					width: '109px',
-					height: '109px',
+					width: '80px',
+					height: '80px',
 					...sx,
 				}}
 			/>

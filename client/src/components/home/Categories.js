@@ -1,11 +1,15 @@
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
-import { Box, Grid, Typography } from '@mui/material';
+import { Box, Grid, Typography, Skeleton, Tooltip } from '@mui/material';
 
+// apis
+import categoryApi from '../../apis/categoryApi';
 // components
 import ImageLoader from '../ImageLoader';
-import ToggleShowAll from '../ToggleShowAll';
+// config
+import { apiConfig } from '../../config';
 
 const propTypes = {
 	id: PropTypes.string,
@@ -13,47 +17,53 @@ const propTypes = {
 };
 
 const Categories = ({ id, title }) => {
+	const [categories, setCategories] = useState(null);
+	useEffect(() => {
+		const getCategories = async () => {
+			let categories = await categoryApi.findAllRoot();
+			setCategories(categories);
+		};
+		getCategories();
+	}, []);
 	return (
 		<Box id={id}>
 			<Typography variant="h6">{title}</Typography>
-			<ToggleShowAll>
-				<RootStyle container justifyContent="center">
-					<Grid item lg={2} sm={3} xs={6}>
-						<Link to="/">
+			<RootStyle container justifyContent="center">
+				{categories &&
+					categories.map((category) => {
+						const { _id, name, image, slug } = category;
+						return (
+							<Grid item lg={2} sm={3} xs={6} key={_id}>
+								<Link to={`/${slug}/cid${_id}`}>
+									<Category>
+										<ImageLoader
+											src={`${apiConfig.image_url}/${image}`}
+											alt={name}
+											sx={{
+												width: '80px',
+												height: '50px',
+												borderRadius: '35%',
+												marginRight: '15px',
+											}}
+										/>
+										<Tooltip placement="top" title={name} arrow>
+											<Name>{name}</Name>
+										</Tooltip>
+									</Category>
+								</Link>
+							</Grid>
+						);
+					})}
+				{!categories &&
+					[...Array(12)].map((_, index) => (
+						<Grid item lg={2} sm={3} xs={6} key={index}>
 							<Category>
-								<ImageLoader
-									src="https://salt.tikicdn.com/cache/w100/ts/product/12/9a/0b/b174bfac897abb303dba03f19ea1b4d7.jpg"
-									alt="Image..."
-									sx={{
-										width: '80px',
-										height: '50px',
-										borderRadius: '35%',
-										marginRight: '15px',
-									}}
-								/>
-								<Name title="zxc">zxc</Name>
+								<Skeleton variant="circular" width={49} height={49} />
+								<Skeleton variant="rectangular" width={80} height={45} />
 							</Category>
-						</Link>
-					</Grid>
-					<Grid item lg={2} sm={3} xs={6}>
-						<Link to="/">
-							<Category>
-								<ImageLoader
-									src="https://salt.tikicdn.com/cache/w100/ts/product/39/9b/d0/a5c44dbaa5e13ab1a79a83d86c5b4730.jpg"
-									alt="Image..."
-									sx={{
-										width: '80px',
-										height: '50px',
-										borderRadius: '35%',
-										marginRight: '15px',
-									}}
-								/>
-								<Name title="zxc">zxc</Name>
-							</Category>
-						</Link>
-					</Grid>
-				</RootStyle>
-			</ToggleShowAll>
+						</Grid>
+					))}
+			</RootStyle>
 		</Box>
 	);
 };

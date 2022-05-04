@@ -28,6 +28,7 @@ const Product = new Schema(
 		meta_title: { type: String, default: '' },
 		slug: { type: String, slug: 'name', unique: true },
 		shippable: { type: Boolean, default: true },
+		preview: { type: Boolean, default: false },
 		inventory_status: { type: String, default: 'availabel' },
 	},
 	{

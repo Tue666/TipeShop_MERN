@@ -1,9 +1,12 @@
 import PropTypes from 'prop-types';
+import { useState, Fragment } from 'react';
 import { styled } from '@mui/material/styles';
-import { Stack, Typography } from '@mui/material';
+import { Stack, Typography, CircularProgress } from '@mui/material';
 
 // components
-// import ProductCard from './ProductCard';
+import ProductCard from './ProductCard';
+// hooks
+import useInfiniteProduct from '../hooks/useInfiniteProduct';
 
 const propTypes = {
 	id: PropTypes.string,
@@ -11,17 +14,31 @@ const propTypes = {
 };
 
 const ProductList = ({ id, title }) => {
+	const [page, setPage] = useState(1);
+	const { isLoading, hasMore, products } = useInfiniteProduct(page, 10);
+	const handleLoadMore = () => {
+		setPage((prevPage) => prevPage + 1);
+	};
 	return (
 		<Stack id={id}>
 			<Typography variant="h6">{title}</Typography>
 			<Wrapper>
-				{/* <ProductCard /> */}
-				<LoadMore>
-					<LoadButton>
-						<Typography variant="subtitle2">Load more</Typography>
-					</LoadButton>
-					{/* {isLoading && <CircularProgress size={25} color="error" />} */}
-				</LoadMore>
+				{products.length !== 0 && (
+					<Fragment>
+						{products.map((product) => (
+							<ProductCard key={product._id} product={product} />
+						))}
+
+						<LoadMore>
+							{!isLoading && hasMore && (
+								<LoadButton onClick={handleLoadMore}>
+									<Typography variant="subtitle2">Load more</Typography>
+								</LoadButton>
+							)}
+							{isLoading && <CircularProgress size={25} color="error" />}
+						</LoadMore>
+					</Fragment>
+				)}
 			</Wrapper>
 		</Stack>
 	);

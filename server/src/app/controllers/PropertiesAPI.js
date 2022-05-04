@@ -15,7 +15,7 @@ class PropertiesAPI {
 		try {
 			const attribute = new Attribute(req.body);
 			await attribute.save();
-			res.status(200).json({
+			res.status(201).json({
 				msg: 'Insert attribute successfully!',
 				attribute,
 			});
@@ -55,7 +55,7 @@ class PropertiesAPI {
 		try {
 			const warranty = new Warranty(req.body);
 			await warranty.save();
-			res.status(200).json({
+			res.status(201).json({
 				msg: 'Insert warranty successfully!',
 				warranty,
 			});
@@ -76,7 +76,7 @@ class PropertiesAPI {
 		try {
 			const specification = new Specification(req.body);
 			await specification.save();
-			res.status(200).json({
+			res.status(201).json({
 				msg: 'Insert specification successfully!',
 				specification,
 			});

@@ -34,8 +34,8 @@ const Home = () => {
 					<Banners id="banners" />
 					<ProductSection id="sold-section" type="sold" title="🛍  Hot selling products" />
 					<Categories id="categories" title="📦  Categories" />
-					<ProductSection id="search-section" type="searched" title="🔍  Most searching products" />
-					<ProductSection id="view-section" type="viewed" title="👀  Top view products" />
+					<ProductSection id="search-section" type="favorite" title="💖  Most likes products" />
+					<ProductSection id="view-section" type="view" title="👀  Top view products" />
 					<ProductList id="product-list" title="🥰  Suggestions for you" />
 				</Stack>
 			</Container>

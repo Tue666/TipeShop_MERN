@@ -14,5 +14,7 @@ router.post(
 	]),
 	categoriesAPI.insert
 );
+router.get('/:_id', categoriesAPI.findById);
+router.get('/', categoriesAPI.findAllRoot);
 
 module.exports = router;
