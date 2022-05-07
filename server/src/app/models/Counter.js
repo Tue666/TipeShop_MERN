@@ -22,4 +22,20 @@ const autoIncrementModelID = async function (modelName, doc, next) {
 	}
 };
 
-module.exports = autoIncrementModelID;
+const generateSeqById = async function (counterId) {
+	try {
+		const counter = await counterModel.findByIdAndUpdate(
+			{ _id: counterId },
+			{ $inc: { seq: 1 } },
+			{ new: true, upsert: true }
+		);
+		return counter.seq;
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+module.exports = {
+	autoIncrementModelID,
+	generateSeqById,
+};

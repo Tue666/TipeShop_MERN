@@ -12,8 +12,8 @@ import { CATEGORY_PAGE } from '../../constant';
 
 const propTypes = {
 	queryParams: object,
-	filter: shape({
-		children: oneOfType([
+	filtered: shape({
+		sub: oneOfType([
 			array,
 			arrayOf(
 				shape({
@@ -36,6 +36,7 @@ const propTypes = {
 						shape({
 							_id: number,
 							display_value: string,
+							query_value: string,
 						})
 					),
 				})
@@ -45,13 +46,13 @@ const propTypes = {
 	handleNavigate: func,
 };
 
-const Filter = ({ queryParams, filter, handleNavigate }) => {
-	const { children, attributes } = filter;
+const Filter = ({ queryParams, filtered, handleNavigate }) => {
+	const { sub, attributes } = filtered;
 	const renderAttribute = (attributes, query_name, multi_select) =>
 		attributes.map((attribute) => {
-			const { _id, display_value, selected } = attribute;
+			const { _id, display_value, query_value, selected } = attribute;
 			return (
-				<Text key={_id} onClick={() => handleNavigate(query_name, _id, true)}>
+				<Text key={_id} onClick={() => handleNavigate(query_name, query_value, true, true)}>
 					{multi_select && (
 						<Checkbox checked={selected} size="small" color="error" sx={{ p: '5px', mr: '5px' }} />
 					)}
@@ -61,10 +62,10 @@ const Filter = ({ queryParams, filter, handleNavigate }) => {
 		});
 	return (
 		<RootStyle>
-			{children && children.length > 0 && (
+			{sub && sub.length > 0 && (
 				<Wrapper>
 					<Title>Product portfolio</Title>
-					{children.map((category) => (
+					{sub.map((category) => (
 						<Link key={category._id} to={`/${category.slug}/cid${category._id}`}>
 							<Text>{category.name}</Text>
 						</Link>
@@ -75,7 +76,7 @@ const Filter = ({ queryParams, filter, handleNavigate }) => {
 				<Title>Rating</Title>
 				<Stack>
 					{[5, 4, 3].map((value) => (
-						<Text key={value} onClick={() => handleNavigate('rating', value)}>
+						<Text key={value} onClick={() => handleNavigate('rating', value, false, true)}>
 							<Stars total={5} rating={value} />
 							&nbsp;{value} stars
 						</Text>
@@ -102,7 +103,7 @@ const Filter = ({ queryParams, filter, handleNavigate }) => {
 						? values
 								.map((value) => ({
 									...value,
-									selected: queryParams[query_name]?.indexOf(value._id.toString()) > -1,
+									selected: queryParams[query_name]?.indexOf(value.query_value.toString()) > -1,
 								}))
 								.sort((a, b) => b.selected - a.selected)
 						: values;

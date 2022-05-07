@@ -1,11 +1,17 @@
 import { styled } from '@mui/material/styles';
-import { ArrowBackIosOutlined, ArrowForwardIosOutlined } from '@mui/icons-material';
+import {
+	ArrowBackIosOutlined,
+	ArrowForwardIosOutlined,
+	NavigateBefore,
+	NavigateNext,
+} from '@mui/icons-material';
 
 // Banners
 const BannerArrow = styled('button')(({ side }) => ({
 	width: '50px',
-	height: '100%',
+	height: '50%',
 	backgroundColor: 'rgba(0,0,0,0.1)',
+	color: '#fff',
 	position: 'absolute',
 	bottom: '0',
 	left: side === 'back' ? 0 : 'calc(100% - 50px)',
@@ -15,6 +21,11 @@ const BannerArrow = styled('button')(({ side }) => ({
 	opacity: 0,
 	transition: '0.3s',
 	cursor: 'pointer',
+	clipPath: `polygon(${
+		side === 'back'
+			? '70% 0, 100% 10%, 100% 90%, 70% 100%, 0 100%, 0 0'
+			: '30% 0, 100% 0, 100% 100%, 30% 100%, 0 90%, 0 10%'
+	})`,
 	'&:hover': {
 		backgroundColor: 'rgba(255,255,255,0.3)',
 		color: 'rgba(255,255,255,0.8)',
@@ -30,8 +41,10 @@ const CustomeBannerArrow = ({ currentSlide, slideCount, side, children, ...props
 
 const AppendDots = styled('ul')({
 	display: 'flex',
+	justifyContent: 'end',
+	alignItems: 'center',
 	position: 'absolute',
-	left: 'calc(50% - 25px)',
+	right: '20px',
 	bottom: '20px',
 });
 
@@ -71,6 +84,7 @@ const SectionArrow = styled('button')(({ theme, side }) => ({
 	height: '40px',
 	borderRadius: '50%',
 	backgroundColor: 'rgba(255,255,255,0.9)',
+	color: '#000000',
 	boxShadow: '0px 3px 5px rgb(1 1 1 / 15%)',
 	position: 'absolute',
 	top: 'calc(50% - 25px)',
@@ -81,7 +95,6 @@ const SectionArrow = styled('button')(({ theme, side }) => ({
 	opacity: 0,
 	transition: '0.3s',
 	cursor: 'pointer',
-	color: '#000000',
 	'&:hover': {
 		backgroundColor: theme.palette.error.main,
 		color: '#fff',
@@ -107,36 +120,12 @@ export const settingProductSection = {
 	autoplaySpeed: 2500,
 	prevArrow: (
 		<CustomeSectionArrow side="back">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="16"
-				height="16"
-				fill="currentColor"
-				className="bi bi-chevron-left"
-				viewBox="0 0 16 16"
-			>
-				<path
-					fillRule="evenodd"
-					d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"
-				/>
-			</svg>
+			<NavigateBefore />
 		</CustomeSectionArrow>
 	),
 	nextArrow: (
 		<CustomeSectionArrow side="forward">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="16"
-				height="16"
-				fill="currentColor"
-				className="bi bi-chevron-right"
-				viewBox="0 0 16 16"
-			>
-				<path
-					fillRule="evenodd"
-					d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"
-				/>
-			</svg>
+			<NavigateNext />
 		</CustomeSectionArrow>
 	),
 	responsive: [

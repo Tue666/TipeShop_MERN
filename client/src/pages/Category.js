@@ -5,6 +5,7 @@ import { Container, Stack, Skeleton } from '@mui/material';
 
 // apis
 import categoryApi from '../apis/categoryApi';
+import productApi from '../apis/productApi';
 // components
 import Page from '../components/Page';
 import Teleport from '../components/Teleport';
@@ -16,30 +17,37 @@ const Category = () => {
 	const { _id } = useParams();
 	const { pathname, search } = useLocation();
 	const navigate = useNavigate();
-	let searchParams = useMemo(
-		() => new URLSearchParams(search ? search : 'sort=default&page=1'),
-		[search]
-	);
+	let searchParams = useMemo(() => new URLSearchParams(search), [search]);
 	useEffect(() => {
 		const getCategory = async () => {
-			const queryParams = Object.fromEntries(searchParams);
-			console.log(queryParams);
-
-			let category = await categoryApi.findById(_id);
-			const { children, attributes, ...parts } = category;
+			const categoryResponse = await categoryApi.findById(_id);
+			const { children, ...parts } = categoryResponse;
+			const productResponse = await productApi.findFilteredProducts({
+				categoryIds: children.map((el) => el._id),
+				take: 1,
+				query: Object.fromEntries(searchParams),
+			});
+			const { products, totalProduct, filter, pagination } = productResponse;
 			setCategory({
-				...parts,
-				filter: {
-					children,
-					attributes,
+				parts,
+				filtered: {
+					sub: children,
+					attributes: filter,
+				},
+				result: {
+					products,
+					totalProduct,
+					pagination,
 				},
 			});
 		};
 		getCategory();
 	}, [_id, searchParams]);
 
-	const handleNavigate = (key, value, multiple = false) => {
+	const handleNavigate = (key, value, multiple = false, resetPage = false) => {
 		value = value.toString();
+		// reset page if needed or otherwise
+		resetPage && searchParams.has('page') && searchParams.delete('page');
 		// key not exists
 		if (!searchParams.has(key)) searchParams.append(key, value);
 		else {
@@ -57,17 +65,23 @@ const Category = () => {
 			pathname,
 			search: `?${searchParams}`,
 		});
-		window.scrollTo(0, 0);
+	};
+
+	const getDisplayFilteredName = (key, values) => {
+		const attribute = category?.filtered.attributes.find((attribute) => attribute.query_name === key);
+		return attribute?.values
+			.filter((value) => values.indexOf(value.query_value) > -1)
+			.map((el) => ({ display: el.display_value, value: el.query_value }));
 	};
 	return (
-		<Page title={`Buy online ${category?.name || 'at'} good price | Tipe Shop`}>
+		<Page title={`Buy online ${category?.parts.name || 'at'} good price | Tipe Shop`}>
 			<Container>
 				<Teleport />
 				{category && (
 					<Fragment>
 						<Breadcrumbs
-							header={category.name}
-							links={category.parent.map((item) => ({
+							header={category.parts.name}
+							links={category.parts.parent.map((item) => ({
 								title: item.name,
 								href: `/${item.slug}/cid${item._id}`,
 							}))}
@@ -75,10 +89,16 @@ const Category = () => {
 						<Stack direction={{ xs: 'column', sm: 'row', lg: 'row' }} justifyContent="space-between">
 							<Filter
 								queryParams={Object.fromEntries(searchParams)}
-								filter={category.filter}
+								filtered={category.filtered}
 								handleNavigate={handleNavigate}
 							/>
-							<Result />
+							<Result
+								queryParams={Object.fromEntries(searchParams)}
+								parts={category.parts}
+								result={category.result}
+								handleNavigate={handleNavigate}
+								getDisplayFilteredName={getDisplayFilteredName}
+							/>
 						</Stack>
 					</Fragment>
 				)}

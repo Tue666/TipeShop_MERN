@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import { shape, number, string, array } from 'prop-types';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
@@ -28,12 +28,36 @@ const CARD = {
 };
 
 const propTypes = {
-	products: PropTypes.object,
+	products: shape({
+		_id: string,
+		name: string,
+		images: array,
+		discount: number,
+		discount_rate: number,
+		original_price: number,
+		price: number,
+		quantity_sold: shape({
+			text: string,
+			value: number,
+		}),
+		rating_average: number,
+		slug: string,
+	}),
 };
 
 const ProductCard = ({ product }) => {
-	const { _id, name, images, discount, discount_rate, original_price, price, quantity_sold, slug } =
-		product;
+	const {
+		_id,
+		name,
+		images,
+		discount,
+		discount_rate,
+		original_price,
+		price,
+		quantity_sold,
+		rating_average,
+		slug,
+	} = product;
 	return (
 		<RootStyle>
 			<Link to={`${slug}/pid${_id}`}>
@@ -58,10 +82,12 @@ const ProductCard = ({ product }) => {
 					</Tooltip>
 					{/* Product rating & sold */}
 					<Stack direction="row" spacing={1} alignItems="center">
-						<Stars total={5} rating={4.6} sx={{ fontSize: '15px' }} />
-						<Tooltip placement="top" title={quantity_sold.value} arrow>
-							<Typography variant="caption">{quantity_sold.text}</Typography>
-						</Tooltip>
+						{rating_average > 0 && <Stars total={5} rating={rating_average} sx={{ fontSize: '15px' }} />}
+						{quantity_sold.value > 0 && (
+							<Tooltip placement="top" title={quantity_sold.value} arrow>
+								<Typography variant="caption">{quantity_sold.text}</Typography>
+							</Tooltip>
+						)}
 					</Stack>
 					{/* Product Price */}
 					<Stack direction="row" spacing={1} alignItems="center">

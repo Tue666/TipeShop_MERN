@@ -6,10 +6,11 @@ import { Link } from 'react-scroll';
 import { HEADER_HEIGHT } from '../constant';
 
 export const ScrollToTop = () => {
-	const { pathname } = useLocation();
+	const { pathname, search } = useLocation();
+	const url = `${pathname}?${search}`;
 	useEffect(() => {
 		window.scrollTo(0, 0);
-	}, [pathname]);
+	}, [url]);
 	return null;
 };
 

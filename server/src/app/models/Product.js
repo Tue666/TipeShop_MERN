@@ -8,7 +8,7 @@ const Product = new Schema(
 		images: { type: [String], required: true },
 		quantity: { type: Number, required: true, min: 1, default: 1 },
 		category: { type: Number, ref: 'Category', required: true },
-		attribute_values: [{ type: Number, ref: 'AttributeValue' }],
+		attribute_values: [{ type: mongoose.Types.ObjectId, ref: 'AttributeValue' }],
 		warranty_infor: [{ type: mongoose.Types.ObjectId, ref: 'Warranty' }],
 		specifications: [{ type: mongoose.Types.ObjectId, ref: 'Specification' }],
 		limit: { type: Number, min: 0, default: 0 }, // 0 is unlimited
@@ -21,6 +21,8 @@ const Product = new Schema(
 			text: { type: String, default: '0 Sold' },
 			value: { type: Number, min: 0, default: 0 },
 		},
+		rating_average: { type: Number, min: 0, max: 5, default: 0 },
+		review_count: { type: Number, min: 0, default: 0 },
 		favorite_count: { type: Number, min: 0, default: 0 },
 		view_count: { type: Number, min: 0, default: 0 },
 		meta_description: { type: String, default: '' },

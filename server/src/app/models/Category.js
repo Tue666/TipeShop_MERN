@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 const slug = require('mongoose-slug-generator');
 
 // models
-const autoIncrementModelID = require('./Counter');
+const { autoIncrementModelID } = require('./Counter');
 
 const Category = new Schema(
 	{
@@ -11,7 +11,6 @@ const Category = new Schema(
 		name: { type: String, required: true },
 		image: { type: String, required: true },
 		banners: { type: [String], default: [] },
-		attributes: [{ type: mongoose.Types.ObjectId, ref: 'Attribute' }],
 		parent_id: { type: Number, default: null },
 		meta_description: { type: String, default: '' },
 		meta_keywords: { type: String, default: '' },

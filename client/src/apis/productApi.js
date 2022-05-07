@@ -7,6 +7,14 @@ const productApi = {
 		return axiosInstance.get(url);
 	},
 
+	// [GET] /products/filtered
+	findFilteredProducts: (queries) => {
+		const url = `/products/filtered`;
+		return axiosInstance.post(url, {
+			...queries,
+		});
+	},
+
 	// [GET] /products/ranking/:type/:number
 	findRankingProducts: (type, number) => {
 		const url = `/products/ranking/${type}/${number}`;

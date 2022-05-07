@@ -1,5 +1,3 @@
-const mongoose = require('mongoose');
-
 // models
 const Category = require('../models/Category');
 // utils
@@ -38,24 +36,6 @@ class CategoriesAPI {
 					},
 				},
 				{
-					// get all attribute of category
-					$lookup: {
-						from: 'attributes',
-						localField: 'attributes',
-						foreignField: '_id',
-						as: 'attributes',
-					},
-				},
-				{
-					// get all value of the attributes
-					$lookup: {
-						from: 'attributevalues',
-						localField: 'attributes.query_name',
-						foreignField: 'attribute_query_name',
-						as: 'values',
-					},
-				},
-				{
 					// get all parent of category
 					$graphLookup: {
 						from: 'categories',
@@ -75,49 +55,11 @@ class CategoriesAPI {
 					},
 				},
 				{
-					$addFields: {
-						attributes: {
-							// map and push value filtered to attribute object
-							$map: {
-								input: '$attributes',
-								as: 'attribute',
-								in: {
-									$mergeObjects: [
-										'$$attribute',
-										{
-											values: {
-												$filter: {
-													input: '$values',
-													as: 'value',
-													cond: {
-														$eq: ['$$value.attribute_query_name', '$$attribute.query_name'],
-													},
-												},
-											},
-										},
-									],
-								},
-							},
-						},
-					},
-				},
-				{
 					$project: {
 						name: 1,
 						image: 1,
 						banners: 1,
 						slug: 1,
-						attributes: {
-							_id: 1,
-							query_name: 1,
-							display_name: 1,
-							collapsed: 1,
-							multi_select: 1,
-							values: {
-								_id: 1,
-								display_value: 1,
-							},
-						},
 						parent: {
 							_id: 1,
 							name: 1,
@@ -145,7 +87,6 @@ class CategoriesAPI {
 		image: String,
 		[parent_id]: Number,
 		[banners]: [String],
-		[attributes]: Array[attribute._id],
 		...
 	*/
 	async insert(req, res, next) {
@@ -170,18 +111,10 @@ class CategoriesAPI {
 					})
 				));
 
-			// handle attributes
-			const attributeObjs = [];
-			attributes &&
-				attributes.map((attribute) => {
-					attributeObjs.push(mongoose.Types.ObjectId(attribute));
-				});
-
 			const category = new Category({
 				...body,
 				image: public_id,
 				banners: bannerObjs,
-				attributes: attributeObjs,
 			});
 			await category.save();
 			res.status(201).json({
