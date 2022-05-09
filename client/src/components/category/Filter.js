@@ -1,14 +1,15 @@
 import { oneOfType, shape, array, arrayOf, number, string, bool, func, object } from 'prop-types';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
-import { Stack, TextField, Button, Chip, Checkbox } from '@mui/material';
-import { ReadMore } from '@mui/icons-material';
+import { Stack, Chip, Checkbox } from '@mui/material';
 
 // components
 import Stars from '../Stars';
 import Collapse from '../Collapse';
 // constant
 import { CATEGORY_PAGE } from '../../constant';
+//
+import ApplyPrice from './ApplyPrice';
 
 const propTypes = {
 	queryParams: object,
@@ -23,18 +24,46 @@ const propTypes = {
 				})
 			),
 		]),
+		rating: shape({
+			_id: string,
+			query_name: string,
+			display_name: string,
+			collapsed: number,
+			multi_select: bool,
+			values: arrayOf(
+				shape({
+					_id: string,
+					display_value: string,
+					query_value: string,
+				})
+			),
+		}),
+		price: shape({
+			_id: string,
+			query_name: string,
+			display_name: string,
+			collapsed: number,
+			multi_select: bool,
+			values: arrayOf(
+				shape({
+					_id: string,
+					display_value: string,
+					query_value: string,
+				})
+			),
+		}),
 		attributes: oneOfType([
 			array,
 			arrayOf(
 				shape({
-					_id: number,
+					_id: string,
 					query_name: string,
 					display_name: string,
 					collapsed: number,
 					multi_select: bool,
 					values: arrayOf(
 						shape({
-							_id: number,
+							_id: string,
 							display_value: string,
 							query_value: string,
 						})
@@ -47,12 +76,12 @@ const propTypes = {
 };
 
 const Filter = ({ queryParams, filtered, handleNavigate }) => {
-	const { sub, attributes } = filtered;
+	const { sub, rating, price, attributes } = filtered;
 	const renderAttribute = (attributes, query_name, multi_select) =>
 		attributes.map((attribute) => {
 			const { _id, display_value, query_value, selected } = attribute;
 			return (
-				<Text key={_id} onClick={() => handleNavigate(query_name, query_value, true, true)}>
+				<Text key={_id} onClick={() => handleNavigate(query_name, query_value, multi_select, true)}>
 					{multi_select && (
 						<Checkbox checked={selected} size="small" color="error" sx={{ p: '5px', mr: '5px' }} />
 					)}
@@ -72,30 +101,45 @@ const Filter = ({ queryParams, filtered, handleNavigate }) => {
 					))}
 				</Wrapper>
 			)}
-			<Wrapper>
-				<Title>Rating</Title>
-				<Stack>
-					{[5, 4, 3].map((value) => (
-						<Text key={value} onClick={() => handleNavigate('rating', value, false, true)}>
-							<Stars total={5} rating={value} />
-							&nbsp;{value} stars
-						</Text>
-					))}
-				</Stack>
-			</Wrapper>
-			<Wrapper>
-				<Title>Price</Title>
-				{['Less than 400.000', 'From 400.000 to 3.400.000', 'More than 3.400.000'].map((value) => (
-					<Chip key={value} label={value} color="error" variant="outlined" sx={{ my: '2px' }} size="small" />
-				))}
-				<Stack direction="row" spacing={2} my={2}>
-					<TextField value={0} label="From" variant="standard" color="error" />
-					<TextField value={1} label="To" variant="standard" color="error" />
-				</Stack>
-				<Button color="error" variant="contained" startIcon={<ReadMore />}>
-					Apply
-				</Button>
-			</Wrapper>
+			{rating && (
+				<Wrapper>
+					<Title>{rating.display_name}</Title>
+					<Stack>
+						{rating.values.map((value) => {
+							const { _id, query_value, display_value } = value;
+							return (
+								<Text
+									key={_id}
+									onClick={() => handleNavigate(rating.query_name, query_value, rating.multi_select, true)}
+								>
+									<Stars total={5} rating={parseInt(query_value)} />
+									&nbsp;{display_value}
+								</Text>
+							);
+						})}
+					</Stack>
+				</Wrapper>
+			)}
+			{price && (
+				<Wrapper>
+					<Title>{price.display_name}</Title>
+					{price.values.map((value) => {
+						const { _id, query_value, display_value } = value;
+						return (
+							<Chip
+								key={_id}
+								label={display_value}
+								color="error"
+								variant={queryParams[price.query_name] === query_value ? 'contained' : 'outlined'}
+								sx={{ my: '2px' }}
+								size="small"
+								onClick={() => handleNavigate(price.query_name, query_value, price.multi_select, true)}
+							/>
+						);
+					})}
+					<ApplyPrice query_name={price.query_name} handleNavigate={handleNavigate} />
+				</Wrapper>
+			)}
 			{attributes &&
 				attributes.map((attribute) => {
 					const { _id, display_name, query_name, collapsed, multi_select, values } = attribute;

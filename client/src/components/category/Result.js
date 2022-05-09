@@ -1,4 +1,4 @@
-import { shape, number, string, array, object, func } from 'prop-types';
+import { oneOfType, arrayOf, shape, number, string, array, object, func } from 'prop-types';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, Alert, Pagination, Chip } from '@mui/material';
 import { HelpOutline } from '@mui/icons-material';
@@ -43,6 +43,16 @@ const propTypes = {
 		name: string,
 		banners: array,
 	}),
+	chips: oneOfType([
+		array,
+		arrayOf(
+			shape({
+				key: string,
+				value: string,
+				display: string,
+			})
+		),
+	]),
 	result: shape({
 		products: array,
 		totalProduct: number,
@@ -52,18 +62,12 @@ const propTypes = {
 		}),
 	}),
 	handleNavigate: func,
-	getDisplayFilteredName: func,
+	handleClearFiltered: func,
 };
 
-const Result = ({ queryParams, parts, result, handleNavigate, getDisplayFilteredName }) => {
+const Result = ({ queryParams, parts, chips, result, handleNavigate, handleClearFiltered }) => {
 	const { name, banners } = parts;
 	const { products, totalProduct, pagination } = result;
-	let chips = [];
-	// stupid code, find other solutions if free
-	Object.keys(queryParams).map((key) => {
-		const values = getDisplayFilteredName(key, queryParams[key]);
-		return values.map((value) => chips.push(value));
-	});
 	return (
 		<RootStyle>
 			<Wrapper direction="row" alignItems="center" spacing={1} p={2}>
@@ -93,12 +97,35 @@ const Result = ({ queryParams, parts, result, handleNavigate, getDisplayFiltered
 						</FilterText>
 					))}
 				</FilterWrapper>
-				{chips.length > 0 && (
+				{chips && chips.length > 0 && (
 					<Stack direction="row" alignItems="center" spacing={1} sx={{ m: 2 }}>
-						{chips.map((chip, index) => (
-							<Chip key={index} label={chip.display} color="error" size="small" onDelete={() => {}} />
-						))}
-						<Typography variant="subtitle2" color="error" onClick={() => {}} sx={{ cursor: 'pointer' }}>
+						{chips.map((chip, index) => {
+							const { key, value, display } = chip;
+							return (
+								<Chip
+									key={index}
+									label={display}
+									color="error"
+									size="small"
+									onDelete={() => handleNavigate(key, value, true, true)}
+								/>
+							);
+						})}
+						<Typography
+							variant="subtitle2"
+							color="error"
+							sx={{ cursor: 'pointer' }}
+							onClick={() =>
+								handleClearFiltered(
+									chips.reduce((keys, chip) => {
+										if (!keys.includes(chip.key)) {
+											keys.push(chip.key);
+										}
+										return keys;
+									}, [])
+								)
+							}
+						>
 							Remove all
 						</Typography>
 					</Stack>

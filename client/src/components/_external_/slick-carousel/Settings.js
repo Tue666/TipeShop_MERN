@@ -63,7 +63,7 @@ export const settingBanners = {
 	slidesToShow: 1,
 	slidesToScroll: 1,
 	autoplay: true,
-	autoplaySpeed: 2500,
+	autoplaySpeed: 6000,
 	prevArrow: (
 		<CustomeBannerArrow side="back">
 			<ArrowBackIosOutlined />
@@ -117,7 +117,7 @@ export const settingProductSection = {
 	slidesToShow: 4,
 	slidesToScroll: 1,
 	autoplay: true,
-	autoplaySpeed: 2500,
+	autoplaySpeed: 6000,
 	prevArrow: (
 		<CustomeSectionArrow side="back">
 			<NavigateBefore />

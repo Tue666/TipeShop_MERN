@@ -68,6 +68,7 @@ class ProductsAPI {
 			// rating
 			const [fromStar, toStar] = rating ? [rating - 0.9, rating] : [0, 5];
 
+			let chips = [];
 			let filterIds = [];
 			await Promise.all(
 				Object.keys(externalFilter).map(async (key) => {
@@ -79,6 +80,7 @@ class ProductsAPI {
 								query_value: value,
 							});
 							attributeValue && filterIds.push(attributeValue._id);
+							attributeValue && chips.push({ key, value, display: attributeValue.display_value });
 						})
 					);
 				})
@@ -229,10 +231,70 @@ class ProductsAPI {
 			const count = total[0] ? total[0] : 0;
 			const totalPage = Math.ceil(count / take);
 
+			// switch to dynamic by filtered product if have time
+			const staticFilterRating = {
+				_id: '_1',
+				query_name: 'rating',
+				display_name: 'Rating',
+				collapsed: 5,
+				multi_select: false,
+				values: [
+					{
+						_id: '_1.1',
+						display_value: '5 Stars',
+						query_value: '5',
+					},
+					{
+						_id: '_1.2',
+						display_value: '4 Stars',
+						query_value: '4',
+					},
+					{
+						_id: '_1.3',
+						display_value: '3 Stars',
+						query_value: '3',
+					},
+				],
+			};
+			const staticFilterPrice = {
+				_id: '_2',
+				query_name: 'price',
+				display_name: 'Price',
+				collapsed: 5,
+				multi_select: false,
+				values: [
+					{
+						_id: '_2.1',
+						display_value: 'Less than 400.000',
+						query_value: '0,400000',
+					},
+					{
+						_id: '_2.2',
+						display_value: 'From 400.000 to 13.500.000',
+						query_value: '400000,13500000',
+					},
+					{
+						_id: '_2.3',
+						display_value: 'From 13.500.000 to 32.500.000',
+						query_value: '13500000,32500000',
+					},
+					{
+						_id: '_2.4',
+						display_value: 'More than 32.500.000',
+						query_value: '32500000,10000000000',
+					},
+				],
+			};
+
 			res.json({
 				products,
 				totalProduct: count,
-				filter: filter[0],
+				filter: {
+					rating: staticFilterRating,
+					price: staticFilterPrice,
+					attributes: filter[0],
+				},
+				chips,
 				pagination: {
 					totalPage,
 					page,

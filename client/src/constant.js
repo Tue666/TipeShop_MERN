@@ -4,5 +4,5 @@ export const HEADER_HEIGHT = '140px';
 export const CARD_WIDTH = '220px';
 
 export const CATEGORY_PAGE = {
-	FILTER_WIDTH: '270px',
+	FILTER_WIDTH: '250px',
 };

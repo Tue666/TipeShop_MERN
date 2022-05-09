@@ -24,16 +24,17 @@ const Category = () => {
 			const { children, ...parts } = categoryResponse;
 			const productResponse = await productApi.findFilteredProducts({
 				categoryIds: children.map((el) => el._id),
-				take: 1,
+				take: 24,
 				query: Object.fromEntries(searchParams),
 			});
-			const { products, totalProduct, filter, pagination } = productResponse;
+			const { products, totalProduct, filter, chips, pagination } = productResponse;
 			setCategory({
 				parts,
 				filtered: {
 					sub: children,
-					attributes: filter,
+					...filter,
 				},
+				chips,
 				result: {
 					products,
 					totalProduct,
@@ -66,12 +67,14 @@ const Category = () => {
 			search: `?${searchParams}`,
 		});
 	};
-
-	const getDisplayFilteredName = (key, values) => {
-		const attribute = category?.filtered.attributes.find((attribute) => attribute.query_name === key);
-		return attribute?.values
-			.filter((value) => values.indexOf(value.query_value) > -1)
-			.map((el) => ({ display: el.display_value, value: el.query_value }));
+	const handleClearFiltered = (keys, resetPage = true) => {
+		// reset page if needed or otherwise
+		resetPage && searchParams.has('page') && searchParams.delete('page');
+		keys.map((key) => searchParams.delete(key));
+		navigate({
+			pathname,
+			search: `?${searchParams}`,
+		});
 	};
 	return (
 		<Page title={`Buy online ${category?.parts.name || 'at'} good price | Tipe Shop`}>
@@ -95,9 +98,10 @@ const Category = () => {
 							<Result
 								queryParams={Object.fromEntries(searchParams)}
 								parts={category.parts}
+								chips={category.chips}
 								result={category.result}
 								handleNavigate={handleNavigate}
-								getDisplayFilteredName={getDisplayFilteredName}
+								handleClearFiltered={handleClearFiltered}
 							/>
 						</Stack>
 					</Fragment>
@@ -139,7 +143,7 @@ const Category = () => {
 };
 
 const FilterSkeleton = styled(Stack)(({ theme }) => ({
-	width: '262px',
+	width: '250px',
 	borderRight: `2px solid ${theme.palette.background.default}`,
 	backgroundColor: theme.palette.background.paper,
 	padding: '10px',
@@ -151,7 +155,7 @@ const FilterSkeleton = styled(Stack)(({ theme }) => ({
 
 const ResultSkeleton = styled(Stack)(({ theme }) => ({
 	padding: '15px',
-	width: 'calc(100% - 262px)',
+	width: 'calc(100% - 250px)',
 	backgroundColor: theme.palette.background.paper,
 	[theme.breakpoints.down('sm')]: {
 		width: '100%',
