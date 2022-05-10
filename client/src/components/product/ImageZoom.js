@@ -1,17 +1,36 @@
+import { array } from 'prop-types';
+import { useState } from 'react';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography } from '@mui/material';
 
 // components
 import ImageLoader from '../ImageLoader';
+// config
+import { apiConfig } from '../../config';
 // constant
 import { PRODUCT_PAGE } from '../../constant';
 
-const ImageZoom = () => {
+const propTypes = {
+	images: array,
+};
+
+const ImageZoom = ({ images }) => {
+	const [index, setIndex] = useState(0);
+	const shownCount = 4;
+	const imageShow = images.slice(0, shownCount + 1); // Get first 4 images for showing;
+
+	const handleSwitchImage = (i) => {
+		if (i === shownCount) {
+			console.log('Show All Images');
+			return;
+		}
+		setIndex(i);
+	};
 	return (
 		<RootStyle>
 			<ImageLoader
-				src="https://salt.tikicdn.com/cache/400x400/ts/product/58/30/9a/e74d0f77b9b0fd698d08841f58de8223.jpg"
-				alt=""
+				src={`${apiConfig.image_url}/${imageShow[index]}`}
+				alt={imageShow[index]}
 				sx={{
 					height: '370px',
 					cursor: 'pointer',
@@ -22,17 +41,11 @@ const ImageZoom = () => {
 				}}
 			/>
 			<Stack direction="row" spacing={1}>
-				{[
-					'https://salt.tikicdn.com/cache/400x400/ts/product/58/30/9a/e74d0f77b9b0fd698d08841f58de8223.jpg',
-					'https://salt.tikicdn.com/cache/400x400/ts/product/58/30/9a/e74d0f77b9b0fd698d08841f58de8223.jpg',
-					'https://salt.tikicdn.com/cache/400x400/ts/product/58/30/9a/e74d0f77b9b0fd698d08841f58de8223.jpg',
-					'https://salt.tikicdn.com/cache/400x400/ts/product/58/30/9a/e74d0f77b9b0fd698d08841f58de8223.jpg',
-					'https://salt.tikicdn.com/cache/400x400/ts/product/58/30/9a/e74d0f77b9b0fd698d08841f58de8223.jpg',
-				].map((image, index) => (
-					<MiniImage key={index}>
+				{imageShow.map((image, i) => (
+					<MiniImage key={i} className={index === i ? 'active' : ''} onClick={() => handleSwitchImage(i)}>
 						<ImageLoader
-							src={image}
-							alt=""
+							src={`${apiConfig.image_url}/${image}`}
+							alt={image}
 							sx={{
 								width: '100%',
 								height: '100%',
@@ -41,7 +54,7 @@ const ImageZoom = () => {
 								borderRadius: '5px',
 							}}
 						/>
-						{index === 4 && <ViewAllText>View all images</ViewAllText>}
+						{i === shownCount && <ViewAllText>View all images</ViewAllText>}
 					</MiniImage>
 				))}
 			</Stack>
@@ -93,5 +106,7 @@ const ViewAllText = styled(Typography)({
 		backgroundColor: 'rgba(0, 0, 0, 0.65)',
 	},
 });
+
+ImageZoom.propTypes = propTypes;
 
 export default ImageZoom;

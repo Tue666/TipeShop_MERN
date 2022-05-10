@@ -1,6 +1,12 @@
 import axiosInstance from './axiosInstance';
 
 const productApi = {
+	// [GET] /products/:_id
+	findById: (_id) => {
+		const url = `/products/${_id}`;
+		return axiosInstance.get(url);
+	},
+
 	// [GET] /products/:page/:number
 	findAllWithPagination: (page, number) => {
 		const url = `/products/${page}/${number}`;

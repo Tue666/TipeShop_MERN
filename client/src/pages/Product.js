@@ -1,10 +1,22 @@
-import { Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
+import { useParams } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Container, Stack, Skeleton, LinearProgress } from '@mui/material';
+import {
+	ImportContacts,
+	FileCopy,
+	Article,
+	Description as DescriptionIcon,
+	Star,
+	More,
+} from '@mui/icons-material';
 
+// apis
+import productApi from '../apis/productApi';
 // components
 import Page from '../components/Page';
 import Teleport from '../components/Teleport';
+import { combineLink } from '../components/ScrollToTop';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ProductSection from '../components/ProductSection';
 import ProductList from '../components/ProductList';
@@ -12,36 +24,93 @@ import { ImageZoom, Information, Specification, Description, Review } from '../c
 // constant
 import { HEADER_HEIGHT } from '../constant';
 
-const Product = () => {
-	return (
-		<Page title="X | Tipe Shop">
-			<Container>
-				<Teleport />
-				<Breadcrumbs header="X" links={[]} />
-				<Wrapper id="information" sx={{ p: 0, mt: 0 }}>
-					<Stack direction={{ xs: 'column', sm: 'row', lg: 'row' }} justifyContent="space-between">
-						<ImageZoom />
-						<Information />
-					</Stack>
-				</Wrapper>
-				<Wrapper>
-					<Title>Similar Products</Title>
-					<ProductSection />
-				</Wrapper>
-				<Wrapper id="specifications">
-					<Title>Specifications</Title>
-					<Specification />
-				</Wrapper>
-				<Wrapper id="descriptions">
-					<Title>Product Description</Title>
-					<Description />
-				</Wrapper>
-				<Wrapper id="review">
-					<Title>Ratings - Reviews from customers</Title>
-					<Review />
-				</Wrapper>
+const actions = [
+	{ icon: combineLink('information', <ImportContacts />), name: 'Product information' },
+	{ icon: combineLink('similar-section', <FileCopy />), name: 'Similar products' },
+	{ icon: combineLink('specifications', <Article />), name: 'Specifications' },
+	{ icon: combineLink('description', <DescriptionIcon />), name: 'Product description' },
+	{ icon: combineLink('review', <Star />), name: 'Ratings - Reviews from customers' },
+	{ icon: combineLink('product-list', <More />), name: 'Discover more for you' },
+];
 
-				{1 === 2 && (
+const Product = () => {
+	const [product, setProduct] = useState(null);
+	const { _id } = useParams();
+	useEffect(() => {
+		const getProduct = async () => {
+			const productResponse = await productApi.findById(_id);
+			const {
+				name,
+				rating_average,
+				review_count,
+				quantity_sold,
+				original_price,
+				price,
+				discount_rate,
+				attribute_values,
+				warranty_infor,
+				...parts
+			} = productResponse;
+			setProduct({
+				...parts,
+				information: {
+					name,
+					rating_average,
+					review_count,
+					quantity_sold,
+					discount_rate,
+					original_price,
+					price,
+					attribute_values,
+					warranty_infor,
+				},
+			});
+		};
+		getProduct();
+	}, [_id]);
+	return (
+		<Page title={`${product?.information.name || ''} | Tipe Shop`}>
+			<Container>
+				<Teleport actions={actions} />
+				{product && (
+					<Fragment>
+						<Breadcrumbs
+							header={product.information.name}
+							links={product.breadcrumbs.map((item) => ({
+								title: item.name,
+								href: `/${item.slug}/cid${item._id}`,
+							}))}
+						/>
+						<Wrapper id="information" sx={{ p: 0, mt: 0 }}>
+							<Stack direction={{ xs: 'column', sm: 'row', lg: 'row' }} justifyContent="space-between">
+								<ImageZoom images={product.images} />
+								<Information information={product.information} />
+							</Stack>
+						</Wrapper>
+						<Wrapper>
+							<Title>Similar Products</Title>
+							<ProductSection id="similar-section" />
+						</Wrapper>
+						{product.specifications.length > 0 && (
+							<Wrapper id="specifications">
+								<Title>Specifications</Title>
+								<Specification specifications={product.specifications} />
+							</Wrapper>
+						)}
+						{product.description && (
+							<Wrapper id="description">
+								<Title>Product Description</Title>
+								<Description description={product.description} />
+							</Wrapper>
+						)}
+						<Wrapper id="review">
+							<Title>Ratings - Reviews from customers</Title>
+							<Review />
+						</Wrapper>
+					</Fragment>
+				)}
+
+				{!product && (
 					<Fragment>
 						<Wrapper>
 							<Stack direction={{ xs: 'column', sm: 'row', lg: 'row' }} justifyContent="space-between">

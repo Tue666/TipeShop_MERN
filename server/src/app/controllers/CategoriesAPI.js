@@ -27,7 +27,6 @@ class CategoriesAPI {
 			let { _id } = req.params;
 			_id = parseInt(_id);
 
-			// get parent categories
 			const result = await Category.aggregate([
 				{
 					$match: {

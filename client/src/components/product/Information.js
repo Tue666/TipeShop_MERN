@@ -1,76 +1,160 @@
+import { string, number, shape, oneOfType, array, arrayOf } from 'prop-types';
+import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-scroll';
 import { styled } from '@mui/material/styles';
-import { Stack, Typography } from '@mui/material';
+import { Stack, Typography, Chip } from '@mui/material';
 
 // components
 import Stars from '../Stars';
 import QuantityInput from './QuantityInput';
+// utils
+import { toVND } from '../../utils/formatMoney';
+// config
+import { apiConfig } from '../../config';
 // constant
-import { PRODUCT_PAGE } from '../../constant';
+import { PRODUCT_PAGE, HEADER_HEIGHT } from '../../constant';
 
 const BODY_INTEND = {
 	LEFT_WIDTH: '260px',
 };
 
-const Information = () => {
+const propTypes = {
+	information: shape({
+		name: string,
+		rating_average: number,
+		review_count: number,
+		quantity_sold: shape({
+			text: string,
+			value: number,
+		}),
+		discount_rate: number,
+		original_price: number,
+		price: number,
+		attribute_values: oneOfType([
+			array,
+			arrayOf(
+				shape({
+					_id: string,
+					attribute_query_name: string,
+					display_value: string,
+					query_value: string,
+				})
+			),
+		]),
+		warranty_infor: oneOfType([
+			array,
+			arrayOf(
+				shape({
+					name: string,
+					value: string,
+				})
+			),
+		]),
+	}),
+};
+
+const Information = ({ information }) => {
+	const {
+		name,
+		rating_average,
+		review_count,
+		quantity_sold,
+		discount_rate,
+		original_price,
+		price,
+		attribute_values,
+		warranty_infor,
+	} = information;
+	const navigate = useNavigate();
+
+	const handleTagNavigate = (key, value) => {
+		const pathname = '/search';
+		navigate({
+			pathname,
+			search: `?${key}=${value}`,
+		});
+	};
 	return (
 		<RootStyle>
-			<Typography variant="h6">Điện thoại POCO M3 Pro 5G (6GB/128GB) - Hàng chính hãng</Typography>
+			<Typography variant="h6">{name}</Typography>
 			<Stack spacing={1}>
 				<Stack direction="row" alignItems="center" spacing={1}>
-					<Stars total={5} rating={5} sx={{ fontSize: '18px' }} />
-					<Typography variant="subtitle1" sx={{ fontSize: '14px', cursor: 'pointer' }}>
-						(View 100 reviews)
-					</Typography>
-					<DivideLine />
-					<Typography variant="subtitle1" sx={{ fontSize: '14px' }}>
-						657 sold
-					</Typography>
+					{rating_average > 0 && <Stars total={5} rating={rating_average} sx={{ fontSize: '18px' }} />}
+					{review_count > 0 && (
+						<Link to="review" duration={500} offset={parseInt(HEADER_HEIGHT.slice(0, -2)) * -1}>
+							<Typography variant="subtitle1" sx={{ fontSize: '14px', cursor: 'pointer' }}>
+								(View {review_count} reviews)
+							</Typography>
+						</Link>
+					)}
+					{quantity_sold.value > 0 && (rating_average > 0 || review_count > 0) && <DivideLine />}
+					{quantity_sold.value > 0 && (
+						<Typography variant="subtitle1" sx={{ fontSize: '14px' }}>
+							{quantity_sold.text}
+						</Typography>
+					)}
 				</Stack>
 				<Stack direction="row" spacing={1}>
 					<Stack spacing={1} sx={{ flex: '1 1 0%' }}>
-						<PriceWrapper tag="sale">
+						<PriceWrapper tag={discount_rate !== 0 ? 'sale' : 'normal'}>
 							<Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-								4.000.000
+								{discount_rate === 0 ? toVND(original_price) : toVND(price)}
 							</Typography>
-							<Typography component="span">
-								<Typography
-									component="span"
-									variant="subtitle1"
-									sx={{ color: '#efefef', fontSize: '15px', textDecoration: 'line-through', mx: '5px' }}
-								>
-									4.400.000
+							{discount_rate !== 0 && (
+								<Typography component="span">
+									<Typography
+										component="span"
+										variant="subtitle1"
+										sx={{ color: '#efefef', fontSize: '15px', textDecoration: 'line-through', mx: '5px' }}
+									>
+										{toVND(original_price)}
+									</Typography>
+									-{discount_rate}%
 								</Typography>
-								-10%
-							</Typography>
+							)}
 						</PriceWrapper>
 						<QuantityInput />
 					</Stack>
 					<IntendWrapper>
-						<Wrapper>
-							<Stack direction="row" justifyContent="space-between">
-								<Typography variant="caption">Seller</Typography>
-								<Typography variant="subtitle2">Tiki Trading</Typography>
-							</Stack>
-						</Wrapper>
-						<Wrapper>
-							<Stack direction="row" justifyContent="space-between" mb={1}>
-								<Typography variant="caption">Warranty period</Typography>
-								<Typography variant="subtitle2">12-month</Typography>
-							</Stack>
-							<Stack direction="row" justifyContent="space-between" mb={1}>
-								<Typography variant="caption">Warranty form</Typography>
-								<Typography variant="subtitle2">Electronic</Typography>
-							</Stack>
-							<Stack direction="row" justifyContent="space-between" mb={1}>
-								<Typography variant="caption">Warranty place</Typography>
-								<Typography variant="subtitle2">Seller</Typography>
-							</Stack>
-						</Wrapper>
+						{attribute_values && attribute_values.length > 0 && (
+							<Wrapper>
+								<Typography variant="caption">Tags:</Typography>
+								<Stack direction="row" sx={{ flexWrap: 'wrap' }}>
+									{attribute_values.map((value) => {
+										const { _id, attribute_query_name, display_value, query_value } = value;
+										return (
+											<Chip
+												key={_id}
+												label={display_value}
+												variant="contained"
+												color="error"
+												size="small"
+												sx={{ m: '3px' }}
+												onClick={() => handleTagNavigate(attribute_query_name, query_value)}
+											/>
+										);
+									})}
+								</Stack>
+							</Wrapper>
+						)}
+						{warranty_infor && warranty_infor.length > 0 && (
+							<Wrapper>
+								{warranty_infor.map((warranty, index) => {
+									const { name, value } = warranty;
+									return (
+										<Stack direction="row" justifyContent="space-between" mb={1} key={index}>
+											<Typography variant="caption">{name}</Typography>
+											<Typography variant="subtitle2">{value}</Typography>
+										</Stack>
+									);
+								})}
+							</Wrapper>
+						)}
 						<Wrapper sx={{ display: 'flex' }}>
 							<Stack direction="column" alignItems="center" spacing={1} mx={1}>
 								<img
-									src="https://salt.tikicdn.com/ts/upload/2c/48/44/720434869e103b03aaaf1a104d91ad25.png"
-									alt=""
+									src={`${apiConfig.image_url}/_external_/icons/defense_check.png`}
+									alt="Refund"
 									style={{ width: '32px', height: '32px' }}
 								/>
 								<Typography sx={{ textAlign: 'center', fontSize: '13px' }}>
@@ -79,8 +163,8 @@ const Information = () => {
 							</Stack>
 							<Stack direction="column" alignItems="center" spacing={1} mx={1}>
 								<img
-									src="https://salt.tikicdn.com/ts/upload/4b/a1/23/1606089d5423e5cba05e3820ad39708e.png"
-									alt=""
+									src={`${apiConfig.image_url}/_external_/icons/like.png`}
+									alt="Check"
 									style={{ width: '32px', height: '32px' }}
 								/>
 								<Typography sx={{ textAlign: 'center', fontSize: '13px' }}>
@@ -89,8 +173,8 @@ const Information = () => {
 							</Stack>
 							<Stack direction="column" alignItems="center" spacing={1} mx={1}>
 								<img
-									src="https://salt.tikicdn.com/ts/upload/63/75/6a/144ada409519d72e2978ad2c61bc02a7.png"
-									alt=""
+									src={`${apiConfig.image_url}/_external_/icons/back.png`}
+									alt="Return"
 									style={{ width: '32px', height: '32px' }}
 								/>
 								<Typography sx={{ textAlign: 'center', fontSize: '13px' }}>
@@ -143,5 +227,7 @@ const Wrapper = styled('div')(({ theme }) => ({
 		borderBottom: `1px solid ${theme.palette.background.default}`,
 	},
 }));
+
+Information.propTypes = propTypes;
 
 export default Information;

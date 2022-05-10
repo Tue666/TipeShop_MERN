@@ -7,12 +7,89 @@ const AttributeValue = require('../models/AttributeValue');
 const cloudinaryUpload = require('../../utils/cloudinaryUpload');
 
 class ProductsAPI {
+	// [GET] /products/:_id
+	/*
+		_id: ObjectId as String
+	*/
+	async findById(req, res, next) {
+		try {
+			const { _id } = req.params;
+
+			const result = await Product.aggregate([
+				{
+					$match: {
+						_id: mongoose.Types.ObjectId(_id),
+						inventory_status: 'availabel',
+					},
+				},
+				{
+					$graphLookup: {
+						from: 'categories',
+						startWith: '$category',
+						connectFromField: 'parent_id',
+						connectToField: '_id',
+						as: 'breadcrumbs',
+					},
+				},
+				{
+					$lookup: {
+						from: 'attributevalues',
+						localField: 'attribute_values',
+						foreignField: '_id',
+						as: 'attribute_values',
+					},
+				},
+				{
+					$lookup: {
+						from: 'warranties',
+						localField: 'warranty_infor',
+						foreignField: '_id',
+						as: 'warranty_infor',
+					},
+				},
+				{
+					$lookup: {
+						from: 'specifications',
+						localField: 'specifications',
+						foreignField: '_id',
+						as: 'specifications',
+					},
+				},
+				{
+					$project: {
+						'attribute_values.__v': 0,
+						'warranty_infor._id': 0,
+						'warranty_infor.createdAt': 0,
+						'warranty_infor.updatedAt': 0,
+						'warranty_infor.__v': 0,
+						'specifications._id': 0,
+						'specifications.createdAt': 0,
+						'specifications.updatedAt': 0,
+						'specifications.__v': 0,
+						'breadcrumbs.image': 0,
+						'breadcrumbs.banners': 0,
+						'breadcrumbs.parent_id': 0,
+						'breadcrumbs.status': 0,
+						'breadcrumbs.createdAt': 0,
+						'breadcrumbs.updatedAt': 0,
+						'breadcrumbs.__v': 0,
+					},
+				},
+			]);
+
+			res.status(200).json(result[0]);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [GET] /products/:page/:number
 	/*
 		page: Number,
 		number: Number
 	*/
-	async findAllWithPagination(req, res) {
+	async findAllWithPagination(req, res, next) {
 		try {
 			let { page, number } = req.params;
 			page = parseInt(page);

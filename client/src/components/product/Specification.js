@@ -1,17 +1,31 @@
+import { string, oneOfType, array, arrayOf, shape } from 'prop-types';
 import { styled } from '@mui/material/styles';
 
-const Specification = () => {
+const propTypes = {
+	specifications: oneOfType([
+		array,
+		arrayOf(
+			shape({
+				name: string,
+				value: string,
+			})
+		),
+	]),
+};
+
+const Specification = ({ specifications }) => {
 	return (
 		<Table>
 			<tbody>
-				<tr>
-					<td className="title">Bluetooth</td>
-					<td>Bluetooth v5.0</td>
-				</tr>
-				<tr>
-					<td className="title">Bluetooth</td>
-					<td>Bluetooth v5.0</td>
-				</tr>
+				{specifications.map((specification, index) => {
+					const { name, value } = specification;
+					return (
+						<tr key={index}>
+							<td className="title">{name}</td>
+							<td>{value}</td>
+						</tr>
+					);
+				})}
 			</tbody>
 		</Table>
 	);
@@ -30,5 +44,7 @@ const Table = styled('table')(({ theme }) => ({
 		padding: '15px',
 	},
 }));
+
+Specification.propTypes = propTypes;
 
 export default Specification;
