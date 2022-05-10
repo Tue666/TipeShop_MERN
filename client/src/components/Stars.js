@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { Fragment } from 'react';
+import { Stack } from '@mui/material';
 import { StarRounded, StarHalfRounded } from '@mui/icons-material';
 
 const propTypes = {
@@ -8,7 +9,7 @@ const propTypes = {
 };
 
 const Stars = ({ total, rating, sx }) => (
-	<div>
+	<Stack direction="row" alignItems="center">
 		{[...Array(total)].map((e, i) => (
 			<Fragment key={i}>
 				{i + 1 <= Math.floor(rating) ? (
@@ -20,7 +21,7 @@ const Stars = ({ total, rating, sx }) => (
 				)}
 			</Fragment>
 		))}
-	</div>
+	</Stack>
 );
 
 Stars.propTypes = propTypes;

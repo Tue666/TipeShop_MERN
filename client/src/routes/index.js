@@ -21,6 +21,7 @@ const Router = () => {
 			element: <MainLayout />,
 			children: [
 				{ path: '', element: <Home /> },
+				{ path: '/:slug/pid:_id', element: <Product /> },
 				{ path: '/:slug/cid:_id', element: <Category /> },
 			],
 		},
@@ -39,5 +40,6 @@ export default Router;
 
 // Main
 const Home = PageLoader(lazy(() => import('../pages/Home')));
+const Product = PageLoader(lazy(() => import('../pages/Product')));
 const Category = PageLoader(lazy(() => import('../pages/Category')));
 const NotFound = PageLoader(lazy(() => import('../pages/NotFound')));

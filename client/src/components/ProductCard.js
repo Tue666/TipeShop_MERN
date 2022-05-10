@@ -1,16 +1,7 @@
 import { shape, number, string, array } from 'prop-types';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
-import {
-	Stack,
-	Card,
-	CardContent,
-	CardActions,
-	Typography,
-	IconButton,
-	Tooltip,
-} from '@mui/material';
-import { AddShoppingCart, FindInPage } from '@mui/icons-material';
+import { Stack, Card, CardContent, Typography, Tooltip } from '@mui/material';
 
 // components
 import ImageLoader from './ImageLoader';
@@ -60,7 +51,7 @@ const ProductCard = ({ product }) => {
 	} = product;
 	return (
 		<RootStyle>
-			<Link to={`${slug}/pid${_id}`}>
+			<Link to={`/${slug}/pid${_id}`}>
 				<ImageLoader
 					src={`${apiConfig.image_url}/${images[0]}`}
 					alt={name}
@@ -68,7 +59,7 @@ const ProductCard = ({ product }) => {
 						borderRadius: '5px',
 						transition: '0.3s',
 						'&:hover': {
-							transform: 'scale(1.1)',
+							transform: 'scale(1.01)',
 						},
 					}}
 					sxImg={{
@@ -102,16 +93,6 @@ const ProductCard = ({ product }) => {
 					</Stack>
 				</CardContent>
 			</Link>
-			<CardActions>
-				<IconButton>
-					<AddShoppingCart />
-				</IconButton>
-				<Link to={`${slug}/pid${_id}`}>
-					<IconButton>
-						<FindInPage />
-					</IconButton>
-				</Link>
-			</CardActions>
 		</RootStyle>
 	);
 };
@@ -123,7 +104,7 @@ const RootStyle = styled(Card)(({ theme }) => ({
 	margin: '1px',
 	padding: '10px',
 	backgroundImage: 'none',
-	boxShadow: '3px 2px 5px rgba(180,180,180,0.1)',
+	boxShadow: 'none',
 	'&:hover': {
 		boxShadow: 'rgb(0 0 0 / 10%) 0px 0px 20px',
 		zIndex: 1,

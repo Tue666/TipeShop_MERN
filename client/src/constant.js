@@ -6,3 +6,8 @@ export const CARD_WIDTH = '220px';
 export const CATEGORY_PAGE = {
 	FILTER_WIDTH: '250px',
 };
+
+export const PRODUCT_PAGE = {
+	IMAGE_ZOOM_WIDTH: '450px',
+	COMMENT_WIDTH: '335px',
+};

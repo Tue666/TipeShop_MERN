@@ -184,15 +184,15 @@ const RootStyle = styled(Stack)(({ theme }) => ({
 const Wrapper = styled('div')(({ theme }) => ({
 	padding: '10px',
 	backgroundColor: theme.palette.background.paper,
-	fontSize: '14px',
 	borderBottom: `2px solid ${theme.palette.background.default}`,
 }));
 
 const Title = styled('span')({
 	fontWeight: 'bold',
-	fontSize: '15px',
+	fontSize: '13px',
 	display: 'block',
 	paddingBottom: '10px',
+	textTransform: 'uppercase',
 });
 
 const Text = styled('span')(({ theme }) => ({
