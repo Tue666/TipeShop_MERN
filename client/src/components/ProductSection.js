@@ -1,42 +1,21 @@
-import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
+import { string, array, object } from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Stack, Typography, Skeleton } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 
-// apis
-import productApi from '../apis/productApi';
 // _external
 import Carousel from './_external_/slick-carousel/Carousel';
 import { settingProductSection } from './_external_/slick-carousel/Settings';
 // components
 import ProductCard from './ProductCard';
 
-const SkeletonLoad = [...Array(6)].map((_, index) => (
-	<Stack key={index} sx={{ p: 2 }}>
-		<Skeleton variant="rectangular" width={180} height={180} />
-		<Skeleton variant="text" height={45} />
-		<Skeleton variant="text" width={150} />
-		<Skeleton variant="text" width={130} />
-	</Stack>
-));
-
 const propTypes = {
-	id: PropTypes.string,
-	type: PropTypes.string,
-	title: PropTypes.string,
-	sx: PropTypes.object,
+	id: string,
+	title: string,
+	products: array,
+	sx: object,
 };
 
-const ProductSection = ({ id, type, title, sx }) => {
-	const limit = 10;
-	const [products, setProducts] = useState(null);
-	useEffect(() => {
-		const getProducts = async () => {
-			let products = await productApi.findRankingProducts(type, limit);
-			setProducts(products);
-		};
-		getProducts();
-	}, [type]);
+const ProductSection = ({ id, title, products, sx }) => {
 	return (
 		<Stack id={id} sx={{ ...sx }}>
 			<Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -49,7 +28,6 @@ const ProductSection = ({ id, type, title, sx }) => {
 			</Stack>
 			<Carousel settings={settingProductSection}>
 				{products && products.map((product) => <ProductCard key={product._id} product={product} />)}
-				{!products && SkeletonLoad}
 			</Carousel>
 		</Stack>
 	);

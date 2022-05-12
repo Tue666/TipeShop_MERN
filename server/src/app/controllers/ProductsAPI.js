@@ -383,6 +383,38 @@ class ProductsAPI {
 		}
 	}
 
+	// [GET] /products/similar/:_id/:number
+	/*
+		_id: ObjectId as String
+		number: Number,
+	*/
+	async findSimilarProducts(req, res, next) {
+		try {
+			let { _id, number } = req.params;
+			number = parseInt(number);
+
+			const product = await Product.findOne({
+				_id,
+				inventory_status: 'availabel',
+			}).select('category');
+			if (!product) {
+				next({ status: 404, msg: 'Product not found!' });
+				return;
+			}
+
+			const products = await Product.find({
+				_id: { $ne: _id },
+				category: product.category,
+			})
+				.select('name images discount discount_rate original_price price slug quantity_sold rating_average')
+				.limit(number);
+			res.status(200).json(products);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [GET] /products/ranking/:type/:number
 	/*
 		type: String [sold, view, favorite],

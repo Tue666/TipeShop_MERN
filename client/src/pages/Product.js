@@ -35,10 +35,12 @@ const actions = [
 
 const Product = () => {
 	const [product, setProduct] = useState(null);
+	const [similarSection, setSimilarSection] = useState(null);
 	const { _id } = useParams();
 	useEffect(() => {
 		const getProduct = async () => {
 			const productResponse = await productApi.findById(_id);
+			const similarProducts = await productApi.findSimilarProducts(_id, 10);
 			const {
 				name,
 				rating_average,
@@ -65,6 +67,7 @@ const Product = () => {
 					warranty_infor,
 				},
 			});
+			setSimilarSection(similarProducts);
 		};
 		getProduct();
 	}, [_id]);
@@ -87,10 +90,12 @@ const Product = () => {
 								<Information information={product.information} />
 							</Stack>
 						</Wrapper>
-						<Wrapper>
-							<Title>Similar Products</Title>
-							<ProductSection id="similar-section" />
-						</Wrapper>
+						{similarSection && similarSection.length > 0 && (
+							<Wrapper>
+								<Title>Similar Products</Title>
+								<ProductSection id="similar-section" products={similarSection} />
+							</Wrapper>
+						)}
 						{product.specifications.length > 0 && (
 							<Wrapper id="specifications">
 								<Title>Specifications</Title>

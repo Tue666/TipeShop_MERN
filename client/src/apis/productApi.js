@@ -21,6 +21,12 @@ const productApi = {
 		});
 	},
 
+	// [GET] /products/similar/:_id/:number
+	findSimilarProducts: (_id, number) => {
+		const url = `/products/similar/${_id}/${number}`;
+		return axiosInstance.get(url);
+	},
+
 	// [GET] /products/ranking/:type/:number
 	findRankingProducts: (type, number) => {
 		const url = `/products/ranking/${type}/${number}`;
