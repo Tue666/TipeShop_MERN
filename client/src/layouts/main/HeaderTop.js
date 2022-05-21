@@ -1,12 +1,17 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Stack, Link } from '@mui/material';
 
 // components
 import Hidden from '../../components/Hidden';
+// hooks
+import useModal from '../../hooks/useModal';
 
 const HeaderTop = () => {
+	const { openModal, keys } = useModal();
+	const handleAuthentication = () => {
+		openModal(keys.authentication);
+	};
 	return (
 		<React.Fragment>
 			<Hidden width="mdDown">
@@ -26,19 +31,14 @@ const HeaderTop = () => {
 						<Linking component="a" href="https://www.facebook.com/exe.shiro" target="_blank">
 							<i className="bi bi-question-circle"></i> Support
 						</Linking>
-						<Linking component={RouterLink} to="/" sx={{ ml: '20px', borderRight: '1px solid #ccc' }}>
-							Sign in
-						</Linking>
-						<Linking component={RouterLink} to="/">
-							Sign up
-						</Linking>
+						<Label onClick={handleAuthentication}>Sign in / Sign up</Label>
 					</Stack>
 				</Stack>
 			</Hidden>
 			<Hidden width="mdUp">
-				<LabelIcon>
+				<Label>
 					<i className="bi bi-list"></i>
-				</LabelIcon>
+				</Label>
 			</Hidden>
 		</React.Fragment>
 	);
@@ -58,11 +58,11 @@ const Linking = styled(Link)(({ theme }) => ({
 	},
 }));
 
-const LabelIcon = styled('span')(({ theme }) => ({
+const Label = styled('span')(({ theme }) => ({
 	padding: '0px 10px',
 	fontWeight: '500',
 	transition: '0.3s',
-	fontSize: '14px',
+	fontSize: '13px',
 	cursor: 'pointer',
 	borderBottom: '1px solid transparent',
 	'&:hover': {
