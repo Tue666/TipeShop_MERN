@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { useState, useReducer, Fragment } from 'react';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -20,23 +20,66 @@ const STATE = {
 	register: 'register',
 };
 
-const Authentication = () => {
-	const [phoneNumber, setPhoneNumber] = useState('');
-	const [state, setState] = useState({
-		isLoading: false,
-		current: STATE.register,
-		hasError: false,
-		errorMessage: '',
-	});
-	const { closeModal } = useModal();
+const initialState = {
+	isLoading: false,
+	current: STATE.authentication,
+	hasError: false,
+	errorMessage: '',
+};
 
-	const handleBackDefaultState = () => {
-		setState({
+const handlers = {
+	INITIALIZE: (state) => {
+		return {
+			...state,
 			isLoading: false,
 			current: STATE.authentication,
 			hasError: false,
 			errorMessage: '',
-		});
+		};
+	},
+	START_LOADING: (state) => {
+		return {
+			...state,
+			isLoading: true,
+		};
+	},
+	SWITCH_STATE: (state, action) => {
+		const newState = action.payload;
+		return {
+			...state,
+			isLoading: false,
+			current: newState,
+		};
+	},
+	HAS_ERROR: (state, action) => {
+		const errorMessage = action.payload;
+		return {
+			...state,
+			isLoading: false,
+			hasError: true,
+			errorMessage,
+		};
+	},
+	VALIDATE: (state, action) => {
+		const { hasError, errorMessage } = action.payload;
+		return {
+			...state,
+			hasError,
+			errorMessage,
+		};
+	},
+};
+
+const reducer = (state, action) =>
+	handlers[action.type] ? handlers[action.type](state, action) : state;
+
+const Authentication = () => {
+	const [state, dispatch] = useReducer(reducer, initialState);
+	const [phoneNumber, setPhoneNumber] = useState('');
+	const { closeModal } = useModal();
+
+	const handleBackDefaultState = () => {
+		dispatch({ type: 'INITIALIZE' });
 	};
 	const handleChangePhoneNumber = (e) => {
 		const value = e.target.value;
@@ -48,30 +91,26 @@ const Authentication = () => {
 			hasError = true;
 			errorMessage = 'Invalid phone number!';
 		}
-		setState({
-			...state,
-			hasError,
-			errorMessage,
+		dispatch({
+			type: 'VALIDATE',
+			payload: {
+				hasError,
+				errorMessage,
+			},
 		});
 	};
 	const handleContinue = async () => {
 		try {
-			setState({
-				...state,
-				isLoading: true,
-			});
+			dispatch({ type: 'START_LOADING' });
 			const accountExists = await accountApi.checkExist(phoneNumber);
-			setState({
-				...state,
-				isLoading: false,
-				current: accountExists ? STATE.login : STATE.register,
+			dispatch({
+				type: 'SWITCH_STATE',
+				payload: accountExists ? STATE.login : STATE.register,
 			});
 		} catch (error) {
-			setState({
-				...state,
-				isLoading: false,
-				hasError: true,
-				errorMessage: error.response.statusText,
+			dispatch({
+				type: 'HAS_ERROR',
+				payload: error.response.statusText,
 			});
 		}
 	};
@@ -102,7 +141,11 @@ const Authentication = () => {
 					</Fragment>
 				)}
 				{state.current === STATE.login && (
-					<LoginForm phoneNumber={phoneNumber} handleBackDefaultState={handleBackDefaultState} />
+					<LoginForm
+						phoneNumber={phoneNumber}
+						handleBackDefaultState={handleBackDefaultState}
+						closeModal={closeModal}
+					/>
 				)}
 				{state.current === STATE.register && (
 					<RegisterForm phoneNumber={phoneNumber} handleBackDefaultState={handleBackDefaultState} />

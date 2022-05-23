@@ -1,9 +1,12 @@
 import { string, func } from 'prop-types';
-import { Stack, Typography, TextField } from '@mui/material';
+import { Stack, Typography, TextField, Alert, Slide } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { ArrowBackIosOutlined } from '@mui/icons-material';
 import { FormikProvider, useFormik, Form } from 'formik';
+import { useSnackbar } from 'notistack';
 
+// apis
+import accountApi from '../../apis/accountApi';
 // utils
 import { createAccountValidation } from '../../utils/validation';
 
@@ -13,6 +16,7 @@ const propTypes = {
 };
 
 const RegisterForm = ({ phoneNumber, handleBackDefaultState }) => {
+	const { enqueueSnackbar } = useSnackbar();
 	const formik = useFormik({
 		initialValues: {
 			name: '',
@@ -20,11 +24,25 @@ const RegisterForm = ({ phoneNumber, handleBackDefaultState }) => {
 			passwordConfirm: '',
 		},
 		validationSchema: createAccountValidation,
-		onSubmit: (values) => {
-			console.log({
-				phoneNumber,
-				...values,
-			});
+		onSubmit: async (values, { setErrors, resetForm }) => {
+			try {
+				await accountApi.register({
+					phone_number: phoneNumber,
+					...values,
+				});
+				enqueueSnackbar('Sign up success', {
+					variant: 'success',
+					anchorOrigin: {
+						vertical: 'bottom',
+						horizontal: 'center',
+					},
+					TransitionComponent: Slide,
+				});
+				handleBackDefaultState();
+			} catch (error) {
+				resetForm();
+				setErrors({ afterSubmit: error.response.statusText });
+			}
 		},
 	});
 	const { touched, errors, isSubmitting, getFieldProps } = formik;
@@ -64,6 +82,7 @@ const RegisterForm = ({ phoneNumber, handleBackDefaultState }) => {
 							error={Boolean(touched.passwordConfirm && errors.passwordConfirm)}
 							helperText={touched.passwordConfirm && errors.passwordConfirm}
 						/>
+						{errors.afterSubmit && <Alert severity="error">{errors.afterSubmit}</Alert>}
 						<LoadingButton type="submit" loading={isSubmitting} variant="contained" color="error">
 							Sign up
 						</LoadingButton>

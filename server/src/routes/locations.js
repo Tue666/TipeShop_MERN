@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+// controllers
 const locationsAPI = require('../app/controllers/LocationsAPI');
 
 router.post('/region', locationsAPI.insertRegion);

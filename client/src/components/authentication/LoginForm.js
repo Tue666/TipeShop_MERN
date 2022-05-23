@@ -1,16 +1,78 @@
 import { string, func } from 'prop-types';
-import { Stack, Typography, TextField } from '@mui/material';
+import { useState, useReducer } from 'react';
+import { Stack, Typography, TextField, Slide } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { ArrowBackIosOutlined } from '@mui/icons-material';
+import { useSnackbar } from 'notistack';
+
+// hooks
+import useAuth from '../../hooks/useAuth';
+
+const initialState = {
+	isLoading: false,
+	hasError: false,
+	errorMessage: '',
+};
+
+const handlers = {
+	RESET: (state) => {
+		return {
+			...state,
+			isLoading: false,
+			hasError: false,
+			errorMessage: '',
+		};
+	},
+	START_LOADING: (state) => {
+		return {
+			...state,
+			isLoading: true,
+		};
+	},
+	HAS_ERROR: (state, action) => {
+		const errorMessage = action.payload;
+		return {
+			...state,
+			isLoading: false,
+			hasError: true,
+			errorMessage,
+		};
+	},
+};
+
+const reducer = (state, action) =>
+	handlers[action.type] ? handlers[action.type](state, action) : state;
 
 const propTypes = {
 	phoneNumber: string,
 	handleBackDefaultState: func,
+	closeModal: func,
 };
 
-const LoginForm = ({ phoneNumber, handleBackDefaultState }) => {
-	const handleSignIn = () => {
-		console.log(phoneNumber);
+const LoginForm = ({ phoneNumber, handleBackDefaultState, closeModal }) => {
+	const [state, dispatch] = useReducer(reducer, initialState);
+	const [password, setPassword] = useState('');
+	const { login } = useAuth();
+	const { enqueueSnackbar } = useSnackbar();
+	const handleSignIn = async () => {
+		try {
+			dispatch({ type: 'START_LOADING' });
+			const name = await login(phoneNumber, password);
+			enqueueSnackbar(`Welcome ${name}, happy shopping with Tipe.`, {
+				variant: 'success',
+				anchorOrigin: {
+					vertical: 'bottom',
+					horizontal: 'center',
+				},
+				TransitionComponent: Slide,
+			});
+			closeModal();
+		} catch (error) {
+			dispatch({
+				type: 'HAS_ERROR',
+				payload: error.response.statusText,
+			});
+		}
 	};
 	return (
 		<Stack spacing={3}>
@@ -18,11 +80,22 @@ const LoginForm = ({ phoneNumber, handleBackDefaultState }) => {
 			<div>
 				<Typography variant="h6">Enter password</Typography>
 				<Typography variant="body2">
-					Please enter Tipe password of phone number <strong>0586181641</strong>
+					Please enter Tipe password of phone number <strong>{phoneNumber}</strong>
 				</Typography>
 			</div>
-			<TextField fullWidth label="Password" variant="standard" />
-			<LoadingButton loading={false} variant="contained" color="error" onClick={handleSignIn}>
+			<TextField
+				fullWidth
+				label="Password"
+				variant="standard"
+				color="success"
+				type="password"
+				value={password}
+				onChange={(e) => setPassword(e.target.value)}
+				onClick={() => dispatch({ type: 'RESET' })}
+				error={state.hasError}
+				helperText={state.hasError && state.errorMessage}
+			/>
+			<LoadingButton loading={state.isLoading} variant="contained" color="error" onClick={handleSignIn}>
 				Sign in
 			</LoadingButton>
 		</Stack>

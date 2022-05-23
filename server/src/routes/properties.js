@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+// controllers
 const propertiesAPI = require('../app/controllers/PropertiesAPI');
 
 router.post('/attribute/value', propertiesAPI.insertAttributeValue);

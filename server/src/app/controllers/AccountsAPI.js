@@ -2,6 +2,8 @@ const bcrypt = require('bcrypt');
 
 // models
 const Account = require('../models/Account');
+// utils
+const { generateToken, verify } = require('../../utils/jwt');
 
 class AccountsAPI {
 	// [POST] /accounts/exist
@@ -12,13 +14,11 @@ class AccountsAPI {
 		try {
 			const { phone_number } = req.body;
 
-			// check phone number not empty
 			if (!phone_number) {
 				next({ status: 400, msg: 'Phone number is required!' });
 				return;
 			}
 
-			// check phone number valid
 			if (!/(84|0[3|5|7|8|9])+([0-9]{8})\b/.test(phone_number)) {
 				next({ status: 400, msg: 'Invalid phone number!' });
 				return;
@@ -33,14 +33,53 @@ class AccountsAPI {
 		}
 	}
 
+	// [POST] /accounts/login
+	/*
+		phone_number: String,
+        password: String,
+	*/
+	async login(req, res, next) {
+		try {
+			const { phone_number, password } = req.body;
+
+			const account = await Account.findOne({ phone_number });
+			if (!account) {
+				next({ status: 400, msg: 'Account not found!' });
+				return;
+			}
+
+			const isRightPassword = await bcrypt.compare(password, account.password);
+			if (!isRightPassword) {
+				next({ status: 400, msg: 'Sign in information is incorrect!' });
+				return;
+			}
+
+			const { _id, name } = account;
+			const tokens = generateToken({ _id, name });
+			const { refreshToken } = tokens;
+			account.refreshToken = refreshToken;
+			await account.save();
+
+			res.json({
+				name,
+				tokens,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /accounts/register
 	/*
-		phone: String,
+		phone_number: String,
+		name: String,
         password: String,
+		passwordConfirm: String,
 	*/
 	async register(req, res, next) {
 		try {
-			const { phone_number, password } = req.body;
+			const { phone_number, password, passwordConfirm } = req.body;
 
 			const accountExisted = await Account.findOne({ phone_number });
 			if (accountExisted) {
@@ -48,11 +87,15 @@ class AccountsAPI {
 				return;
 			}
 
+			if (password !== passwordConfirm) {
+				next({ status: 400, msg: 'Password not sync!' });
+				return;
+			}
+
 			const saltRounds = 10;
 			const hashedPassword = await bcrypt.hash(password, saltRounds);
 			const account = new Account({
 				...req.body,
-				name: phone_number,
 				password: hashedPassword,
 			});
 			await account.save();
@@ -62,6 +105,38 @@ class AccountsAPI {
 			});
 		} catch (error) {
 			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [POST] /accounts/refreshToken
+	/*
+		refreshToken: String,
+	*/
+	async refreshToken(req, res, next) {
+		try {
+			const { refreshToken } = req.body;
+
+			if (!refreshToken) {
+				next({ status: 401, msg: 'Unauthorized' });
+				return;
+			}
+
+			verify(refreshToken, process.env.REFRESH_SECRET_SIGNATURE);
+
+			const account = await Account.findOne({ refreshToken });
+			if (!account) {
+				next({ status: 400, msg: 'Refresh token is incorrect!' });
+				return;
+			}
+
+			const { _id, name } = account;
+			const tokens = generateToken({ _id, name });
+			account.refreshToken = tokens.refreshToken;
+			await account.save();
+
+			res.json(tokens);
+		} catch (error) {
 			next({ status: 500, msg: error.message });
 		}
 	}

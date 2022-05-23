@@ -6,8 +6,12 @@ import { Stack, Link } from '@mui/material';
 import Hidden from '../../components/Hidden';
 // hooks
 import useModal from '../../hooks/useModal';
+import useAuth from '../../hooks/useAuth';
+//
+import AccountPopover from './AccountPopover';
 
 const HeaderTop = () => {
+	const { isAuthenticated, logout } = useAuth();
 	const { openModal, keys } = useModal();
 	const handleAuthentication = () => {
 		openModal(keys.authentication);
@@ -31,7 +35,11 @@ const HeaderTop = () => {
 						<Linking component="a" href="https://www.facebook.com/exe.shiro" target="_blank">
 							<i className="bi bi-question-circle"></i> Support
 						</Linking>
-						<Label onClick={handleAuthentication}>Sign in / Sign up</Label>
+						{isAuthenticated ? (
+							<AccountPopover logout={logout} />
+						) : (
+							<Label onClick={handleAuthentication}>Sign in / Sign up</Label>
+						)}
 					</Stack>
 				</Stack>
 			</Hidden>

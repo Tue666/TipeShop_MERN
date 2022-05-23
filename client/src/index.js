@@ -11,8 +11,11 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Provider as ReduxProvider } from 'react-redux';
+import { SnackbarProvider } from 'notistack';
+import { AxiosInterceptor } from './apis/axiosInstance';
 
 // contexts
+import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 // redux
 import store from './redux/store';
@@ -22,9 +25,15 @@ root.render(
 	<HelmetProvider>
 		<ReduxProvider store={store}>
 			<SettingsProvider>
-				<BrowserRouter>
-					<App />
-				</BrowserRouter>
+				<SnackbarProvider maxSnack={4}>
+					<AuthProvider>
+						<AxiosInterceptor>
+							<BrowserRouter>
+								<App />
+							</BrowserRouter>
+						</AxiosInterceptor>
+					</AuthProvider>
+				</SnackbarProvider>
 			</SettingsProvider>
 		</ReduxProvider>
 	</HelmetProvider>
