@@ -10,7 +10,7 @@ const getToken = () => {
 
 const setToken = (tokens) => {
 	if (tokens) {
-		Cookies.set('accessToken', JSON.stringify(tokens));
+		Cookies.set('accessToken', JSON.stringify(tokens), { expires: 2 });
 		axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${tokens.accessToken}`;
 	} else {
 		Cookies.remove('accessToken');

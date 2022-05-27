@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-scroll';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, Chip } from '@mui/material';
+import { useDispatch } from 'react-redux';
 
 // components
 import Stars from '../Stars';
 import QuantityInput from './QuantityInput';
+// redux
+import { addCart } from '../../redux/slices/cart';
 // utils
 import { toVND } from '../../utils/formatMoney';
 // config
@@ -20,7 +23,9 @@ const BODY_INTEND = {
 
 const propTypes = {
 	information: shape({
+		_id: string,
 		name: string,
+		quantity: number,
 		rating_average: number,
 		review_count: number,
 		quantity_sold: shape({
@@ -50,23 +55,31 @@ const propTypes = {
 				})
 			),
 		]),
+		limit: number,
 	}),
 };
 
 const Information = ({ information }) => {
 	const {
-		name,
 		rating_average,
 		review_count,
 		quantity_sold,
 		discount_rate,
-		original_price,
-		price,
 		attribute_values,
 		warranty_infor,
+		...intendedCart // the properties for each item in cart
 	} = information;
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
+	const handleAddToCart = (input) => {
+		dispatch(
+			addCart({
+				product: intendedCart,
+				quantity: input,
+			})
+		);
+	};
 	const handleTagNavigate = (key, value) => {
 		const pathname = '/search';
 		navigate({
@@ -76,7 +89,7 @@ const Information = ({ information }) => {
 	};
 	return (
 		<RootStyle>
-			<Typography variant="h6">{name}</Typography>
+			<Typography variant="h6">{intendedCart.name}</Typography>
 			<Stack spacing={1}>
 				<Stack direction="row" alignItems="center" spacing={1}>
 					{rating_average > 0 && <Stars total={5} rating={rating_average} sx={{ fontSize: '18px' }} />}
@@ -98,7 +111,7 @@ const Information = ({ information }) => {
 					<Stack spacing={1} sx={{ flex: '1 1 0%' }}>
 						<PriceWrapper tag={discount_rate !== 0 ? 'sale' : 'normal'}>
 							<Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-								{discount_rate === 0 ? toVND(original_price) : toVND(price)}
+								{discount_rate === 0 ? toVND(intendedCart.original_price) : toVND(intendedCart.price)}
 							</Typography>
 							{discount_rate !== 0 && (
 								<Typography component="span">
@@ -107,13 +120,22 @@ const Information = ({ information }) => {
 										variant="subtitle1"
 										sx={{ color: '#efefef', fontSize: '15px', textDecoration: 'line-through', mx: '5px' }}
 									>
-										{toVND(original_price)}
+										{toVND(intendedCart.original_price)}
 									</Typography>
 									-{discount_rate}%
 								</Typography>
 							)}
 						</PriceWrapper>
-						<QuantityInput />
+						<Stack sx={{ cursor: 'pointer' }}>
+							<Typography variant="subtitle2">Delivery</Typography>
+							<Typography variant="subtitle2" sx={{ textDecoration: 'underline' }}>
+								Chùa liên trì, Xã Suối Cao, Huyện Xuân Lộc, Đồng Nai
+							</Typography>
+							<Typography variant="subtitle2" sx={{ color: 'rgb(26 139 237)' }}>
+								Change
+							</Typography>
+						</Stack>
+						<QuantityInput handleAddToCart={handleAddToCart} />
 					</Stack>
 					<IntendWrapper>
 						{attribute_values && attribute_values.length > 0 && (

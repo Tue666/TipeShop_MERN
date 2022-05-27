@@ -1,12 +1,13 @@
 import { string, func } from 'prop-types';
 import { useState, useReducer } from 'react';
-import { Stack, Typography, TextField, Slide } from '@mui/material';
+import { Stack, Typography, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { ArrowBackIosOutlined } from '@mui/icons-material';
-import { useSnackbar } from 'notistack';
 
 // hooks
 import useAuth from '../../hooks/useAuth';
+// utils
+import enqueueSnackbar from '../../utils/snackbar';
 
 const initialState = {
 	isLoading: false,
@@ -53,7 +54,6 @@ const LoginForm = ({ phoneNumber, handleBackDefaultState, closeModal }) => {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const [password, setPassword] = useState('');
 	const { login } = useAuth();
-	const { enqueueSnackbar } = useSnackbar();
 	const handleSignIn = async () => {
 		try {
 			dispatch({ type: 'START_LOADING' });
@@ -64,7 +64,6 @@ const LoginForm = ({ phoneNumber, handleBackDefaultState, closeModal }) => {
 					vertical: 'bottom',
 					horizontal: 'center',
 				},
-				TransitionComponent: Slide,
 			});
 			closeModal();
 		} catch (error) {

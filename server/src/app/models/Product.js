@@ -11,7 +11,7 @@ const Product = new Schema(
 		attribute_values: [{ type: mongoose.Types.ObjectId, ref: 'AttributeValue' }],
 		warranty_infor: [{ type: mongoose.Types.ObjectId, ref: 'Warranty' }],
 		specifications: [{ type: mongoose.Types.ObjectId, ref: 'Specification' }],
-		limit: { type: Number, min: 0, default: 0 }, // 0 is unlimited
+		limit: { type: Number, min: 1, default: 1 },
 		discount: { type: Number, min: 0, default: 0 },
 		discount_rate: { type: Number, min: 0, max: 100, default: 0 },
 		original_price: { type: Number, min: 0, default: 0 },

@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useEffect } from 'react';
 
+// hooks
+import useModal from '../hooks/useModal';
 // utils
 import { getToken, setToken } from '../utils/jwt';
 // config
@@ -16,19 +18,19 @@ axiosInstance.interceptors.request.use(
 );
 
 const AxiosInterceptor = ({ children }) => {
+	const { openModal, keys } = useModal();
 	useEffect(() => {
 		const interceptor = axiosInstance.interceptors.response.use(
 			(response) => response && response.data,
 			async (error) => {
 				const originalRequest = error.config;
-				console.log('start');
 				// Access Token was expired or Unauthorized
 				if (error.response.status === 401 && !originalRequest._retry) {
 					originalRequest._retry = true; // mark to try again only once
 					const tokens = getToken();
 					// unauthorized
 					if (!tokens) {
-						//
+						openModal(keys.authentication);
 						return Promise.reject(error);
 					}
 					// generate new token if the authentication is successful
@@ -52,7 +54,7 @@ const AxiosInterceptor = ({ children }) => {
 			}
 		);
 		return () => axiosInstance.interceptors.response.eject(interceptor);
-	}, []);
+	}, [openModal, keys]);
 	return children;
 };
 

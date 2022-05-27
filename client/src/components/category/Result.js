@@ -180,7 +180,7 @@ const ResultWrapper = styled('div')({
 const FilterWrapper = styled(Stack)(({ theme }) => ({
 	borderBottom: `2px solid ${theme.palette.background.default} `,
 	position: 'sticky',
-	top: `calc(${HEADER_HEIGHT} - 1px)`,
+	top: HEADER_HEIGHT,
 	zIndex: '99',
 	backgroundColor: theme.palette.background.paper,
 }));

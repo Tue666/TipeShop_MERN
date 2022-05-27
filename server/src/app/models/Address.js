@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 const Address = new Schema(
 	{
-		customer_id: { type: String, required: true },
+		customer_id: { type: mongoose.Types.ObjectId, ref: 'Account', required: true },
 		name: { type: String, required: true },
 		phone_number: { type: String, required: true },
 		region_id: { type: String, required: true },

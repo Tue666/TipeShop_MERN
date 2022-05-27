@@ -43,6 +43,7 @@ const Product = () => {
 			const similarProducts = await productApi.findSimilarProducts(_id, 10);
 			const {
 				name,
+				quantity,
 				rating_average,
 				review_count,
 				quantity_sold,
@@ -51,12 +52,15 @@ const Product = () => {
 				discount_rate,
 				attribute_values,
 				warranty_infor,
+				limit,
 				...parts
 			} = productResponse;
 			setProduct({
 				...parts,
 				information: {
+					_id,
 					name,
+					quantity,
 					rating_average,
 					review_count,
 					quantity_sold,
@@ -65,6 +69,7 @@ const Product = () => {
 					price,
 					attribute_values,
 					warranty_infor,
+					limit,
 				},
 			});
 			setSimilarSection(similarProducts);

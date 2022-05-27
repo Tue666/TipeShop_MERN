@@ -1,8 +1,12 @@
 import { node } from 'prop-types';
 import { useEffect, useReducer, createContext } from 'react';
+import { useDispatch } from 'react-redux';
 
 // apis
 import accountApi from '../apis/accountApi';
+// redux
+import { getProfile } from '../redux/slices/account';
+import { getCart } from '../redux/slices/cart';
 // utils
 import { getToken, setToken, isValidToken } from '../utils/jwt';
 
@@ -49,22 +53,31 @@ const propTypes = {
 
 const AuthProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(reducer, initialState);
+	const dispatchSlice = useDispatch();
 	useEffect(() => {
 		const initialize = async () => {
 			try {
 				const tokens = getToken();
 				setToken(tokens);
 				const isAuthenticated = await isValidToken(tokens);
+				if (isAuthenticated) {
+					dispatchSlice(getProfile());
+					dispatchSlice(getCart());
+				}
 				dispatch({
 					type: 'INITIALIZE',
 					payload: isAuthenticated,
 				});
 			} catch (error) {
 				console.log(error);
+				dispatch({
+					type: 'INITIALIZE',
+					payload: false,
+				});
 			}
 		};
 		initialize();
-	}, []);
+	}, [dispatchSlice]);
 
 	const login = async (phone_number, password) => {
 		const response = await accountApi.login({
@@ -73,6 +86,8 @@ const AuthProvider = ({ children }) => {
 		});
 		const { name, tokens } = response;
 		setToken(tokens);
+		dispatchSlice(getProfile());
+		dispatchSlice(getCart());
 		dispatch({ type: 'LOGIN' });
 		return name;
 	};

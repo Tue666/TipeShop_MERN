@@ -1,51 +1,46 @@
-import { func } from 'prop-types';
-import { useState } from 'react';
+import { string, number, func } from 'prop-types';
 import { styled } from '@mui/material/styles';
-import { Stack, Box, Typography, Button } from '@mui/material';
+import { Stack, Box, Typography } from '@mui/material';
 
 const propTypes = {
-	handleAddToCart: func,
+	input: string,
+	remaining: number,
+	handleChangeInput: func,
 };
 
-const QuantityInput = ({ handleAddToCart }) => {
-	const [input, setInput] = useState('1');
+const QuantityInput = ({ input, remaining, handleChangeInput }) => {
 	const buttonStyle = {
 		cursor: 'pointer',
 		width: '30px',
-		'&.disabled': {
-			pointerEvents: 'none !important',
-		},
 		'&:hover': {
-			border: '1px solid #2195f3',
+			border: '1px solid #2195F3',
+		},
+		'&.warning:hover': {
+			border: '1px solid #F53D2D',
 		},
 	};
 
-	const handleInputBlur = (e) => {
-		const value = e.target.value;
-		if (value === '') setInput('1');
-	};
 	const handleInputChange = (e) => {
 		let value = e.target.value;
-		if (!/^\d*$/.test(value)) return;
+		if (!/^\d+$/.test(value)) return;
 		if (value === '0') value = '1';
-		setInput(value);
+		handleChangeInput(parseInt(value));
 	};
 	const handleDecreaseInput = () => {
 		const newInput = parseInt(input) - 1;
 		if (newInput < 1) return;
-		setInput(newInput.toString());
+		handleChangeInput(newInput);
 	};
 	const handleIncreaseInput = () => {
 		const newInput = parseInt(input) + 1;
-		setInput(newInput.toString());
+		handleChangeInput(newInput);
 	};
 	return (
-		<Stack spacing={1}>
-			<Typography variant="subtitle2">Quantity</Typography>
+		<Stack>
 			<Stack direction="row" alignItems="center">
 				<BoxStyled
+					className={parseInt(input) <= 1 ? 'warning' : ''}
 					component="button"
-					className={parseInt(input) <= 1 ? 'disabled' : ''}
 					onClick={handleDecreaseInput}
 					sx={buttonStyle}
 				>
@@ -56,21 +51,17 @@ const QuantityInput = ({ handleAddToCart }) => {
 					type="text"
 					value={input}
 					onChange={handleInputChange}
-					onBlur={handleInputBlur}
 					sx={{ width: '40px' }}
 				/>
 				<BoxStyled component="button" onClick={handleIncreaseInput} sx={buttonStyle}>
 					+
 				</BoxStyled>
 			</Stack>
-			<Button
-				variant="contained"
-				color="error"
-				onClick={() => handleAddToCart(parseInt(input))}
-				sx={{ width: '50%' }}
-			>
-				BUY
-			</Button>
+			{remaining <= 5 && (
+				<Typography variant="caption" color="error" sx={{ fontWeight: 'bold' }}>
+					{remaining} product(s) left
+				</Typography>
+			)}
 		</Stack>
 	);
 };

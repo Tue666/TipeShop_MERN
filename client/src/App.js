@@ -9,12 +9,15 @@ import Loading from './pages/Loading';
 import Router from './routes';
 // theme
 import ThemeConfig from './theme';
+// utils
+import { SnackbarUtilsConfigurator } from './utils/snackbar';
 
 const App = () => {
 	const { isInitialized } = useAuth();
 	return isInitialized ? (
 		<ThemeConfig>
 			<ScrollToTop />
+			<SnackbarUtilsConfigurator />
 			<Modal />
 			<Router />
 		</ThemeConfig>

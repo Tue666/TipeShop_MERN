@@ -5,7 +5,7 @@ const initialState = {
 	key: 'default',
 };
 
-const modalSlice = createSlice({
+const slice = createSlice({
 	name: 'modal',
 	initialState,
 	reducers: {
@@ -17,6 +17,6 @@ const modalSlice = createSlice({
 	},
 });
 
-const { reducer, actions } = modalSlice;
+const { reducer, actions } = slice;
 export const { renderModal } = actions;
 export default reducer;

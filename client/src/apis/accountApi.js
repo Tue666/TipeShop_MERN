@@ -1,6 +1,11 @@
 import axiosInstance from './axiosInstance';
 
 const accountApi = {
+	// [GET] /accounts/profile
+	getProfile: () => {
+		const url = `/accounts/profile`;
+		return axiosInstance.get(url);
+	},
 	// [POST] /accounts/exist
 	checkExist: (phone_number) => {
 		const url = `/accounts/exist`;

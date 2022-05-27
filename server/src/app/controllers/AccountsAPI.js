@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 // models
@@ -6,6 +7,44 @@ const Account = require('../models/Account');
 const { generateToken, verify } = require('../../utils/jwt');
 
 class AccountsAPI {
+	// [GET] /accounts/profile
+	async getProfile(req, res, next) {
+		try {
+			const { _id } = req.account;
+
+			const result = await Account.aggregate([
+				{
+					$match: { _id: mongoose.Types.ObjectId(_id) },
+				},
+				{
+					$lookup: {
+						from: 'addresses',
+						localField: '_id',
+						foreignField: 'customer_id',
+						as: 'addresses',
+					},
+				},
+				{
+					$project: {
+						password: 0,
+						refreshToken: 0,
+						__v: 0,
+					},
+				},
+			]);
+
+			const { addresses, ...profile } = result[0];
+
+			res.status(200).json({
+				profile,
+				addresses,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /accounts/exist
 	/*
 		phone_number: String

@@ -11,3 +11,8 @@ export const PRODUCT_PAGE = {
 	IMAGE_ZOOM_WIDTH: '450px',
 	COMMENT_WIDTH: '335px',
 };
+
+export const CART_PAGE = {
+	CART_LIST_WIDTH: '850px',
+	GRID_TEMPLATE_COLUMNS: '44% 20% 15.5% 15.5% 5%',
+};

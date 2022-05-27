@@ -1,4 +1,4 @@
-import { func } from 'prop-types';
+import { shape, func, string } from 'prop-types';
 import { useState, Fragment } from 'react';
 import { styled } from '@mui/material/styles';
 import { Popover, Stack, Divider, MenuList, MenuItem, ListItemIcon } from '@mui/material';
@@ -6,6 +6,8 @@ import { AssignmentIndOutlined, AssignmentOutlined, LogoutOutlined } from '@mui/
 
 // components
 import Avatar from '../../components/Avatar';
+// config
+import { apiConfig } from '../../config';
 
 const MENU_OPTIONS = [
 	{
@@ -21,10 +23,15 @@ const MENU_OPTIONS = [
 ];
 
 const propTypes = {
+	profile: shape({
+		name: string,
+		avatar_url: string,
+	}),
 	logout: func,
 };
 
-const AccountPopover = ({ logout }) => {
+const AccountPopover = ({ profile, logout }) => {
+	const { name, avatar_url } = profile;
 	const [anchorEl, setAnchorEl] = useState(null);
 
 	const handleClick = (event) => {
@@ -36,7 +43,7 @@ const AccountPopover = ({ logout }) => {
 	return (
 		<Fragment>
 			<Label onClick={handleClick}>
-				Le Chinh Tue <i className="bi bi-caret-down"></i>
+				{name} <i className="bi bi-caret-down"></i>
 			</Label>
 			<Popover
 				open={Boolean(anchorEl)}
@@ -53,8 +60,8 @@ const AccountPopover = ({ logout }) => {
 			>
 				<Stack alignItems="center" p={2} pb={1} sx={{ width: '230px' }}>
 					<Avatar
-						name="Lê Chính Tuệ"
-						src="http://dotshop69.000webhostapp.com/Public/images/tue.png"
+						name={name}
+						src={`${apiConfig.image_url}/${avatar_url}`}
 						sx={{ width: '65px', height: '65px' }}
 					/>
 					<MenuList dense sx={{ width: '100%' }}>

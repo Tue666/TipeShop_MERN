@@ -1,6 +1,7 @@
 import React from 'react';
 import { styled } from '@mui/material/styles';
 import { Stack, Link } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 // components
 import Hidden from '../../components/Hidden';
@@ -11,6 +12,7 @@ import useAuth from '../../hooks/useAuth';
 import AccountPopover from './AccountPopover';
 
 const HeaderTop = () => {
+	const { profile } = useSelector((state) => state.account);
 	const { isAuthenticated, logout } = useAuth();
 	const { openModal, keys } = useModal();
 	const handleAuthentication = () => {
@@ -35,8 +37,8 @@ const HeaderTop = () => {
 						<Linking component="a" href="https://www.facebook.com/exe.shiro" target="_blank">
 							<i className="bi bi-question-circle"></i> Support
 						</Linking>
-						{isAuthenticated ? (
-							<AccountPopover logout={logout} />
+						{isAuthenticated && profile ? (
+							<AccountPopover profile={profile} logout={logout} />
 						) : (
 							<Label onClick={handleAuthentication}>Sign in / Sign up</Label>
 						)}
