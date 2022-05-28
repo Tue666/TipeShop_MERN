@@ -34,6 +34,7 @@ const ApplyPrice = ({ query_name, handleNavigate }) => {
 				color="error"
 				variant="contained"
 				startIcon={<ReadMore />}
+				disableElevation
 				onClick={() => handleNavigate(query_name, `${from},${to}`, false, true)}
 			>
 				Apply

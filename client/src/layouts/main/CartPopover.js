@@ -1,12 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Badge, IconButton } from '@mui/material';
 import { ShoppingCartOutlined } from '@mui/icons-material';
+import { useSelector } from 'react-redux';
+
+// routes
+import { PATH_MAIN } from '../../routes/path';
 
 const CartPopover = () => {
+	const { totalItem } = useSelector((state) => state.cart);
 	return (
 		<Badge
 			color="error"
-			badgeContent={999}
+			badgeContent={totalItem}
 			max={99}
 			anchorOrigin={{
 				vertical: 'top',
@@ -14,7 +19,7 @@ const CartPopover = () => {
 			}}
 			sx={{ m: 1 }}
 		>
-			<Link to="/cart">
+			<Link to={PATH_MAIN.cart}>
 				<IconButton color="error">
 					<ShoppingCartOutlined />
 				</IconButton>

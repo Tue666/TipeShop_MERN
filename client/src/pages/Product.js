@@ -60,7 +60,6 @@ const Product = () => {
 				information: {
 					_id,
 					name,
-					quantity,
 					rating_average,
 					review_count,
 					quantity_sold,
@@ -69,7 +68,6 @@ const Product = () => {
 					price,
 					attribute_values,
 					warranty_infor,
-					limit,
 				},
 			});
 			setSimilarSection(similarProducts);

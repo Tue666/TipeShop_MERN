@@ -191,9 +191,90 @@ class CartsAPI {
 				}
 			);
 
-			res.status(201).json({
+			res.status(200).json({
 				msg: 'Update cart item quantity successfully!',
 				cartItem,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [PATCH] /carts/selected
+	/*
+		type: String, [all, item]
+		_id: ObjectId as String | Boolean,
+	*/
+	async editSelected(req, res, next) {
+		try {
+			const customer_id = req.account._id;
+			const { type, _id } = req.body;
+
+			switch (type) {
+				case 'item':
+					// _id of the cart item to be changed
+					await Cart.findByIdAndUpdate(_id, [
+						{
+							$set: {
+								selected: { $not: '$selected' },
+							},
+						},
+					]);
+					break;
+				case 'all':
+					// _id will be the value to check select all or not
+					await Cart.updateMany(
+						{ customer_id },
+						{
+							selected: _id,
+						}
+					);
+					break;
+				default:
+					break;
+			}
+
+			res.status(200).json({
+				msg: 'Update select cart item successfully!',
+				filter_selected: {
+					type,
+					_id,
+				},
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [PUT] /carts | PUT replace for DELETE with body
+	/*
+		_id: ObjectId as String,
+	*/
+	async remove(req, res, next) {
+		try {
+			const customer_id = req.account._id;
+			const { _id } = req.body;
+
+			let result;
+			// _id with null will remove all selected items
+			if (!_id) {
+				result = await Cart.deleteMany({
+					customer_id: mongoose.Types.ObjectId(customer_id),
+					selected: true,
+				});
+			} else {
+				// otherwise, remove item with _id only
+				result = await Cart.deleteOne({
+					_id: mongoose.Types.ObjectId(_id),
+					customer_id: mongoose.Types.ObjectId(customer_id),
+				});
+			}
+
+			res.status(200).json({
+				_id,
+				removed_count: result.deletedCount,
 			});
 		} catch (error) {
 			console.error(error);

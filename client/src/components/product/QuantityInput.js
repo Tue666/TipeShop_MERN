@@ -67,6 +67,7 @@ const QuantityInput = ({ handleAddToCart }) => {
 				variant="contained"
 				color="error"
 				onClick={() => handleAddToCart(parseInt(input))}
+				disableElevation
 				sx={{ width: '50%' }}
 			>
 				BUY

@@ -11,6 +11,7 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Provider as ReduxProvider } from 'react-redux';
+import { ConfirmProvider } from 'material-ui-confirm';
 import { SnackbarProvider } from 'notistack';
 import { AxiosInterceptor } from './apis/axiosInstance';
 
@@ -25,15 +26,17 @@ root.render(
 	<HelmetProvider>
 		<ReduxProvider store={store}>
 			<SettingsProvider>
-				<SnackbarProvider maxSnack={4}>
-					<AuthProvider>
-						<AxiosInterceptor>
-							<BrowserRouter>
-								<App />
-							</BrowserRouter>
-						</AxiosInterceptor>
-					</AuthProvider>
-				</SnackbarProvider>
+				<ConfirmProvider>
+					<SnackbarProvider maxSnack={4}>
+						<AuthProvider>
+							<AxiosInterceptor>
+								<BrowserRouter>
+									<App />
+								</BrowserRouter>
+							</AxiosInterceptor>
+						</AuthProvider>
+					</SnackbarProvider>
+				</ConfirmProvider>
 			</SettingsProvider>
 		</ReduxProvider>
 	</HelmetProvider>

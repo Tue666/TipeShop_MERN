@@ -94,7 +94,13 @@ const LoginForm = ({ phoneNumber, handleBackDefaultState, closeModal }) => {
 				error={state.hasError}
 				helperText={state.hasError && state.errorMessage}
 			/>
-			<LoadingButton loading={state.isLoading} variant="contained" color="error" onClick={handleSignIn}>
+			<LoadingButton
+				loading={state.isLoading}
+				variant="contained"
+				color="error"
+				disableElevation
+				onClick={handleSignIn}
+			>
 				Sign in
 			</LoadingButton>
 		</Stack>

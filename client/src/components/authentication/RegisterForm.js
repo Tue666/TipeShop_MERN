@@ -83,7 +83,13 @@ const RegisterForm = ({ phoneNumber, handleBackDefaultState }) => {
 							helperText={touched.passwordConfirm && errors.passwordConfirm}
 						/>
 						{errors.afterSubmit && <Alert severity="error">{errors.afterSubmit}</Alert>}
-						<LoadingButton type="submit" loading={isSubmitting} variant="contained" color="error">
+						<LoadingButton
+							type="submit"
+							loading={isSubmitting}
+							variant="contained"
+							disableElevation
+							color="error"
+						>
 							Sign up
 						</LoadingButton>
 					</Stack>

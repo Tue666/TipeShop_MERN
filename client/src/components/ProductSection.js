@@ -26,7 +26,12 @@ const ProductSection = ({ id, title, products, sx }) => {
 					</Typography>
 				</Link>
 			</Stack>
-			<Carousel settings={settingProductSection}>
+			<Carousel
+				settings={{
+					...settingProductSection,
+					infinite: products.length > 5 ? true : false,
+				}}
+			>
 				{products && products.map((product) => <ProductCard key={product._id} product={product} />)}
 			</Carousel>
 		</Stack>

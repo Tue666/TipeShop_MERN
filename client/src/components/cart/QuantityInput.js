@@ -5,10 +5,10 @@ import { Stack, Box, Typography } from '@mui/material';
 const propTypes = {
 	input: string,
 	remaining: number,
-	handleChangeInput: func,
+	handlePrepareInput: func,
 };
 
-const QuantityInput = ({ input, remaining, handleChangeInput }) => {
+const QuantityInput = ({ input, remaining, handlePrepareInput }) => {
 	const buttonStyle = {
 		cursor: 'pointer',
 		width: '30px',
@@ -24,16 +24,15 @@ const QuantityInput = ({ input, remaining, handleChangeInput }) => {
 		let value = e.target.value;
 		if (!/^\d+$/.test(value)) return;
 		if (value === '0') value = '1';
-		handleChangeInput(parseInt(value));
+		handlePrepareInput(parseInt(value));
 	};
 	const handleDecreaseInput = () => {
 		const newInput = parseInt(input) - 1;
-		if (newInput < 1) return;
-		handleChangeInput(newInput);
+		handlePrepareInput(newInput);
 	};
 	const handleIncreaseInput = () => {
 		const newInput = parseInt(input) + 1;
-		handleChangeInput(newInput);
+		handlePrepareInput(newInput);
 	};
 	return (
 		<Stack>

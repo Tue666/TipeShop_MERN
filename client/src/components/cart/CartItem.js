@@ -1,4 +1,4 @@
-import { shape, string, number, bool, array } from 'prop-types';
+import { shape, string, number, bool, array, func } from 'prop-types';
 import { styled } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
 import { Typography, Checkbox, IconButton } from '@mui/material';
@@ -34,10 +34,13 @@ const propTypes = {
 			slug: string,
 		}),
 	}),
+	handleQuantityItemChange: func,
+	handleSelectItemChange: func,
+	handleRemoveItem: func,
 };
 
-const CartItem = ({ item }) => {
-	const { quantity, selected, product } = item;
+const CartItem = ({ item, handleQuantityItemChange, handleSelectItemChange, handleRemoveItem }) => {
+	const { _id, quantity, selected, product } = item;
 	const { name, images, original_price, price, slug, inventory_status } = product;
 	const stock_quantity = {
 		max: product.limit,
@@ -45,8 +48,15 @@ const CartItem = ({ item }) => {
 		current: product.quantity,
 	};
 	const linking = `/${slug}/pid${product._id}`;
-	const handleChangeInput = (newQuantity) => {
+
+	const handlePrepareInput = (newQuantity) => {
 		const { max, min, current } = stock_quantity;
+
+		// handle remove item if quantity less than min
+		if (newQuantity < min) {
+			handleRemoveItem(_id);
+			return;
+		}
 
 		// validate quantity before change
 		let prepareChange = {
@@ -57,13 +67,9 @@ const CartItem = ({ item }) => {
 			prepareChange.hasError = true;
 			prepareChange.errorMessage = `The remaining quantity of the product is ${current}`;
 		}
-		if (newQuantity > max) {
+		if (newQuantity > max && max < current) {
 			prepareChange.hasError = true;
 			prepareChange.errorMessage = `Maximum purchase quantity for this product is ${max}`;
-		}
-		if (newQuantity < min) {
-			prepareChange.hasError = true;
-			prepareChange.errorMessage = `At least 1 product`;
 		}
 		if (prepareChange.hasError) {
 			enqueueSnackbar(prepareChange.errorMessage, {
@@ -76,7 +82,7 @@ const CartItem = ({ item }) => {
 			return;
 		}
 
-		console.log('update', newQuantity);
+		handleQuantityItemChange(_id, product._id, newQuantity);
 	};
 	return (
 		<RootStyle
@@ -88,7 +94,13 @@ const CartItem = ({ item }) => {
 			}
 		>
 			<ItemGroup>
-				<Checkbox size="small" checked={selected} checkedIcon={<Favorite />} color="error" />
+				<Checkbox
+					size="small"
+					checked={selected}
+					checkedIcon={<Favorite />}
+					color="error"
+					onClick={() => handleSelectItemChange('item', _id)}
+				/>
 				<Hidden width="mdDown">
 					<Link to={linking}>
 						<ImageLoader
@@ -118,12 +130,12 @@ const CartItem = ({ item }) => {
 			<QuantityInput
 				input={quantity.toString()}
 				remaining={stock_quantity.current}
-				handleChangeInput={handleChangeInput}
+				handlePrepareInput={handlePrepareInput}
 			/>
 			<Typography variant="subtitle2" color="error" sx={{ fontWeight: 'bold' }}>
 				{toVND(parseInt(quantity) * price)}
 			</Typography>
-			<IconButton color="error" onClick={() => {}}>
+			<IconButton color="error" onClick={() => handleRemoveItem(_id)}>
 				<DeleteForeverOutlined />
 			</IconButton>
 		</RootStyle>
@@ -138,7 +150,7 @@ const RootStyle = styled('div')({
 
 const ItemGroup = styled('div')(({ theme }) => ({
 	display: 'grid',
-	gridTemplateColumns: '38px 80px 64%',
+	gridTemplateColumns: '38px 80px 62%',
 	columnGap: '5px',
 	alignItems: 'center',
 	[theme.breakpoints.down('md')]: {

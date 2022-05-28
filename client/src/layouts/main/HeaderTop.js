@@ -15,7 +15,7 @@ const HeaderTop = () => {
 	const { profile } = useSelector((state) => state.account);
 	const { isAuthenticated, logout } = useAuth();
 	const { openModal, keys } = useModal();
-	const handleAuthentication = () => {
+	const handleOpenAuthentication = () => {
 		openModal(keys.authentication);
 	};
 	return (
@@ -40,7 +40,7 @@ const HeaderTop = () => {
 						{isAuthenticated && profile ? (
 							<AccountPopover profile={profile} logout={logout} />
 						) : (
-							<Label onClick={handleAuthentication}>Sign in / Sign up</Label>
+							<Label onClick={handleOpenAuthentication}>Sign in / Sign up</Label>
 						)}
 					</Stack>
 				</Stack>

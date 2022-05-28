@@ -5,8 +5,12 @@ import { LoadingButton } from '@mui/lab';
 
 // apis
 import accountApi from '../../apis/accountApi';
+// components
+import ImageLoader from '../ImageLoader';
 // hooks
 import useModal from '../../hooks/useModal';
+// config
+import { apiConfig } from '../../config';
 //
 import AuthSocial from './AuthSocial';
 import LoginForm from './LoginForm';
@@ -133,7 +137,13 @@ const Authentication = () => {
 								error={state.hasError}
 								helperText={state.hasError && state.errorMessage}
 							/>
-							<LoadingButton loading={state.isLoading} variant="contained" color="error" onClick={handleContinue}>
+							<LoadingButton
+								loading={state.isLoading}
+								variant="contained"
+								color="error"
+								disableElevation
+								onClick={handleContinue}
+							>
 								Continue
 							</LoadingButton>
 						</Stack>
@@ -152,6 +162,11 @@ const Authentication = () => {
 				)}
 			</LeftContent>
 			<RightContent justifyContent="center" alignItems="center">
+				<ImageLoader
+					src={`${apiConfig.image_url}/_external_/buy_more.png`}
+					alt="buy_more"
+					sx={{ width: '190px', height: '160px' }}
+				/>
 				<Typography variant="subtitle2">Shopping at Tipe</Typography>
 				<Typography variant="body2">Super deals every day</Typography>
 			</RightContent>

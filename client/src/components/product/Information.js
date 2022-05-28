@@ -25,7 +25,6 @@ const propTypes = {
 	information: shape({
 		_id: string,
 		name: string,
-		quantity: number,
 		rating_average: number,
 		review_count: number,
 		quantity_sold: shape({
@@ -55,19 +54,21 @@ const propTypes = {
 				})
 			),
 		]),
-		limit: number,
 	}),
 };
 
 const Information = ({ information }) => {
 	const {
+		_id,
+		name,
 		rating_average,
 		review_count,
 		quantity_sold,
 		discount_rate,
+		original_price,
+		price,
 		attribute_values,
 		warranty_infor,
-		...intendedCart // the properties for each item in cart
 	} = information;
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
@@ -75,7 +76,7 @@ const Information = ({ information }) => {
 	const handleAddToCart = (input) => {
 		dispatch(
 			addCart({
-				product: intendedCart,
+				product_id: _id,
 				quantity: input,
 			})
 		);
@@ -89,7 +90,7 @@ const Information = ({ information }) => {
 	};
 	return (
 		<RootStyle>
-			<Typography variant="h6">{intendedCart.name}</Typography>
+			<Typography variant="h6">{name}</Typography>
 			<Stack spacing={1}>
 				<Stack direction="row" alignItems="center" spacing={1}>
 					{rating_average > 0 && <Stars total={5} rating={rating_average} sx={{ fontSize: '18px' }} />}
@@ -111,7 +112,7 @@ const Information = ({ information }) => {
 					<Stack spacing={1} sx={{ flex: '1 1 0%' }}>
 						<PriceWrapper tag={discount_rate !== 0 ? 'sale' : 'normal'}>
 							<Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-								{discount_rate === 0 ? toVND(intendedCart.original_price) : toVND(intendedCart.price)}
+								{discount_rate === 0 ? toVND(original_price) : toVND(price)}
 							</Typography>
 							{discount_rate !== 0 && (
 								<Typography component="span">
@@ -120,7 +121,7 @@ const Information = ({ information }) => {
 										variant="subtitle1"
 										sx={{ color: '#efefef', fontSize: '15px', textDecoration: 'line-through', mx: '5px' }}
 									>
-										{toVND(intendedCart.original_price)}
+										{toVND(original_price)}
 									</Typography>
 									-{discount_rate}%
 								</Typography>

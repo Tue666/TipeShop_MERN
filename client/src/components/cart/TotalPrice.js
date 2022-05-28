@@ -1,13 +1,32 @@
+import { number, array } from 'prop-types';
 import { Link as RouterLink } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, Link, Divider, Button } from '@mui/material';
 
+// hooks
+import useModal from '../../hooks/useModal';
 // utils
 import { toVND } from '../../utils/formatMoney';
 // constant
 import { HEADER_HEIGHT, CART_PAGE } from '../../constant';
 
-const TotalPrice = () => {
+const propTypes = {
+	items: array,
+	selectedCount: number,
+};
+
+const TotalPrice = ({ items, selectedCount }) => {
+	const { openModal, keys } = useModal();
+	const totalGuess = items.reduce((sum, item) => {
+		if (item.selected) {
+			return sum + item.quantity * item.product.price;
+		}
+		return sum;
+	}, 0);
+
+	const handleOpenAppPromotion = () => {
+		openModal(keys.appPromotion);
+	};
 	return (
 		<RootStyle>
 			<ContentInner>
@@ -24,26 +43,22 @@ const TotalPrice = () => {
 					<Typography variant="body2">Chùa liên trì, Xã Suối Cao, Huyện Xuân Lộc, Đồng Nai</Typography>
 				</Wrapper>
 				<Wrapper>
-					<Typography variant="subtitle2">Coupon tickets</Typography>
-					<Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'rgb(26 139 237)' }}>
-						<i className="bi bi-ticket-detailed"></i> Select or enter coupon code
+					<Typography variant="subtitle2">Tipe Promotion</Typography>
+					<Typography
+						variant="subtitle2"
+						onClick={handleOpenAppPromotion}
+						sx={{ fontWeight: 'bold', color: 'rgb(26 139 237)', cursor: 'pointer' }}
+					>
+						<i className="bi bi-ticket-detailed"></i> Select or enter another Promotion
 					</Typography>
 				</Wrapper>
 				<Wrapper>
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Typography variant="subtitle2">Guess</Typography>
-						<Typography variant="subtitle1">{toVND(1)}</Typography>
+						<Typography variant="subtitle1">{toVND(totalGuess)}</Typography>
 					</Stack>
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Typography variant="subtitle2">Coupon</Typography>
-						<Typography variant="subtitle1">- {toVND(0)}</Typography>
-					</Stack>
-					<Stack direction="row" justifyContent="space-between" alignItems="center">
-						<Typography variant="subtitle2">Ship Fee</Typography>
-						<Typography variant="subtitle1">+ {toVND(0)}</Typography>
-					</Stack>
-					<Stack direction="row" justifyContent="space-between" alignItems="center">
-						<Typography variant="subtitle2">Freeship</Typography>
 						<Typography variant="subtitle1">- {toVND(0)}</Typography>
 					</Stack>
 					<Divider />
@@ -51,14 +66,14 @@ const TotalPrice = () => {
 						<Typography variant="subtitle2">Total</Typography>
 						<Stack alignItems="end">
 							<Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'error.main' }}>
-								Choose a product, please!
+								{selectedCount > 0 ? toVND(totalGuess) : 'Choose a product, please!'}
 							</Typography>
 							<Typography variant="caption">(VAT includes)</Typography>
 						</Stack>
 					</Stack>
 				</Wrapper>
 				<Button variant="contained" color="error" sx={{ width: '100%' }}>
-					Check out (0)
+					Check out ({selectedCount})
 				</Button>
 			</ContentInner>
 		</RootStyle>
@@ -90,5 +105,7 @@ const Linking = styled(Link)({
 	textDecoration: 'none',
 	fontWeight: '500',
 });
+
+TotalPrice.propTypes = propTypes;
 
 export default TotalPrice;

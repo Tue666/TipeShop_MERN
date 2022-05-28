@@ -1,8 +1,14 @@
 import { number, array } from 'prop-types';
 import { styled } from '@mui/material/styles';
-import { Stack, Checkbox, Typography, IconButton, Tooltip } from '@mui/material';
+import { Stack, Checkbox, Typography, IconButton, Tooltip, Alert } from '@mui/material';
 import { DeleteForeverOutlined, Favorite } from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { useConfirm } from 'material-ui-confirm';
 
+// redux
+import { editQuantity, editSelected, removeCart } from '../../redux/slices/cart';
+// utils
+import enqueueSnackbar from '../../utils/snackbar';
 // constant
 import { HEADER_HEIGHT, CART_PAGE } from '../../constant';
 //
@@ -11,22 +17,79 @@ import CartItem from './CartItem';
 const propTypes = {
 	items: array,
 	totalItem: number,
+	selectedCount: number,
 };
 
-const CartList = ({ items, totalItem }) => {
-	const isSelectedAll = items && items.filter((item) => item.selected).length > 0;
+const CartList = ({ items, totalItem, selectedCount }) => {
+	const dispatch = useDispatch();
+	const confirm = useConfirm();
+	const isSelectedAll = items.filter((item) => !item.selected).length === 0;
+
+	const handleRemoveItem = async (_id = null) => {
+		// _id with null will remove all selected items
+		if (!_id) {
+			const isSelectedMany = selectedCount > 0;
+			if (!isSelectedMany) {
+				enqueueSnackbar('Please select the products to remove', {
+					anchorOrigin: {
+						vertical: 'bottom',
+						horizontal: 'center',
+					},
+					preventDuplicate: true,
+				});
+				return;
+			}
+		}
+		try {
+			await confirm({
+				title: 'Remove products',
+				content: <Alert severity="error">Do you want to remove the selected products?</Alert>,
+				confirmationButtonProps: {
+					color: 'error',
+				},
+			});
+			dispatch(
+				removeCart({
+					_id,
+				})
+			);
+		} catch (error) {}
+	};
+	const handleQuantityItemChange = (_id, product_id, new_quantity) => {
+		dispatch(
+			editQuantity({
+				_id,
+				product_id,
+				new_quantity,
+			})
+		);
+	};
+	const handleSelectItemChange = (type, _id) => {
+		dispatch(
+			editSelected({
+				type,
+				_id,
+			})
+		);
+	};
 	return (
 		<RootStyle>
 			<Heading>
 				<Stack spacing={1} direction="row" alignItems="center" sx={{ cursor: 'pointer' }}>
-					<Checkbox size="small" checked={isSelectedAll} checkedIcon={<Favorite />} color="error" />
+					<Checkbox
+						size="small"
+						checked={isSelectedAll}
+						checkedIcon={<Favorite />}
+						color="error"
+						onClick={() => handleSelectItemChange('all', !isSelectedAll)}
+					/>
 					<Typography variant="subtitle2">All ({totalItem} products)</Typography>
 				</Stack>
 				<Typography variant="subtitle2">Single</Typography>
 				<Typography variant="subtitle2">Quantity</Typography>
 				<Typography variant="subtitle2">Price</Typography>
 				<Tooltip placement="bottom" title="Remove selected items" arrow>
-					<IconButton color="error" onClick={() => {}}>
+					<IconButton color="error" onClick={() => handleRemoveItem()}>
 						<DeleteForeverOutlined />
 					</IconButton>
 				</Tooltip>
@@ -38,7 +101,15 @@ const CartList = ({ items, totalItem }) => {
 					<Stack spacing={3}>
 						{items.map((item) => {
 							const { _id } = item;
-							return <CartItem key={_id} item={item} />;
+							return (
+								<CartItem
+									key={_id}
+									item={item}
+									handleQuantityItemChange={handleQuantityItemChange}
+									handleSelectItemChange={handleSelectItemChange}
+									handleRemoveItem={handleRemoveItem}
+								/>
+							);
 						})}
 					</Stack>
 					{/* Seller discount */}

@@ -13,6 +13,27 @@ const cartApi = {
 			...body,
 		});
 	},
+	// [PATCH] /carts/quantity
+	editQuantity: (body) => {
+		const url = `/carts/quantity`;
+		return axiosInstance.patch(url, {
+			...body,
+		});
+	},
+	// [PATCH] /carts/selected
+	editSelected: (body) => {
+		const url = `/carts/selected`;
+		return axiosInstance.patch(url, {
+			...body,
+		});
+	},
+	// [PUT] /carts
+	remove: (body) => {
+		const url = `/carts`;
+		return axiosInstance.put(url, {
+			...body,
+		});
+	},
 };
 
 export default cartApi;

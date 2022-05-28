@@ -4,12 +4,14 @@ import { useSelector } from 'react-redux';
 
 // components
 import { Authentication } from '../components/authentication';
+import { AppPromotion } from '../components/cart';
 // hooks
 import useModal from '../hooks/useModal';
 
 const components = {
 	default: null,
 	authentication: <Authentication />,
+	appPromotion: <AppPromotion />,
 };
 
 export const keys = Object.keys(components).reduce((keys, key) => ({ ...keys, [key]: key }), {});
