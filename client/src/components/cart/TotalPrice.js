@@ -1,4 +1,4 @@
-import { number, array } from 'prop-types';
+import { number, array, shape, string } from 'prop-types';
 import { Link as RouterLink } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, Link, Divider, Button } from '@mui/material';
@@ -13,9 +13,14 @@ import { HEADER_HEIGHT, CART_PAGE } from '../../constant';
 const propTypes = {
 	items: array,
 	selectedCount: number,
+	address: shape({
+		customer_id: string,
+		name: string,
+		phone_number: string,
+	}),
 };
 
-const TotalPrice = ({ items, selectedCount }) => {
+const TotalPrice = ({ items, selectedCount, address }) => {
 	const { openModal, keys } = useModal();
 	const totalGuess = items.reduce((sum, item) => {
 		if (item.selected) {
@@ -30,18 +35,20 @@ const TotalPrice = ({ items, selectedCount }) => {
 	return (
 		<RootStyle>
 			<ContentInner>
-				<Wrapper>
-					<Stack direction="row" justifyContent="space-between" alignItems="center">
-						<Typography variant="subtitle2">Ship Address</Typography>
-						<Linking component={RouterLink} to="/">
-							Change
-						</Linking>
-					</Stack>
-					<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-						Pihe | 0586181641
-					</Typography>
-					<Typography variant="body2">Chùa liên trì, Xã Suối Cao, Huyện Xuân Lộc, Đồng Nai</Typography>
-				</Wrapper>
+				{address && (
+					<Wrapper>
+						<Stack direction="row" justifyContent="space-between" alignItems="center">
+							<Typography variant="subtitle2">Ship Address</Typography>
+							<Linking component={RouterLink} to="/">
+								Change
+							</Linking>
+						</Stack>
+						<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+							Pihe | 0586181641
+						</Typography>
+						<Typography variant="body2">Chùa liên trì, Xã Suối Cao, Huyện Xuân Lộc, Đồng Nai</Typography>
+					</Wrapper>
+				)}
 				<Wrapper>
 					<Typography variant="subtitle2">Tipe Promotion</Typography>
 					<Typography

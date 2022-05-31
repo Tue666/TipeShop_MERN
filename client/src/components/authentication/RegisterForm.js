@@ -1,13 +1,13 @@
 import { string, func } from 'prop-types';
-import { Stack, Typography, TextField, Alert, Slide } from '@mui/material';
+import { Stack, Typography, TextField, Alert } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { ArrowBackIosOutlined } from '@mui/icons-material';
 import { FormikProvider, useFormik, Form } from 'formik';
-import { useSnackbar } from 'notistack';
 
 // apis
 import accountApi from '../../apis/accountApi';
 // utils
+import enqueueSnackbar from '../../utils/snackbar';
 import { createAccountValidation } from '../../utils/validation';
 
 const propTypes = {
@@ -16,7 +16,6 @@ const propTypes = {
 };
 
 const RegisterForm = ({ phoneNumber, handleBackDefaultState }) => {
-	const { enqueueSnackbar } = useSnackbar();
 	const formik = useFormik({
 		initialValues: {
 			name: '',
@@ -36,7 +35,6 @@ const RegisterForm = ({ phoneNumber, handleBackDefaultState }) => {
 						vertical: 'bottom',
 						horizontal: 'center',
 					},
-					TransitionComponent: Slide,
 				});
 				handleBackDefaultState();
 			} catch (error) {

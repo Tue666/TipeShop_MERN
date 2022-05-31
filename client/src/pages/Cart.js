@@ -15,6 +15,8 @@ import { apiConfig } from '../config';
 const Cart = () => {
 	const { items, totalItem } = useSelector((state) => state.cart);
 	const selectedCount = items.filter((item) => item.selected).length;
+	const { addresses } = useSelector((state) => state.account);
+	const address = addresses.length > 0 ? addresses.filter((address) => address.is_default)[0] : null;
 	return (
 		<Page title="Cart | Tipe">
 			<Container>
@@ -32,7 +34,7 @@ const Cart = () => {
 				{totalItem > 0 && (
 					<Stack direction={{ xs: 'column', sm: 'column', lg: 'row' }} justifyContent="space-between">
 						<CartList items={items} totalItem={totalItem} selectedCount={selectedCount} />
-						<TotalPrice items={items} selectedCount={selectedCount} />
+						<TotalPrice items={items} selectedCount={selectedCount} address={address} />
 					</Stack>
 				)}
 				{totalItem <= 0 && (

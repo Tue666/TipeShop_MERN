@@ -1,8 +1,117 @@
+const mongoose = require('mongoose');
+
 // model
 const { generateSeqById } = require('../models/Counter');
 const Location = require('../models/Location');
 
 class LocationsAPI {
+	// [GET] /locations/regions/:country
+	async findRegionsByCountry(req, res, next) {
+		try {
+			let { country } = req.params;
+			country = country.toUpperCase();
+
+			const regions = await Location.find({
+				country,
+			}).select('name');
+
+			res.status(200).json(regions);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [GET] /locations/districts/:region_id
+	async findDistrictsByRegionId(req, res, next) {
+		try {
+			const { region_id } = req.params;
+
+			const districts = await Location.aggregate([
+				{
+					$match: {
+						_id: mongoose.Types.ObjectId(region_id),
+					},
+				},
+				{
+					$project: {
+						_id: 0,
+						'districts._id': 1,
+						'districts.name': 1,
+					},
+				},
+				{
+					$unwind: '$districts',
+				},
+				{
+					$replaceRoot: {
+						newRoot: '$districts',
+					},
+				},
+			]);
+
+			res.status(200).json(districts);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [GET] /locations/wards/:district_id
+	async findWardsByDistrictId(req, res, next) {
+		try {
+			const { district_id } = req.params;
+
+			const wards = await Location.aggregate([
+				{
+					$match: {
+						'districts._id': mongoose.Types.ObjectId(district_id),
+					},
+				},
+				{
+					$project: {
+						district: {
+							$filter: {
+								input: '$districts',
+								cond: {
+									$eq: ['$$this._id', mongoose.Types.ObjectId(district_id)],
+								},
+							},
+						},
+					},
+				},
+				{
+					$project: {
+						_id: 0,
+						'district.wards._id': 1,
+						'district.wards.name': 1,
+					},
+				},
+				{
+					$unwind: '$district',
+				},
+				{
+					$replaceRoot: {
+						newRoot: '$district',
+					},
+				},
+				{
+					$unwind: '$wards',
+				},
+				{
+					$replaceRoot: {
+						newRoot: '$wards',
+					},
+				},
+			]);
+
+			res.status(200).json(wards);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /locations/region
 	/*
         name: String,
@@ -10,13 +119,14 @@ class LocationsAPI {
     */
 	async insertRegion(req, res, next) {
 		try {
-			const { name, country } = req.body;
+			let { name, country } = req.body;
+			country = country.toUpperCase();
 
 			const uniqueValue = await generateSeqById('location');
 			const location = new Location({
 				name,
 				country,
-				code: `${country.toUpperCase()}${uniqueValue}`,
+				code: `${country}${uniqueValue}`,
 			});
 
 			await location.save();
@@ -49,7 +159,7 @@ class LocationsAPI {
 
 			const { _id, country } = region;
 			const uniqueValue = await generateSeqById('location');
-			const code = `${country.toUpperCase()}${uniqueValue}`;
+			const code = `${country}${uniqueValue}`;
 			const location = await Location.findByIdAndUpdate(
 				_id,
 				{
@@ -98,7 +208,7 @@ class LocationsAPI {
 
 			const { _id, country } = region;
 			const uniqueValue = await generateSeqById('location');
-			const code = `${country.toUpperCase()}${uniqueValue}`;
+			const code = `${country}${uniqueValue}`;
 			const location = await Location.findOneAndUpdate(
 				{
 					_id,

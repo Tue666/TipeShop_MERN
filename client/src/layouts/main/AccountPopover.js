@@ -1,11 +1,14 @@
 import { shape, func, string } from 'prop-types';
 import { useState, Fragment } from 'react';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 import { Popover, Stack, Divider, MenuList, MenuItem, ListItemIcon } from '@mui/material';
-import { AssignmentIndOutlined, AssignmentOutlined, LogoutOutlined } from '@mui/icons-material';
+import { AssignmentIndOutlined, LogoutOutlined } from '@mui/icons-material';
 
 // components
 import Avatar from '../../components/Avatar';
+// routes
+import { PATH_CUSTOMER } from '../../routes/path';
 // config
 import { apiConfig } from '../../config';
 
@@ -13,12 +16,7 @@ const MENU_OPTIONS = [
 	{
 		label: 'My Profile',
 		icon: <AssignmentIndOutlined />,
-		linkTo: '/profile',
-	},
-	{
-		label: 'My Ordered',
-		icon: <AssignmentOutlined />,
-		linkTo: '/ordered',
+		linkTo: PATH_CUSTOMER.profile,
 	},
 ];
 
@@ -33,6 +31,7 @@ const propTypes = {
 const AccountPopover = ({ profile, logout }) => {
 	const { name, avatar_url } = profile;
 	const [anchorEl, setAnchorEl] = useState(null);
+	const navigate = useNavigate();
 
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
@@ -66,7 +65,7 @@ const AccountPopover = ({ profile, logout }) => {
 					/>
 					<MenuList dense sx={{ width: '100%' }}>
 						{MENU_OPTIONS.map((menu) => (
-							<MenuItem key={menu.label}>
+							<MenuItem key={menu.label} onClick={() => navigate(menu.linkTo)}>
 								<ListItemIcon>{menu.icon}</ListItemIcon>
 								{menu.label}
 							</MenuItem>
