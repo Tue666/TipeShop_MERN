@@ -22,12 +22,13 @@ import {
 // components
 import Page from '../../components/Page';
 import { UploadSingleFile } from '../../components/_external_/dropzone';
+import { DateOfBirth } from '../../components/customer';
 
 const Profile = () => {
 	return (
 		<Page title="Account information | Tipe">
 			<RootStyle direction="row">
-				<Stack spacing={2} p={2} sx={{ width: '553px' }}>
+				<Stack spacing={2} p={2} sx={{ width: '575px' }}>
 					<Typography variant="subtitle2">Personal information</Typography>
 					<Stack direction="row" spacing={3}>
 						<Stack>
@@ -67,13 +68,19 @@ const Profile = () => {
 						</Stack>
 						<Stack spacing={2} sx={{ flex: 1 }}>
 							<Stack direction="row" alignItems="center" spacing={3}>
-								<Typography variant="subtitle2" sx={{ width: '80px' }}>
+								<Typography variant="subtitle2" sx={{ width: '70px' }}>
 									Customer name
 								</Typography>
 								<TextField label="Enter your name" variant="outlined" size="small" />
 							</Stack>
 							<Stack direction="row" alignItems="center" spacing={3}>
-								<Typography variant="subtitle2" sx={{ width: '80px' }}>
+								<Typography variant="subtitle2" sx={{ width: '70px' }}>
+									Date of birth
+								</Typography>
+								<DateOfBirth />
+							</Stack>
+							<Stack direction="row" alignItems="center" spacing={3}>
+								<Typography variant="subtitle2" sx={{ width: '70px' }}>
 									Gender
 								</Typography>
 								<FormControl>

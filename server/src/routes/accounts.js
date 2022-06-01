@@ -10,6 +10,9 @@ router.get('/verify', verifyToken, (req, res) => {
 	res.json(!!req.account._id);
 });
 
+router.delete('/addresses/:_id', verifyToken, accountsAPI.removeAddress);
+router.put('/addresses', verifyToken, accountsAPI.editAddress);
+router.post('/addresses', verifyToken, accountsAPI.insertAddress);
 router.post('/refreshToken', accountsAPI.refreshToken);
 router.post('/login', accountsAPI.login);
 router.post('/register', accountsAPI.register);

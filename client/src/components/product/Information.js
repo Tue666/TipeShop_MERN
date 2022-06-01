@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-scroll';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, Chip } from '@mui/material';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 // components
 import Stars from '../Stars';
@@ -70,6 +70,8 @@ const Information = ({ information }) => {
 		attribute_values,
 		warranty_infor,
 	} = information;
+	const { addresses } = useSelector((state) => state.account);
+	const address = addresses.length > 0 ? addresses.filter((address) => address.is_default)[0] : null;
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
@@ -129,11 +131,13 @@ const Information = ({ information }) => {
 						</PriceWrapper>
 						<Stack sx={{ cursor: 'pointer' }}>
 							<Typography variant="subtitle2">Delivery</Typography>
-							<Typography variant="subtitle2" sx={{ textDecoration: 'underline' }}>
-								Chùa liên trì, Xã Suối Cao, Huyện Xuân Lộc, Đồng Nai
-							</Typography>
+							{address && (
+								<Typography variant="subtitle2" sx={{ textDecoration: 'underline' }}>
+									{`${address.street}, ${address.ward.name}, ${address.district.name}, ${address.region.name}`}
+								</Typography>
+							)}
 							<Typography variant="subtitle2" sx={{ color: 'rgb(26 139 237)' }}>
-								Change
+								{address ? 'Change' : 'Add new delivery address'}
 							</Typography>
 						</Stack>
 						<QuantityInput handleAddToCart={handleAddToCart} />

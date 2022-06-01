@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 // apis
 import accountApi from '../apis/accountApi';
 // redux
-import { getProfile } from '../redux/slices/account';
+import { getProfile, clearAccount } from '../redux/slices/account';
 import { getCart, clearCart } from '../redux/slices/cart';
 // utils
 import { getToken, setToken, isValidToken } from '../utils/jwt';
@@ -93,6 +93,7 @@ const AuthProvider = ({ children }) => {
 	};
 	const logout = () => {
 		setToken(null);
+		dispatchSlice(clearAccount());
 		dispatchSlice(clearCart());
 		dispatch({
 			type: 'LOGOUT',

@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 
 // models
 const Account = require('../models/Account');
+const Address = require('../models/Address');
+const Location = require('../models/Location');
 // utils
 const { generateToken, verify } = require('../../utils/jwt');
 
@@ -12,17 +14,9 @@ class AccountsAPI {
 		try {
 			const { _id } = req.account;
 
-			const result = await Account.aggregate([
+			const profile = await Account.aggregate([
 				{
 					$match: { _id: mongoose.Types.ObjectId(_id) },
-				},
-				{
-					$lookup: {
-						from: 'addresses',
-						localField: '_id',
-						foreignField: 'customer_id',
-						as: 'addresses',
-					},
 				},
 				{
 					$project: {
@@ -33,10 +27,99 @@ class AccountsAPI {
 				},
 			]);
 
-			const { addresses, ...profile } = result[0];
+			const addresses = await Address.aggregate([
+				{
+					$match: {
+						customer_id: mongoose.Types.ObjectId(_id),
+					},
+				},
+				// get the location matched for receive region, district, ward
+				{
+					$lookup: {
+						from: 'locations',
+						let: {
+							region_id: '$region_id',
+						},
+						pipeline: [
+							{
+								$match: {
+									$expr: { $eq: ['$_id', '$$region_id'] },
+								},
+							},
+						],
+						as: 'location',
+					},
+				},
+				{
+					$addFields: {
+						location: { $arrayElemAt: ['$location', 0] },
+					},
+				},
+				{
+					$addFields: {
+						country: '$location.country',
+						region: {
+							name: '$location.name',
+							code: '$location.code',
+							_id: '$location._id',
+						},
+						district: {
+							$arrayElemAt: [
+								{
+									$filter: {
+										input: '$location.districts',
+										cond: {
+											$eq: ['$$this._id', '$district_id'],
+										},
+									},
+								},
+								0,
+							],
+						},
+					},
+				},
+				{
+					$addFields: {
+						ward: {
+							$arrayElemAt: [
+								{
+									$filter: {
+										input: '$district.wards',
+										cond: {
+											$eq: ['$$this._id', '$ward_id'],
+										},
+									},
+								},
+								0,
+							],
+						},
+					},
+				},
+				{
+					$project: {
+						name: 1,
+						company: 1,
+						phone_number: 1,
+						street: 1,
+						delivery_address_type: 1,
+						is_default: 1,
+						country: 1,
+						region: 1,
+						district: {
+							name: 1,
+							code: 1,
+							_id: 1,
+						},
+						ward: 1,
+					},
+				},
+				{
+					$sort: { _id: -1 },
+				},
+			]);
 
 			res.status(200).json({
-				profile,
+				profile: profile[0],
 				addresses,
 			});
 		} catch (error) {
@@ -176,6 +259,273 @@ class AccountsAPI {
 
 			res.json(tokens);
 		} catch (error) {
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [POST] /accounts/addresses
+	/*
+		name: String,
+		company: String,
+		phone_number: String,
+		region_id: ObjectId as String,
+		district_id: ObjectId as String,
+		ward_id: ObjectId as String,
+		street: String,
+		delivery_address_type: String,
+		is_default: Bool,
+	*/
+	async insertAddress(req, res, next) {
+		try {
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { region_id, district_id, ward_id, is_default, ...other } = req.body;
+			region_id = mongoose.Types.ObjectId(region_id);
+			district_id = mongoose.Types.ObjectId(district_id);
+			ward_id = mongoose.Types.ObjectId(ward_id);
+
+			// the first address is always default
+			// otherwise if it's default then update everything else to non-default
+			const addressCount = await Address.count({
+				customer_id,
+			});
+			if (addressCount === 0) is_default = true;
+			else {
+				if (is_default)
+					await Address.updateMany(
+						{
+							customer_id,
+						},
+						{
+							is_default: false,
+						}
+					);
+			}
+
+			const address = new Address({
+				customer_id,
+				region_id,
+				district_id,
+				ward_id,
+				is_default,
+				...other,
+			});
+			await address.save();
+
+			const location = await Location.aggregate([
+				{
+					$match: { _id: region_id },
+				},
+				{
+					$addFields: {
+						country: '$country',
+						region: {
+							name: '$name',
+							code: '$code',
+							_id: '$_id',
+						},
+						district: {
+							$arrayElemAt: [
+								{
+									$filter: {
+										input: '$districts',
+										cond: {
+											$eq: ['$$this._id', district_id],
+										},
+									},
+								},
+								0,
+							],
+						},
+					},
+				},
+				{
+					$addFields: {
+						ward: {
+							$arrayElemAt: [
+								{
+									$filter: {
+										input: '$district.wards',
+										cond: {
+											$eq: ['$$this._id', ward_id],
+										},
+									},
+								},
+								0,
+							],
+						},
+					},
+				},
+				{
+					$project: {
+						_id: 0,
+						country: 1,
+						region: 1,
+						district: {
+							name: 1,
+							code: 1,
+							_id: 1,
+						},
+						ward: 1,
+					},
+				},
+			]);
+
+			res.status(201).json({
+				msg: 'Insert address successfully!',
+				address: {
+					_id: address._id,
+					...other,
+					...location[0],
+					is_default,
+				},
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [PUT] /accounts/addresses
+	/*
+		_id: ObjectId as String,
+		name: String,
+		company: String,
+		phone_number: String,
+		region_id: ObjectId as String,
+		district_id: ObjectId as String,
+		ward_id: ObjectId as String,
+		street: String,
+		delivery_address_type: String,
+		is_default: Bool,
+	*/
+	async editAddress(req, res, next) {
+		try {
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { _id, region_id, district_id, ward_id, is_default, ...other } = req.body;
+			_id = mongoose.Types.ObjectId(_id);
+			region_id = mongoose.Types.ObjectId(region_id);
+			district_id = mongoose.Types.ObjectId(district_id);
+			ward_id = mongoose.Types.ObjectId(ward_id);
+
+			// if it's default then update everything else to non-default
+			if (is_default)
+				await Address.updateMany(
+					{
+						customer_id,
+					},
+					{
+						is_default: false,
+					}
+				);
+
+			const address = await Address.findByIdAndUpdate(
+				_id,
+				{
+					region_id,
+					district_id,
+					ward_id,
+					is_default,
+					...other,
+				},
+				{
+					new: true,
+				}
+			);
+
+			const location = await Location.aggregate([
+				{
+					$match: { _id: region_id },
+				},
+				{
+					$addFields: {
+						country: '$country',
+						region: {
+							name: '$name',
+							code: '$code',
+							_id: '$_id',
+						},
+						district: {
+							$arrayElemAt: [
+								{
+									$filter: {
+										input: '$districts',
+										cond: {
+											$eq: ['$$this._id', district_id],
+										},
+									},
+								},
+								0,
+							],
+						},
+					},
+				},
+				{
+					$addFields: {
+						ward: {
+							$arrayElemAt: [
+								{
+									$filter: {
+										input: '$district.wards',
+										cond: {
+											$eq: ['$$this._id', ward_id],
+										},
+									},
+								},
+								0,
+							],
+						},
+					},
+				},
+				{
+					$project: {
+						_id: 0,
+						country: 1,
+						region: 1,
+						district: {
+							name: 1,
+							code: 1,
+							_id: 1,
+						},
+						ward: 1,
+					},
+				},
+			]);
+
+			res.status(200).json({
+				msg: 'Edit address successfully!',
+				address: {
+					_id: address._id,
+					...other,
+					...location[0],
+					is_default,
+				},
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [DELETE] /accounts/addresses/:_id
+	async removeAddress(req, res, next) {
+		try {
+			const customer_id = req.account._id;
+			const { _id } = req.params;
+
+			const result = await Address.deleteOne({
+				_id: mongoose.Types.ObjectId(_id),
+				customer_id: mongoose.Types.ObjectId(customer_id),
+			});
+
+			res.status(200).json({
+				msg: 'Remove address successfully!',
+				_id,
+				removed_count: result.deletedCount,
+			});
+		} catch (error) {
+			console.error(error);
 			next({ status: 500, msg: error.message });
 		}
 	}

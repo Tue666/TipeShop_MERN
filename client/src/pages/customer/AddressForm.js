@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
 	Stack,
@@ -13,33 +13,67 @@ import {
 import { LoadingButton } from '@mui/lab';
 import { ArrowBackIosOutlined } from '@mui/icons-material';
 import { FormikProvider, useFormik, Form, getIn } from 'formik';
+import { useSelector, useDispatch } from 'react-redux';
 
 // components
 import Page from '../../components/Page';
 import { Location } from '../../components/customer';
+// redux
+import { insertAddress, editAddress } from '../../redux/slices/account';
 // routes
 import { PATH_CUSTOMER } from '../../routes/path';
 // utils
 import { createAddressValidation } from '../../utils/validation';
 
 const AddressForm = () => {
+	const navigate = useNavigate();
+	const { pathname } = useLocation();
+	const isEdit = pathname.includes('edit');
+	const { addresses } = useSelector((state) => state.account);
+	const address_id = pathname.split('/').pop();
+	const address = addresses.find((address) => address._id === address_id);
+	const dispatch = useDispatch();
 	const formik = useFormik({
 		initialValues: {
-			name: '',
-			company: '',
-			phoneNumber: '',
-			location: {
-				region: '',
-				district: '',
-				ward: '',
-			},
-			street: '',
-			addressType: 'home',
-			isDefault: false,
+			name: address?.name || '',
+			company: address?.company || '',
+			phoneNumber: address?.phone_number || '',
+			location: address
+				? {
+						region: address.region._id,
+						district: address.district._id,
+						ward: address.ward._id,
+				  }
+				: {
+						region: '',
+						district: '',
+						ward: '',
+				  },
+			street: address?.street || '',
+			addressType: address?.delivery_address_type || 'home',
+			isDefault: address?.is_default || false,
 		},
 		validationSchema: createAddressValidation,
 		onSubmit: (values) => {
-			console.log(values);
+			const { phoneNumber, location, addressType, isDefault, ...other } = values;
+			const body = {
+				phone_number: phoneNumber,
+				region_id: location.region,
+				district_id: location.district,
+				ward_id: location.ward,
+				delivery_address_type: addressType,
+				is_default: isDefault,
+				...other,
+			};
+			if (!isEdit) dispatch(insertAddress(body));
+			else
+				dispatch(
+					editAddress({
+						_id: address_id,
+						...body,
+					})
+				);
+			navigate(PATH_CUSTOMER.addresses);
 		},
 	});
 	const { values, touched, errors, isSubmitting, handleBlur, setFieldValue } = formik;
@@ -117,6 +151,7 @@ const AddressForm = () => {
 							/>
 						</Stack>
 						<Location
+							isEdit={isEdit}
 							location={values.location}
 							errors={{
 								region: getIn(touched, 'location.region') && getIn(errors, 'location.region'),
@@ -152,12 +187,14 @@ const AddressForm = () => {
 								</RadioGroup>
 							</FormControl>
 						</Stack>
-						<Stack direction="row" alignItems="center" spacing={3}>
-							<Typography variant="subtitle2" sx={{ width: '204px' }}>
-								Default address
-							</Typography>
-							<Checkbox checked={values.isDefault} size="small" onClick={handleSelectIsDefault} />
-						</Stack>
+						{(!isEdit || (isEdit && !address.is_default)) && (
+							<Stack direction="row" alignItems="center" spacing={3}>
+								<Typography variant="subtitle2" sx={{ width: '204px' }}>
+									Default address
+								</Typography>
+								<Checkbox checked={values.isDefault} size="small" onClick={handleSelectIsDefault} />
+							</Stack>
+						)}
 						<LoadingButton
 							type="submit"
 							loading={isSubmitting}

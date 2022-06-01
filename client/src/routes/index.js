@@ -31,6 +31,7 @@ const Router = () => {
 						{ path: 'profile', element: <Profile /> },
 						{ path: 'addresses', element: <Addresses /> },
 						{ path: 'addresses/create', element: <AddressForm /> },
+						{ path: 'addresses/edit/:_id', element: <AddressForm /> },
 					],
 				},
 				{ path: ':slug/pid:_id', element: <Product /> },

@@ -1,4 +1,4 @@
-import { shape, string, func } from 'prop-types';
+import { shape, string, func, bool } from 'prop-types';
 import { useEffect, useReducer } from 'react';
 import { Stack, Typography, TextField, MenuItem } from '@mui/material';
 
@@ -12,6 +12,15 @@ const initialState = {
 };
 
 const handlers = {
+	FETCH_ALL_MATCHED: (state, action) => {
+		const { regions, districts, wards } = action.payload;
+		return {
+			...state,
+			regions,
+			districts,
+			wards,
+		};
+	},
 	FETCH_REGIONS: (state, action) => {
 		const regions = action.payload;
 		return {
@@ -42,6 +51,7 @@ const reducer = (state, action) =>
 	handlers[action.type] ? handlers[action.type](state, action) : state;
 
 const propTypes = {
+	isEdit: bool,
 	location: shape({
 		region: string,
 		district: string,
@@ -55,18 +65,40 @@ const propTypes = {
 	handleSelectedLocation: func,
 };
 
-const Location = ({ location, errors, handleSelectedLocation }) => {
+const Location = ({ isEdit, location, errors, handleSelectedLocation }) => {
 	const [state, dispatch] = useReducer(reducer, initialState);
+	const hasRegion = state.regions.find((region) => region._id === location.region);
+	const hasDistrict = state.districts.find((district) => district._id === location.district);
+	const hasWard = state.wards.find((ward) => ward._id === location.ward);
 	useEffect(() => {
-		const getRegions = async () => {
-			const regions = await locationApi.findRegionsByCountry('vn');
-			dispatch({
-				type: 'FETCH_REGIONS',
-				payload: regions,
-			});
-		};
-		getRegions();
-	}, []);
+		if (!isEdit) {
+			const getRegions = async () => {
+				const regions = await locationApi.findRegionsByCountry('vn');
+				dispatch({
+					type: 'FETCH_REGIONS',
+					payload: regions,
+				});
+			};
+			getRegions();
+		} else {
+			const getAllMatched = async () => {
+				const { region, district } = location;
+				const regions = await locationApi.findRegionsByCountry('vn');
+				const districts = await locationApi.findDistrictsByRegionId(region);
+				const wards = await locationApi.findWardsByDistrictId(district);
+				dispatch({
+					type: 'FETCH_ALL_MATCHED',
+					payload: {
+						regions,
+						districts,
+						wards,
+					},
+				});
+			};
+			getAllMatched();
+		}
+		// eslint-disable-next-line
+	}, [isEdit]);
 
 	const handleChangeRegion = async (e) => {
 		const region_id = e.target.value;
@@ -111,7 +143,7 @@ const Location = ({ location, errors, handleSelectedLocation }) => {
 					Province / City
 				</Typography>
 				<TextField
-					value={location.region}
+					value={hasRegion?._id || ''}
 					fullWidth
 					select
 					label="Select Province / City"
@@ -137,7 +169,7 @@ const Location = ({ location, errors, handleSelectedLocation }) => {
 					District
 				</Typography>
 				<TextField
-					value={location.district}
+					value={hasDistrict?._id || ''}
 					fullWidth
 					select
 					label="Select District"
@@ -163,7 +195,7 @@ const Location = ({ location, errors, handleSelectedLocation }) => {
 					Ward
 				</Typography>
 				<TextField
-					value={location.ward}
+					value={hasWard?._id || ''}
 					fullWidth
 					select
 					label="Select Ward"

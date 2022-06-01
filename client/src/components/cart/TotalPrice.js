@@ -44,9 +44,9 @@ const TotalPrice = ({ items, selectedCount, address }) => {
 							</Linking>
 						</Stack>
 						<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-							Pihe | 0586181641
+							{address.name} | {address.phone_number}
 						</Typography>
-						<Typography variant="body2">Chùa liên trì, Xã Suối Cao, Huyện Xuân Lộc, Đồng Nai</Typography>
+						<Typography variant="body2">{`${address.street}, ${address.ward.name}, ${address.district.name}, ${address.region.name}`}</Typography>
 					</Wrapper>
 				)}
 				<Wrapper>

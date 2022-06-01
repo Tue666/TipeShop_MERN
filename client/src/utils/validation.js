@@ -19,4 +19,5 @@ export const createAddressValidation = yup.object().shape({
 		district: yup.string().required('District is required!'),
 		ward: yup.string().required('Ward is required!'),
 	}),
+	street: yup.string().required('Street is required!'),
 });

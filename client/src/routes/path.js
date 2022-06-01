@@ -13,5 +13,6 @@ export const PATH_MAIN = {
 export const PATH_CUSTOMER = {
 	profile: path(ROOT_CUSTOMER, '/profile'),
 	addresses: path(ROOT_CUSTOMER, '/addresses'),
-	addressForm: path(ROOT_CUSTOMER, '/addresses/create'),
+	createAddress: path(ROOT_CUSTOMER, '/addresses/create'),
+	editAddress: path(ROOT_CUSTOMER, '/addresses/edit'),
 };

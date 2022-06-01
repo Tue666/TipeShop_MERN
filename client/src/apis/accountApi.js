@@ -27,6 +27,25 @@ const accountApi = {
 			...body,
 		});
 	},
+	// [POST] /accounts/addresses
+	insertAddress: (body) => {
+		const url = `/accounts/addresses`;
+		return axiosInstance.post(url, {
+			...body,
+		});
+	},
+	// [PUT] /accounts/addresses
+	editAddress: (body) => {
+		const url = `/accounts/addresses`;
+		return axiosInstance.put(url, {
+			...body,
+		});
+	},
+	// [DELETE] /accounts/addresses/:_id
+	removeAddress: (_id) => {
+		const url = `/accounts/addresses/${_id}`;
+		return axiosInstance.delete(url);
+	},
 };
 
 export default accountApi;

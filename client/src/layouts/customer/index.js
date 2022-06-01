@@ -30,7 +30,8 @@ const CustomerLayout = () => {
 		const pathname = window.location.pathname;
 		return (
 			matchPath({ path: `${menu.linkTo}` }, pathname) ||
-			matchPath({ path: `${menu.linkTo}/:type` }, pathname) // path contains type for CRUD maybe
+			matchPath({ path: `${menu.linkTo}/:type` }, pathname) || // path contains type for create maybe
+			matchPath({ path: `${menu.linkTo}/:type/:value` }, pathname) // path contains type for update maybe
 		);
 	})[0];
 	return (
