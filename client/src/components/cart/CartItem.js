@@ -87,7 +87,7 @@ const CartItem = ({ item, handleQuantityItemChange, handleSelectItemChange, hand
 	return (
 		<RootStyle
 			sx={
-				inventory_status !== 'availabel' && {
+				(inventory_status !== 'availabel' || product.quantity < 1) && {
 					pointerEvents: 'none',
 					opacity: '0.5',
 				}

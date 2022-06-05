@@ -26,7 +26,13 @@ const slice = createSlice({
 			if (is_default && state.addresses.length > 0) {
 				state.addresses = state.addresses.map((address) => ({ ...address, is_default: false }));
 			}
-			state.addresses = [address, ...state.addresses];
+			state.addresses = is_default ? [address, ...state.addresses] : [...state.addresses, address];
+		},
+		switchDefaultSuccess(state, action) {
+			const _id = action.payload;
+			const addressIndex = state.addresses.findIndex((address) => address._id === _id);
+			const addressToMove = state.addresses.splice(addressIndex, 1)[0];
+			state.addresses = [{ ...addressToMove, is_default: true }, ...state.addresses];
 		},
 		editAddressSuccess(state, action) {
 			const address = action.payload;
@@ -36,6 +42,12 @@ const slice = createSlice({
 					? { ...address, ...other }
 					: { ...address, is_default: other.is_default ? false : address.is_default }
 			);
+			// move to first if address is default
+			if (other.is_default) {
+				const addressIndex = state.addresses.findIndex((address) => address._id === _id);
+				const addressToMove = state.addresses.splice(addressIndex, 1)[0];
+				state.addresses = [addressToMove, ...state.addresses];
+			}
 		},
 		removeAddressSuccess(state, action) {
 			const _id = action.payload;
@@ -73,6 +85,30 @@ export const insertAddress = (params) => async (dispatch) => {
 		const response = await accountApi.insertAddress(params);
 		const { msg, address } = response;
 		dispatch(slice.actions.insertAddressSuccess(address));
+		enqueueSnackbar(msg, {
+			variant: 'success',
+			anchorOrigin: {
+				vertical: 'top',
+				horizontal: 'right',
+			},
+		});
+	} catch (error) {
+		enqueueSnackbar(error.response.statusText, {
+			variant: 'error',
+			anchorOrigin: {
+				vertical: 'bottom',
+				horizontal: 'center',
+			},
+			preventDuplicate: true,
+		});
+	}
+};
+
+export const switchDefault = (params) => async (dispatch) => {
+	try {
+		const response = await accountApi.switchDefault(params);
+		const { msg, _id } = response;
+		dispatch(slice.actions.switchDefaultSuccess(_id));
 		enqueueSnackbar(msg, {
 			variant: 'success',
 			anchorOrigin: {

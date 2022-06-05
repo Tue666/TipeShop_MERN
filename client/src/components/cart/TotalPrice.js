@@ -1,45 +1,174 @@
 import { number, array, shape, string } from 'prop-types';
-import { Link as RouterLink } from 'react-router-dom';
+import { useReducer } from 'react';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
-import { Stack, Typography, Link, Divider, Button } from '@mui/material';
+import {
+	Stack,
+	Typography,
+	Link,
+	Divider,
+	Button,
+	Alert,
+	Backdrop,
+	CircularProgress,
+} from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+import { useConfirm } from 'material-ui-confirm';
 
+// apis
+import orderApi from '../../apis/orderApi';
 // hooks
 import useModal from '../../hooks/useModal';
+// redux
+import { removeSelected } from '../../redux/slices/cart';
+// routes
+import { PATH_CHECKOUT } from '../../routes/path';
 // utils
 import { toVND } from '../../utils/formatMoney';
+import enqueueSnackbar from '../../utils/snackbar';
 // constant
 import { HEADER_HEIGHT, CART_PAGE } from '../../constant';
 
+const initialState = {
+	isLoading: false,
+};
+
+const handlers = {
+	START_LOADING: (state) => {
+		return {
+			...state,
+			isLoading: true,
+		};
+	},
+};
+
+const reducer = (state, action) =>
+	handlers[action.type] ? handlers[action.type](state, action) : state;
+
 const propTypes = {
-	items: array,
+	selectedItems: array,
 	selectedCount: number,
-	address: shape({
-		customer_id: string,
-		name: string,
-		phone_number: string,
+	paymentMethod: shape({
+		key: string,
+		label: string,
 	}),
 };
 
-const TotalPrice = ({ items, selectedCount, address }) => {
+const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
+	console.log(selectedItems);
+	const [state, dispatch] = useReducer(reducer, initialState);
+	const { addresses } = useSelector((state) => state.account);
+	const address = addresses.length > 0 ? addresses.filter((address) => address.is_default)[0] : null;
+	const dispatchSlice = useDispatch();
+	const navigate = useNavigate();
+	const confirm = useConfirm();
+	const { pathname } = useLocation();
 	const { openModal, keys } = useModal();
-	const totalGuess = items.reduce((sum, item) => {
-		if (item.selected) {
-			return sum + item.quantity * item.product.price;
-		}
-		return sum;
-	}, 0);
+	const isInCart = pathname.includes('cart');
+	const priceSummary = [
+		{
+			name: 'Guess',
+			value: selectedItems.reduce((sum, item) => sum + item.quantity * item.product.price, 0),
+			sign: 1, // sign -1 (negative) or 1 (positive)
+		},
+	];
+	const totalPrice = priceSummary.reduce((sum, item) => sum + item.value * item.sign, 0);
 
 	const handleOpenAppPromotion = () => {
 		openModal(keys.appPromotion);
 	};
+	const handleNavigateCheckout = () => {
+		if (selectedCount < 1) {
+			enqueueSnackbar('You have not selected any products to buy yet', {
+				anchorOrigin: {
+					vertical: 'bottom',
+					horizontal: 'center',
+				},
+				preventDuplicate: true,
+			});
+			return;
+		}
+		const linkTo = address ? PATH_CHECKOUT.payment : PATH_CHECKOUT.shipping;
+		navigate(linkTo);
+	};
+	const handleOrder = async () => {
+		if (selectedCount < 1) {
+			enqueueSnackbar('You have not selected any products to order yet', {
+				anchorOrigin: {
+					vertical: 'bottom',
+					horizontal: 'center',
+				},
+				preventDuplicate: true,
+			});
+			return;
+		}
+		if (!paymentMethod.key) {
+			enqueueSnackbar('You have not selected any payment method', {
+				anchorOrigin: {
+					vertical: 'bottom',
+					horizontal: 'center',
+				},
+				preventDuplicate: true,
+			});
+			return;
+		}
+		try {
+			await confirm({
+				title: 'Order',
+				content: (
+					<Alert severity="info">Have you checked the product information for sure before order?</Alert>
+				),
+			});
+			const { region, district, ward, is_default, ...other } = address;
+			const { key, label } = paymentMethod;
+			const items = selectedItems.map((item) => ({ ...item.product, quantity: item.quantity }));
+			const price_summary = priceSummary.map((price) => ({ name: price.name, value: price.value }));
+			const orderData = {
+				shipping_address: {
+					region: region.name,
+					district: district.name,
+					ward: ward.name,
+					...other,
+				},
+				payment_method: {
+					method_key: key,
+					method_text: label,
+				},
+				items,
+				price_summary,
+			};
+			dispatch({ type: 'START_LOADING' });
+			const response = await orderApi.insert(orderData);
+			const { msg, orderedItems } = response;
+			dispatchSlice(removeSelected(orderedItems));
+			navigate(PATH_CHECKOUT.result, {
+				state: {
+					statusCode: 200,
+					msg,
+				},
+			});
+		} catch (error) {
+			if (error === undefined) return;
+			const { status, statusText } = error.response;
+			navigate(PATH_CHECKOUT.result, {
+				state: {
+					statusCode: status,
+					msg: statusText,
+				},
+			});
+		}
+	};
 	return (
 		<RootStyle>
-			<ContentInner>
+			<ContentInner in_cart={isInCart ? 1 : 0}>
 				{address && (
 					<Wrapper>
 						<Stack direction="row" justifyContent="space-between" alignItems="center">
 							<Typography variant="subtitle2">Ship Address</Typography>
-							<Linking component={RouterLink} to="/">
+							<Linking
+								component={RouterLink}
+								to={`${PATH_CHECKOUT.shipping}${isInCart ? '?isIntendedCart=1' : ''}`}
+							>
 								Change
 							</Linking>
 						</Stack>
@@ -60,29 +189,52 @@ const TotalPrice = ({ items, selectedCount, address }) => {
 					</Typography>
 				</Wrapper>
 				<Wrapper>
-					<Stack direction="row" justifyContent="space-between" alignItems="center">
-						<Typography variant="subtitle2">Guess</Typography>
-						<Typography variant="subtitle1">{toVND(totalGuess)}</Typography>
-					</Stack>
-					<Stack direction="row" justifyContent="space-between" alignItems="center">
-						<Typography variant="subtitle2">Coupon</Typography>
-						<Typography variant="subtitle1">- {toVND(0)}</Typography>
-					</Stack>
+					{priceSummary.map((price, index) => {
+						const { name, value, sign } = price;
+						return (
+							<Stack key={index} direction="row" justifyContent="space-between" alignItems="center">
+								<Typography variant="subtitle2">{name}</Typography>
+								<Typography variant="subtitle1">{toVND(value * sign)}</Typography>
+							</Stack>
+						);
+					})}
 					<Divider />
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Typography variant="subtitle2">Total</Typography>
 						<Stack alignItems="end">
 							<Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'error.main' }}>
-								{selectedCount > 0 ? toVND(totalGuess) : 'Choose a product, please!'}
+								{selectedCount > 0 ? toVND(totalPrice) : 'Choose a product, please!'}
 							</Typography>
 							<Typography variant="caption">(VAT includes)</Typography>
 						</Stack>
 					</Stack>
 				</Wrapper>
-				<Button variant="contained" color="error" sx={{ width: '100%' }}>
-					Check out ({selectedCount})
-				</Button>
+				{isInCart && (
+					<Button
+						variant="contained"
+						color="error"
+						disableElevation
+						onClick={handleNavigateCheckout}
+						sx={{ width: '100%' }}
+					>
+						Check out ({selectedCount})
+					</Button>
+				)}
+				{!isInCart && (
+					<Button
+						variant="contained"
+						color="error"
+						disableElevation
+						onClick={handleOrder}
+						sx={{ width: '100%' }}
+					>
+						Order ({selectedCount})
+					</Button>
+				)}
 			</ContentInner>
+			<Backdrop open={state.isLoading}>
+				<CircularProgress sx={{ color: '#fff' }} />
+			</Backdrop>
 		</RootStyle>
 	);
 };
@@ -94,10 +246,10 @@ const RootStyle = styled('div')(({ theme }) => ({
 	},
 }));
 
-const ContentInner = styled('div')({
-	position: 'sticky',
+const ContentInner = styled('div')(({ in_cart }) => ({
+	position: in_cart ? 'sticky' : '',
 	top: `calc(${HEADER_HEIGHT} + 10px)`,
-});
+}));
 
 const Wrapper = styled('div')(({ theme }) => ({
 	padding: '10px',

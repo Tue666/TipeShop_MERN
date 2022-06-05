@@ -38,7 +38,6 @@ const Header = styled('div')(({ theme }) => ({
 	flexDirection: 'column',
 	padding: HEADER.PADDING,
 	backgroundColor: theme.palette.background.paper,
-	color: theme.palette.text.primary,
 	zIndex: 999,
 	[theme.breakpoints.down('sm')]: {
 		padding: '5px',

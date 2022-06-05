@@ -2,7 +2,7 @@ import { string, number, shape, oneOfType, array, arrayOf } from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-scroll';
 import { styled } from '@mui/material/styles';
-import { Stack, Typography, Chip } from '@mui/material';
+import { Stack, Typography, Chip, Tooltip } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 
 // components
@@ -25,6 +25,7 @@ const propTypes = {
 	information: shape({
 		_id: string,
 		name: string,
+		quantity: number,
 		rating_average: number,
 		review_count: number,
 		quantity_sold: shape({
@@ -54,6 +55,7 @@ const propTypes = {
 				})
 			),
 		]),
+		inventory_status: string,
 	}),
 };
 
@@ -61,6 +63,7 @@ const Information = ({ information }) => {
 	const {
 		_id,
 		name,
+		quantity,
 		rating_average,
 		review_count,
 		quantity_sold,
@@ -69,6 +72,7 @@ const Information = ({ information }) => {
 		price,
 		attribute_values,
 		warranty_infor,
+		inventory_status,
 	} = information;
 	const { addresses } = useSelector((state) => state.account);
 	const address = addresses.length > 0 ? addresses.filter((address) => address.is_default)[0] : null;
@@ -105,9 +109,11 @@ const Information = ({ information }) => {
 					)}
 					{quantity_sold.value > 0 && (rating_average > 0 || review_count > 0) && <DivideLine />}
 					{quantity_sold.value > 0 && (
-						<Typography variant="subtitle1" sx={{ fontSize: '14px' }}>
-							{quantity_sold.text}
-						</Typography>
+						<Tooltip placement="right" title={quantity_sold.value} arrow>
+							<Typography variant="subtitle1" sx={{ fontSize: '14px' }}>
+								{quantity_sold.text}
+							</Typography>
+						</Tooltip>
 					)}
 				</Stack>
 				<Stack direction="row" spacing={1}>
@@ -140,7 +146,15 @@ const Information = ({ information }) => {
 								{address ? 'Change' : 'Add new delivery address'}
 							</Typography>
 						</Stack>
-						<QuantityInput handleAddToCart={handleAddToCart} />
+						{quantity > 0 && inventory_status === 'availabel' ? (
+							<QuantityInput handleAddToCart={handleAddToCart} />
+						) : (
+							<Typography variant="subtitle2" color="error" sx={{ fontWeight: 'bold' }}>
+								The product is out of stock or does not exist anymore.
+								<br />
+								Come back later, thanks for your attention!
+							</Typography>
+						)}
 					</Stack>
 					<IntendWrapper>
 						{attribute_values && attribute_values.length > 0 && (

@@ -4,6 +4,7 @@ const path = (root, sublink) => {
 
 const ROOT_MAIN = '/';
 const ROOT_CUSTOMER = '/customer';
+const ROOT_CHECKOUT = '/checkout';
 
 export const PATH_MAIN = {
 	home: ROOT_MAIN,
@@ -15,4 +16,11 @@ export const PATH_CUSTOMER = {
 	addresses: path(ROOT_CUSTOMER, '/addresses'),
 	createAddress: path(ROOT_CUSTOMER, '/addresses/create'),
 	editAddress: path(ROOT_CUSTOMER, '/addresses/edit'),
+	orders: path(ROOT_CUSTOMER, '/orders'),
+};
+
+export const PATH_CHECKOUT = {
+	shipping: path(ROOT_CHECKOUT, '/shipping'),
+	payment: path(ROOT_CHECKOUT, '/payment'),
+	result: path(ROOT_CHECKOUT, '/result'),
 };

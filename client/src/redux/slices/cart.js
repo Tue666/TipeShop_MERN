@@ -8,6 +8,10 @@ import enqueueSnackbar from '../../utils/snackbar';
 const initialState = {
 	items: [],
 	totalItem: 0,
+	paymentMethod: {
+		key: '',
+		label: '',
+	},
 };
 
 const slice = createSlice({
@@ -52,6 +56,16 @@ const slice = createSlice({
 			else state.items = state.items.filter((item) => item._id !== _id);
 			state.totalItem = state.items.length;
 		},
+		changePaymentMethod(state, action) {
+			const { key, label } = action.payload;
+			state.paymentMethod.key = key;
+			state.paymentMethod.label = label;
+		},
+		removeSelected(state, action) {
+			const orderedItems = action.payload;
+			state.items = state.items.filter((item) => !orderedItems.includes(item.product._id));
+			state.totalItem = state.items.length;
+		},
 		clearCart(state) {
 			state.items = [];
 			state.totalItem = 0;
@@ -60,7 +74,7 @@ const slice = createSlice({
 });
 
 const { reducer, actions } = slice;
-export const { clearCart } = actions;
+export const { clearCart, changePaymentMethod, removeSelected } = actions;
 export default reducer;
 
 export const getCart = () => async (dispatch) => {

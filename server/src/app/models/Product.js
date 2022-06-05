@@ -6,7 +6,7 @@ const Product = new Schema(
 	{
 		name: { type: String, required: true },
 		images: { type: [String], required: true },
-		quantity: { type: Number, required: true, min: 1, default: 1 },
+		quantity: { type: Number, required: true, min: 0, default: 0 },
 		category: { type: Number, ref: 'Category', required: true },
 		attribute_values: [{ type: mongoose.Types.ObjectId, ref: 'AttributeValue' }],
 		warranty_infor: [{ type: mongoose.Types.ObjectId, ref: 'Warranty' }],

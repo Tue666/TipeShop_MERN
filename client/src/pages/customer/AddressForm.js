@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
 	Stack,
@@ -27,7 +27,7 @@ import { createAddressValidation } from '../../utils/validation';
 
 const AddressForm = () => {
 	const navigate = useNavigate();
-	const { pathname } = useLocation();
+	const { pathname, state } = useLocation();
 	const isEdit = pathname.includes('edit');
 	const { addresses } = useSelector((state) => state.account);
 	const address_id = pathname.split('/').pop();
@@ -73,7 +73,7 @@ const AddressForm = () => {
 						...body,
 					})
 				);
-			navigate(PATH_CUSTOMER.addresses);
+			navigate(state?.isIntendedCheckout ? -1 : PATH_CUSTOMER.addresses);
 		},
 	});
 	const { values, touched, errors, isSubmitting, handleBlur, setFieldValue } = formik;
@@ -99,9 +99,10 @@ const AddressForm = () => {
 			<FormikProvider value={formik}>
 				<Form>
 					<RootStyle spacing={1} p={3}>
-						<Link to={PATH_CUSTOMER.addresses}>
-							<ArrowBackIosOutlined sx={{ cursor: 'pointer' }} />
-						</Link>
+						<ArrowBackIosOutlined
+							sx={{ cursor: 'pointer' }}
+							onClick={() => navigate(state?.isIntendedCheckout ? -1 : PATH_CUSTOMER.addresses)}
+						/>
 						<Stack direction="row" alignItems="center" spacing={3}>
 							<Typography variant="subtitle2" sx={{ width: '300px' }}>
 								First - Last name

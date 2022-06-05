@@ -1,6 +1,6 @@
 import { Outlet, matchPath } from 'react-router-dom';
 import { Container, Stack, Typography } from '@mui/material';
-import { AccountBox, ImportContacts } from '@mui/icons-material';
+import { AccountBox, LocalMall, ImportContacts } from '@mui/icons-material';
 
 // components
 import Breadcrumbs from '../../components/Breadcrumbs';
@@ -17,6 +17,11 @@ const MENUS = [
 		label: 'Account information',
 		icon: <AccountBox />,
 		linkTo: PATH_CUSTOMER.profile,
+	},
+	{
+		label: 'Order management',
+		icon: <LocalMall />,
+		linkTo: PATH_CUSTOMER.orders,
 	},
 	{
 		label: 'Addresses book',

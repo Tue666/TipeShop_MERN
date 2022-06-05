@@ -16,3 +16,7 @@ export const CART_PAGE = {
 	CART_LIST_WIDTH: '850px',
 	GRID_TEMPLATE_COLUMNS: '44% 20% 15.5% 15.5% 5%',
 };
+
+export const PAYMENT_PAGE = {
+	CHECKOUT_SECTION_WIDTH: '850px',
+};

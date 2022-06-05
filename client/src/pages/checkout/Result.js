@@ -1,0 +1,53 @@
+import { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Stack, Typography, Button } from '@mui/material';
+
+// components
+import ImageLoader from '../../components/ImageLoader';
+// routes
+import { PATH_MAIN } from '../../routes/path';
+// config
+import { apiConfig } from '../../config';
+
+const Result = () => {
+	const { state } = useLocation();
+	const navigate = useNavigate();
+	useEffect(() => {
+		!state && navigate(PATH_MAIN.home);
+	});
+	return (
+		<Stack alignItems="center" spacing={2} my={10}>
+			<ImageLoader
+				src={`${apiConfig.image_url}/_external_/buy_more.png`}
+				alt="buy_more"
+				sx={{ width: '190px', height: '160px' }}
+			/>
+			<Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+				{state?.msg}
+			</Typography>
+			<Stack direction="row" alignItems="center" spacing={3}>
+				{state?.statusCode === 200 && (
+					<Link to="/">
+						<Button color="success" variant="contained" size="small" disableElevation>
+							REVIEW ORDERED
+						</Button>
+					</Link>
+				)}
+				{state?.statusCode !== 200 && (
+					<a href="https://www.facebook.com/exe.shiro">
+						<Button color="error" variant="contained" size="small" disableElevation>
+							REPORT
+						</Button>
+					</a>
+				)}
+				<Link to={PATH_MAIN.home}>
+					<Button color="warning" variant="contained" size="small" disableElevation>
+						BUY MORE
+					</Button>
+				</Link>
+			</Stack>
+		</Stack>
+	);
+};
+
+export default Result;

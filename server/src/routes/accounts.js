@@ -11,6 +11,7 @@ router.get('/verify', verifyToken, (req, res) => {
 });
 
 router.delete('/addresses/:_id', verifyToken, accountsAPI.removeAddress);
+router.patch('/addresses/default/:_id', verifyToken, accountsAPI.switchDefault);
 router.put('/addresses', verifyToken, accountsAPI.editAddress);
 router.post('/addresses', verifyToken, accountsAPI.insertAddress);
 router.post('/refreshToken', accountsAPI.refreshToken);

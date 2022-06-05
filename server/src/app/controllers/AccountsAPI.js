@@ -114,7 +114,7 @@ class AccountsAPI {
 					},
 				},
 				{
-					$sort: { _id: -1 },
+					$sort: { is_default: -1 },
 				},
 			]);
 
@@ -379,6 +379,37 @@ class AccountsAPI {
 					...location[0],
 					is_default,
 				},
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [PATCH] /accounts/addresses/default/:_id
+	async switchDefault(req, res, next) {
+		try {
+			const customer_id = req.account._id;
+			const { _id } = req.params;
+
+			await Address.updateMany(
+				{
+					customer_id: mongoose.Types.ObjectId(customer_id),
+				},
+				[
+					{
+						$set: {
+							is_default: {
+								$eq: ['$_id', mongoose.Types.ObjectId(_id)],
+							},
+						},
+					},
+				]
+			);
+
+			res.status(200).json({
+				msg: 'Switch default successfully!',
+				_id,
 			});
 		} catch (error) {
 			console.error(error);

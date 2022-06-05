@@ -34,6 +34,11 @@ const accountApi = {
 			...body,
 		});
 	},
+	// [PATCH] /accounts/addresses/default/:_id
+	switchDefault: (_id) => {
+		const url = `/accounts/addresses/default/${_id}`;
+		return axiosInstance.patch(url);
+	},
 	// [PUT] /accounts/addresses
 	editAddress: (body) => {
 		const url = `/accounts/addresses`;

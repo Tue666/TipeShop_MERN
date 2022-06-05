@@ -52,7 +52,7 @@ const Product = () => {
 				discount_rate,
 				attribute_values,
 				warranty_infor,
-				limit,
+				inventory_status,
 				...parts
 			} = productResponse;
 			setProduct({
@@ -60,6 +60,7 @@ const Product = () => {
 				information: {
 					_id,
 					name,
+					quantity,
 					rating_average,
 					review_count,
 					quantity_sold,
@@ -68,6 +69,7 @@ const Product = () => {
 					price,
 					attribute_values,
 					warranty_infor,
+					inventory_status,
 				},
 			});
 			setSimilarSection(similarProducts);
