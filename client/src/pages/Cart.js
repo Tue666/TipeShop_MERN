@@ -32,7 +32,7 @@ const Cart = () => {
 				</Typography>
 				{totalItem > 0 && (
 					<Stack direction={{ xs: 'column', sm: 'column', lg: 'row' }} justifyContent="space-between">
-						<CartList items={items} totalItem={totalItem} selectedCount={selectedCount} />
+						<CartList items={items} totalItem={totalItem} />
 						<TotalPrice selectedItems={selectedItems} selectedCount={selectedCount} />
 					</Stack>
 				)}

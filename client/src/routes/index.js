@@ -45,6 +45,7 @@ const Router = () => {
 						{ path: 'addresses/create', element: <AddressForm /> },
 						{ path: 'addresses/edit/:_id', element: <AddressForm /> },
 						{ path: 'orders', element: <Orders /> },
+						{ path: 'orders/view/:_id', element: <OrderDetail /> },
 					],
 				},
 				{ path: ':slug/pid:_id', element: <Product /> },
@@ -75,6 +76,7 @@ const Profile = PageLoader(lazy(() => import('../pages/customer/Profile')));
 const Addresses = PageLoader(lazy(() => import('../pages/customer/Addresses')));
 const AddressForm = PageLoader(lazy(() => import('../pages/customer/AddressForm')));
 const Orders = PageLoader(lazy(() => import('../pages/customer/Orders')));
+const OrderDetail = PageLoader(lazy(() => import('../pages/customer/OrderDetail')));
 // Checkout
 const Shipping = PageLoader(lazy(() => import('../pages/checkout/Shipping')));
 const Payment = PageLoader(lazy(() => import('../pages/checkout/Payment')));

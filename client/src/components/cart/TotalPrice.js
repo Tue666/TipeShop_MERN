@@ -55,7 +55,6 @@ const propTypes = {
 };
 
 const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
-	console.log(selectedItems);
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const { addresses } = useSelector((state) => state.account);
 	const address = addresses.length > 0 ? addresses.filter((address) => address.is_default)[0] : null;
@@ -122,7 +121,10 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 			const { region, district, ward, is_default, ...other } = address;
 			const { key, label } = paymentMethod;
 			const items = selectedItems.map((item) => ({ ...item.product, quantity: item.quantity }));
-			const price_summary = priceSummary.map((price) => ({ name: price.name, value: price.value }));
+			const price_summary = priceSummary.map((price) => {
+				const { name, value, sign } = price;
+				return value > 0 && { name, value: value * sign };
+			});
 			const orderData = {
 				shipping_address: {
 					region: region.name,
@@ -192,10 +194,12 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 					{priceSummary.map((price, index) => {
 						const { name, value, sign } = price;
 						return (
-							<Stack key={index} direction="row" justifyContent="space-between" alignItems="center">
-								<Typography variant="subtitle2">{name}</Typography>
-								<Typography variant="subtitle1">{toVND(value * sign)}</Typography>
-							</Stack>
+							(value > 0 || name === priceSummary[0].name) && (
+								<Stack key={index} direction="row" justifyContent="space-between" alignItems="center">
+									<Typography variant="subtitle2">{name}</Typography>
+									<Typography variant="subtitle1">{toVND(value * sign)}</Typography>
+								</Stack>
+							)
 						);
 					})}
 					<Divider />

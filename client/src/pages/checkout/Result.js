@@ -5,7 +5,7 @@ import { Stack, Typography, Button } from '@mui/material';
 // components
 import ImageLoader from '../../components/ImageLoader';
 // routes
-import { PATH_MAIN } from '../../routes/path';
+import { PATH_MAIN, PATH_CUSTOMER } from '../../routes/path';
 // config
 import { apiConfig } from '../../config';
 
@@ -27,7 +27,7 @@ const Result = () => {
 			</Typography>
 			<Stack direction="row" alignItems="center" spacing={3}>
 				{state?.statusCode === 200 && (
-					<Link to="/">
+					<Link to={PATH_CUSTOMER.orders}>
 						<Button color="success" variant="contained" size="small" disableElevation>
 							REVIEW ORDERED
 						</Button>

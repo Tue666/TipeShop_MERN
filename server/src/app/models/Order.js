@@ -45,6 +45,7 @@ const Order = new Schema(
 			status_text: { type: String, default: 'Pending processing' },
 			time: { type: Date, default: Date.now },
 		},
+		note: { type: String, default: '' },
 	},
 	{
 		timestamps: true,

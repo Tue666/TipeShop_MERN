@@ -7,11 +7,12 @@ import { renderModal } from '../redux/slices/modal';
 
 const useModal = () => {
 	const dispatch = useDispatch();
-	const openModal = (key = 'default') => {
+	const openModal = (key = 'default', params = null) => {
 		dispatch(
 			renderModal({
 				isOpen: true,
 				key,
+				params,
 			})
 		);
 	};
@@ -20,6 +21,7 @@ const useModal = () => {
 			renderModal({
 				isOpen: false,
 				key: 'default',
+				params: null,
 			})
 		);
 	};

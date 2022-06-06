@@ -1,28 +1,48 @@
 import { shape, string, number, arrayOf } from 'prop-types';
-import { Stack, Typography, Divider, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Stack, Typography, Divider, Button, Skeleton } from '@mui/material';
+import {
+	RunningWithErrors,
+	LocalShippingOutlined,
+	InventoryOutlined,
+	WrongLocationOutlined,
+} from '@mui/icons-material';
 
 // components
 import ImageLoader from '../ImageLoader';
+// hooks
+import useModal from '../../hooks/useModal';
+// routes
+import { PATH_CUSTOMER } from '../../routes/path';
 // utils
 import { toVND } from '../../utils/formatMoney';
 import { fDate } from '../../utils/formatDate';
 // config
-import { apiConfig } from '../../config';
+import { apiConfig, appConfig } from '../../config';
 
 const STATUS_COLORS = {
 	processing: {
 		color: 'warning.dark',
+		icon: <RunningWithErrors />,
 	},
 	transporting: {
 		color: 'warning.darker',
+		icon: <LocalShippingOutlined />,
 	},
 	delivered: {
 		color: 'success.main',
+		icon: <InventoryOutlined />,
 	},
-	cancelled: {
+	canceled: {
 		color: 'error.main',
+		icon: <WrongLocationOutlined />,
 	},
 };
+
+const states = Object.keys(STATUS_COLORS).reduce(
+	(states, status) => ({ ...states, [status]: status }),
+	{}
+);
 
 const propTypes = {
 	orders: arrayOf(
@@ -52,7 +72,63 @@ const propTypes = {
 	),
 };
 
+const SkeletonLoad = (
+	<Stack p={2} spacing={1} sx={{ bgcolor: (theme) => theme.palette.background.paper }}>
+		<Skeleton variant="text" />
+		<Divider />
+		<Stack direction="row" justifyContent="space-between" spacing={1} p={1}>
+			<Stack direction="row" spacing={2} sx={{ flexGrow: 1 }}>
+				<Skeleton variant="rectangular" width={80} height={80} />
+				<Stack sx={{ width: '100%' }}>
+					<Skeleton variant="text" />
+					<Skeleton variant="text" width="20%" />
+					<Skeleton variant="text" width="15%" />
+				</Stack>
+			</Stack>
+			<Stack alignItems="end" sx={{ width: '100px' }}>
+				<Skeleton variant="text" width="90%" />
+			</Stack>
+		</Stack>
+		<Divider />
+		<Stack alignItems="end" spacing={1}>
+			<Skeleton variant="text" width="15%" />
+			<Skeleton variant="text" width="15%" />
+		</Stack>
+	</Stack>
+);
+
+const EmptyLoad = (
+	<Stack
+		p={10}
+		justifyContent="center"
+		alignItems="center"
+		spacing={1}
+		sx={{ bgcolor: (theme) => theme.palette.background.paper }}
+	>
+		<img
+			alt="empty-order"
+			src={`${appConfig.public_image_url}/empty-order.png`}
+			style={{
+				width: '200px',
+				height: '200px',
+			}}
+		/>
+		<Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+			No orders yet
+		</Typography>
+	</Stack>
+);
+
 const OrderPanel = ({ orders }) => {
+	const navigate = useNavigate();
+	const { openModal, keys } = useModal();
+
+	const handleCancelOrder = (_id) => {
+		openModal(keys.cancelOrder, _id);
+	};
+	const handleNavigate = (_id) => {
+		navigate(`${PATH_CUSTOMER.orderDetail}/${_id}`);
+	};
 	return (
 		<Stack spacing={1}>
 			{orders &&
@@ -60,12 +136,12 @@ const OrderPanel = ({ orders }) => {
 				orders.map((order) => {
 					const { _id, items, tracking_infor, price_summary } = order;
 					const { status, status_text, time } = tracking_infor;
-					const { color } = STATUS_COLORS[status];
+					const { color, icon } = STATUS_COLORS[status];
 					const totalPrice = price_summary.reduce((sum, price) => sum + price.value, 0);
 					return (
 						<Stack key={_id} p={2} spacing={1} sx={{ bgcolor: (theme) => theme.palette.background.paper }}>
-							<Typography color={color} variant="subtitle2">
-								{status_text} - {fDate(time)}
+							<Typography color={color} variant="subtitle2" sx={{ display: 'flex', alignItems: 'center' }}>
+								{icon}&nbsp;{status_text} - #{_id} ({fDate(time)})
 							</Typography>
 							<Divider />
 							<Stack>
@@ -78,6 +154,7 @@ const OrderPanel = ({ orders }) => {
 											justifyContent="space-between"
 											spacing={1}
 											p={1}
+											onClick={() => handleNavigate(order._id)}
 											sx={{ cursor: 'pointer' }}
 										>
 											<Stack direction="row" spacing={2}>
@@ -113,10 +190,12 @@ const OrderPanel = ({ orders }) => {
 									Total price: {toVND(totalPrice)}
 								</Typography>
 								<Stack direction="row" alignItems="center" spacing={1}>
-									<Button variant="outlined" size="small">
-										REPURCHASE
-									</Button>
-									<Button variant="outlined" size="small">
+									{status === states.processing && (
+										<Button variant="outlined" color="error" size="small" onClick={() => handleCancelOrder(order._id)}>
+											CANCEL
+										</Button>
+									)}
+									<Button variant="outlined" size="small" onClick={() => handleNavigate(order._id)}>
 										DETAILS
 									</Button>
 								</Stack>
@@ -124,8 +203,8 @@ const OrderPanel = ({ orders }) => {
 						</Stack>
 					);
 				})}
-			{orders && orders.length <= 0 && 'Nothing...'}
-			{!orders && 'Loading...'}
+			{orders && orders.length <= 0 && EmptyLoad}
+			{!orders && SkeletonLoad}
 		</Stack>
 	);
 };

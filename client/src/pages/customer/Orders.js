@@ -25,25 +25,44 @@ const ORDER_TABS = [
 		label: 'DELIVERED',
 	},
 	{
-		value: 'cancelled',
-		label: 'CANCELLED',
+		value: 'canceled',
+		label: 'CANCELED',
 	},
 ];
 
 const initialState = {
-	all: null,
-	processing: null,
-	transporting: null,
-	delivered: null,
-	cancelled: null,
+	all: {
+		orders: null,
+		totalPage: 0,
+	},
+	processing: {
+		orders: null,
+		totalPage: 0,
+	},
+	transporting: {
+		orders: null,
+		totalPage: 0,
+	},
+	delivered: {
+		orders: null,
+		totalPage: 0,
+	},
+	canceled: {
+		orders: null,
+		totalPage: 0,
+	},
 };
 
 const handlers = {
 	FILL_TAB: (state, action) => {
-		const { value, orders } = action.payload;
+		const { value, orders, pagination } = action.payload;
+		const { totalPage } = pagination;
 		return {
 			...state,
-			[value]: orders,
+			[value]: {
+				orders,
+				totalPage,
+			},
 		};
 	},
 };
@@ -52,28 +71,52 @@ const reducer = (state, action) =>
 	handlers[action.type] ? handlers[action.type](state, action) : state;
 
 const Orders = () => {
+	const [state, dispatch] = useReducer(reducer, initialState);
 	const [current, setCurrent] = useState({
 		value: 'all',
 		page: 1,
 		limit: 10,
+		search: '',
 	});
-	const memory = useRef([]);
-	const [state, dispatch] = useReducer(reducer, initialState);
+	const searchRef = useRef('');
+	const visited = useRef({
+		tabs: [],
+		page: 1,
+		search: '',
+	}); // store tabs are visited to prevent fetch redundant data
 	useEffect(() => {
-		if (!memory.current.includes(current.value)) {
-			console.log('effect called');
+		const { value, page, limit, search } = current;
 
-			const { value, page, limit } = current;
+		// refresh visited whenever search change
+		if (visited.current.search !== search) {
+			visited.current = {
+				...visited.current,
+				tabs: [],
+				page: 1,
+				search,
+			};
+		}
+
+		const isVisitedTab = visited.current.tabs.includes(value);
+		// only fetch new data when first time visited or page has been changed
+		const fetching = !isVisitedTab || visited.current.page !== page;
+		if (fetching) {
+			// update visited
+			visited.current = {
+				...visited.current,
+				tabs: !isVisitedTab ? [...visited.current.tabs, value] : [...visited.current.tabs],
+				page,
+			};
 			const status = value !== 'all' ? value : '';
-			memory.current.push(value);
 			const getOrders = async () => {
-				const response = await orderApi.findByStatus(page, limit, status);
-				const { orders } = response;
+				const response = await orderApi.findByStatus(page, limit, status, search);
+				const { orders, pagination } = response;
 				dispatch({
 					type: 'FILL_TAB',
 					payload: {
 						value,
 						orders,
+						pagination,
 					},
 				});
 			};
@@ -85,9 +128,28 @@ const Orders = () => {
 		setCurrent({
 			...current,
 			value: newValue,
+			page: 1,
 		});
 	};
-	console.log(memory);
+	const handleChangeSearch = (e) => {
+		const value = e.target.value;
+		// Debounce
+		if (searchRef.current) clearTimeout(searchRef.current);
+		searchRef.current = setTimeout(() => {
+			setCurrent({
+				...current,
+				search: value,
+				page: 1,
+			});
+		}, 500);
+	};
+	const handleChangePage = (e, value) => {
+		setCurrent({
+			...current,
+			page: value,
+		});
+		window.scrollTo(0, 0);
+	};
 	return (
 		<Stack spacing={1}>
 			<Tabs
@@ -114,15 +176,26 @@ const Orders = () => {
 							</InputAdornment>
 						),
 					}}
+					onChange={handleChangeSearch}
 					sx={{ bgcolor: (theme) => theme.palette.background.paper }}
 				/>
 			</Stack>
 			{ORDER_TABS.map((tab) => {
 				const { value } = tab;
 				const isActive = value === current.value;
-				return isActive && <OrderPanel key={value} orders={state[current.value]} />;
+				return isActive && <OrderPanel key={value} orders={state[current.value].orders} />;
 			})}
-			<Pagination color="error" page={1} count={10} sx={{ alignSelf: 'end' }} />
+			{state[current.value].totalPage > 1 && (
+				<Pagination
+					color="error"
+					page={current.page}
+					count={state[current.value].totalPage}
+					hidePrevButton={current.page <= 1}
+					hideNextButton={current.page >= state[current.value].totalPage}
+					onChange={handleChangePage}
+					sx={{ alignSelf: 'end' }}
+				/>
+			)}
 		</Stack>
 	);
 };

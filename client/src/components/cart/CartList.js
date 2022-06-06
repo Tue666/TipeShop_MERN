@@ -17,10 +17,9 @@ import CartItem from './CartItem';
 const propTypes = {
 	items: array,
 	totalItem: number,
-	selectedCount: number,
 };
 
-const CartList = ({ items, totalItem, selectedCount }) => {
+const CartList = ({ items, totalItem }) => {
 	const dispatch = useDispatch();
 	const confirm = useConfirm();
 	const isSelectedAll = items.filter((item) => !item.selected).length === 0;
@@ -28,7 +27,7 @@ const CartList = ({ items, totalItem, selectedCount }) => {
 	const handleRemoveItem = async (_id = null) => {
 		// _id with null will remove all selected items
 		if (!_id) {
-			const isSelectedMany = selectedCount > 0;
+			const isSelectedMany = items.filter((item) => item.selected).length > 0;
 			if (!isSelectedMany) {
 				enqueueSnackbar('Please select the products to remove', {
 					anchorOrigin: {

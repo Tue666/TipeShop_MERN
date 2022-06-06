@@ -17,6 +17,7 @@ export const PATH_CUSTOMER = {
 	createAddress: path(ROOT_CUSTOMER, '/addresses/create'),
 	editAddress: path(ROOT_CUSTOMER, '/addresses/edit'),
 	orders: path(ROOT_CUSTOMER, '/orders'),
+	orderDetail: path(ROOT_CUSTOMER, '/orders/view'),
 };
 
 export const PATH_CHECKOUT = {

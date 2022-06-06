@@ -247,7 +247,7 @@ const PriceWrapper = styled('div')(({ tag, theme }) => ({
 	borderRadius: '5px',
 	padding: '15px',
 	marginBottom: '10px',
-	color: `${tag === 'sale' ? '#fff' : '#000000'}`,
+	color: tag === 'sale' && '#fff',
 }));
 
 const DivideLine = styled('div')({

@@ -40,10 +40,11 @@ const Categories = ({ id, title }) => {
 											src={`${apiConfig.image_url}/${image}`}
 											alt={name}
 											sx={{
-												width: '80px',
+												width: '50px',
 												height: '50px',
-												borderRadius: '35%',
+												borderRadius: '50%',
 												marginRight: '15px',
+												flexShrink: 0,
 											}}
 										/>
 										<Tooltip placement="top" title={name} arrow>

@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
 	isOpen: false,
 	key: 'default',
+	params: null,
 };
 
 const slice = createSlice({
@@ -10,9 +11,10 @@ const slice = createSlice({
 	initialState,
 	reducers: {
 		renderModal: (state, action) => {
-			const { isOpen, key } = action.payload;
+			const { isOpen, key, params } = action.payload;
 			state.isOpen = isOpen;
 			state.key = key;
+			state.params = params;
 		},
 	},
 });
