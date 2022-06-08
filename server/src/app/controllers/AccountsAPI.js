@@ -148,7 +148,7 @@ class AccountsAPI {
 
 			const account = await Account.findOne({ phone_number });
 
-			res.json(account ? true : false);
+			res.status(200).json(account ? true : false);
 		} catch (error) {
 			console.error(error);
 			next({ status: 500, msg: error.message });
@@ -164,7 +164,7 @@ class AccountsAPI {
 		try {
 			const { phone_number, password } = req.body;
 
-			const account = await Account.findOne({ phone_number });
+			const account = await Account.findOne({ phone_number }).select('name password refreshToken');
 			if (!account) {
 				next({ status: 400, msg: 'Account not found!' });
 				return;
@@ -182,7 +182,37 @@ class AccountsAPI {
 			account.refreshToken = refreshToken;
 			await account.save();
 
-			res.json({
+			res.status(200).json({
+				name,
+				tokens,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [POST] /accounts/social/login
+	/*
+		id: String,
+	*/
+	async socialLogin(req, res, next) {
+		try {
+			const { id } = req.body;
+
+			const account = await Account.findOne({ 'social.id': id }).select('name refreshToken');
+			if (!account) {
+				next({ status: 400, msg: 'Account not found!' });
+				return;
+			}
+
+			const { _id, name } = account;
+			const tokens = generateToken({ _id, name });
+			const { refreshToken } = tokens;
+			account.refreshToken = refreshToken;
+			await account.save();
+
+			res.status(200).json({
 				name,
 				tokens,
 			});
@@ -198,6 +228,13 @@ class AccountsAPI {
 		name: String,
         password: String,
 		passwordConfirm: String,
+		[email]: String,
+		[is_email_verified]: Bool,
+		[avatar_url]: String,
+		[social]: [{
+			id: String,
+			type: String,
+		}]
 	*/
 	async register(req, res, next) {
 		try {
@@ -222,8 +259,16 @@ class AccountsAPI {
 			});
 			await account.save();
 
+			const { _id, name } = account;
+			const tokens = generateToken({ _id, name });
+			const { refreshToken } = tokens;
+			account.refreshToken = refreshToken;
+			await account.save();
+
 			res.status(201).json({
 				msg: 'Insert account successfully!',
+				name,
+				tokens,
 			});
 		} catch (error) {
 			console.error(error);
@@ -257,7 +302,7 @@ class AccountsAPI {
 			account.refreshToken = tokens.refreshToken;
 			await account.save();
 
-			res.json(tokens);
+			res.status(200).json(tokens);
 		} catch (error) {
 			next({ status: 500, msg: error.message });
 		}

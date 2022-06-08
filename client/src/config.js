@@ -1,3 +1,11 @@
+export const facebookConfig = {
+	appId: process.env.REACT_APP_FACEBOOK_APP_ID,
+};
+
+export const googleConfig = {
+	clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+};
+
 export const apiConfig = {
 	environment: process.env.REACT_APP_ENV,
 	api_url_dev: process.env.REACT_APP_API_URL_DEV,
@@ -7,4 +15,5 @@ export const apiConfig = {
 
 export const appConfig = {
 	public_image_url: '/images',
+	public_icon_url: '/icons',
 };

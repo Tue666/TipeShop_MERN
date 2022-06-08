@@ -7,8 +7,10 @@ import { LoadingButton } from '@mui/lab';
 import accountApi from '../../apis/accountApi';
 // components
 import ImageLoader from '../ImageLoader';
+import Avatar from '../Avatar';
 // hooks
 import useModal from '../../hooks/useModal';
+import useAuth from '../../hooks/useAuth';
 // config
 import { apiConfig } from '../../config';
 //
@@ -27,6 +29,7 @@ const STATE = {
 const initialState = {
 	isLoading: false,
 	current: STATE.authentication,
+	socialAccount: null,
 	hasError: false,
 	errorMessage: '',
 };
@@ -55,6 +58,13 @@ const handlers = {
 			current: newState,
 		};
 	},
+	FETCH_SOCIAL_ACCOUNT: (state, action) => {
+		const account = action.payload;
+		return {
+			...state,
+			socialAccount: account,
+		};
+	},
 	HAS_ERROR: (state, action) => {
 		const errorMessage = action.payload;
 		return {
@@ -81,9 +91,11 @@ const Authentication = () => {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const [phoneNumber, setPhoneNumber] = useState('');
 	const { closeModal } = useModal();
+	const { login, socialLogin, register } = useAuth();
 
-	const handleBackDefaultState = () => {
-		dispatch({ type: 'INITIALIZE' });
+	const handleBackDefaultState = (socialAccount = null) => {
+		if (socialAccount) dispatch({ type: 'FETCH_SOCIAL_ACCOUNT', payload: socialAccount });
+		else dispatch({ type: 'INITIALIZE' });
 	};
 	const handleChangePhoneNumber = (e) => {
 		const value = e.target.value;
@@ -107,10 +119,25 @@ const Authentication = () => {
 		try {
 			dispatch({ type: 'START_LOADING' });
 			const accountExists = await accountApi.checkExist(phoneNumber);
-			dispatch({
-				type: 'SWITCH_STATE',
-				payload: accountExists ? STATE.login : STATE.register,
-			});
+			if (accountExists) {
+				if (state.socialAccount) {
+					dispatch({
+						type: 'HAS_ERROR',
+						payload: 'Phone number registered account',
+					});
+					return;
+				}
+				dispatch({
+					type: 'SWITCH_STATE',
+					payload: STATE.login,
+				});
+			} else {
+				// Send phone verify goes here...
+				dispatch({
+					type: 'SWITCH_STATE',
+					payload: STATE.register,
+				});
+			}
 		} catch (error) {
 			dispatch({
 				type: 'HAS_ERROR',
@@ -126,7 +153,19 @@ const Authentication = () => {
 					<Fragment>
 						<Stack spacing={2}>
 							<Typography variant="h4">Hello,</Typography>
-							<Typography variant="body1">Sign in or Sign up</Typography>
+							{state.socialAccount && (
+								<Stack alignItems="center" spacing={1}>
+									<Avatar
+										name={state.socialAccount.name}
+										src={state.socialAccount.avatar_url}
+										sx={{ width: '100px', height: '100px' }}
+									/>
+									<Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+										{state.socialAccount.name}
+									</Typography>
+								</Stack>
+							)}
+							{!state.socialAccount && <Typography variant="body1">Sign in or Sign up</Typography>}
 							<TextField
 								fullWidth
 								label="Phone number"
@@ -147,18 +186,31 @@ const Authentication = () => {
 								Continue
 							</LoadingButton>
 						</Stack>
-						<AuthSocial />
+						{!state.socialAccount && (
+							<AuthSocial
+								handleBackDefaultState={handleBackDefaultState}
+								socialLogin={socialLogin}
+								closeModal={closeModal}
+							/>
+						)}
 					</Fragment>
 				)}
 				{state.current === STATE.login && (
 					<LoginForm
 						phoneNumber={phoneNumber}
 						handleBackDefaultState={handleBackDefaultState}
+						login={login}
 						closeModal={closeModal}
 					/>
 				)}
 				{state.current === STATE.register && (
-					<RegisterForm phoneNumber={phoneNumber} handleBackDefaultState={handleBackDefaultState} />
+					<RegisterForm
+						phoneNumber={phoneNumber}
+						socialAccount={state.socialAccount}
+						handleBackDefaultState={handleBackDefaultState}
+						register={register}
+						closeModal={closeModal}
+					/>
 				)}
 			</LeftContent>
 			<RightContent justifyContent="center" alignItems="center">

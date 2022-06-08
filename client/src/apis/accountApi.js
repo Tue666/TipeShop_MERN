@@ -20,6 +20,13 @@ const accountApi = {
 			...body,
 		});
 	},
+	// [POST] /accounts/social/login
+	socialLogin: (body) => {
+		const url = `/accounts/social/login`;
+		return axiosInstance.post(url, {
+			...body,
+		});
+	},
 	// [POST] /accounts/register
 	register: (body) => {
 		const url = `/accounts/register`;
@@ -50,6 +57,13 @@ const accountApi = {
 	removeAddress: (_id) => {
 		const url = `/accounts/addresses/${_id}`;
 		return axiosInstance.delete(url);
+	},
+	// google apis
+	getGoogleProfile: (tokenResponse) => {
+		const url = 'https://www.googleapis.com/oauth2/v3/userinfo';
+		return axiosInstance.get(url, {
+			headers: { Authorization: `${tokenResponse.token_type} ${tokenResponse.access_token}` },
+		});
 	},
 };
 

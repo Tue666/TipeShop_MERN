@@ -10,7 +10,7 @@ import Avatar from '../../components/Avatar';
 // routes
 import { PATH_CUSTOMER } from '../../routes/path';
 // config
-import { apiConfig } from '../../config';
+import { appConfig } from '../../config';
 
 const MENU_OPTIONS = [
 	{
@@ -60,7 +60,7 @@ const AccountPopover = ({ profile, logout }) => {
 				<Stack alignItems="center" p={2} pb={1} sx={{ width: '230px' }}>
 					<Avatar
 						name={name}
-						src={`${apiConfig.image_url}/${avatar_url}`}
+						src={avatar_url ? avatar_url : `${appConfig.public_image_url}/avatar.png`}
 						sx={{ width: '65px', height: '65px' }}
 					/>
 					<MenuList dense sx={{ width: '100%' }}>

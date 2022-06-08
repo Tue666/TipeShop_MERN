@@ -1,6 +1,8 @@
+import { Fragment } from 'react';
 import { Outlet, matchPath } from 'react-router-dom';
 import { Container, Stack, Typography } from '@mui/material';
 import { AccountBox, LocalMall, ImportContacts } from '@mui/icons-material';
+import { useSelector } from 'react-redux';
 
 // components
 import Breadcrumbs from '../../components/Breadcrumbs';
@@ -8,7 +10,7 @@ import Avatar from '../../components/Avatar';
 // routes
 import { PATH_CUSTOMER } from '../../routes/path';
 // config
-import { apiConfig } from '../../config';
+import { appConfig } from '../../config';
 //
 import NavSection from './NavSection';
 
@@ -31,6 +33,7 @@ const MENUS = [
 ];
 
 const CustomerLayout = () => {
+	const { profile, addresses } = useSelector((state) => state.account);
 	const menuActived = MENUS.filter((menu) => {
 		const pathname = window.location.pathname;
 		return (
@@ -43,26 +46,35 @@ const CustomerLayout = () => {
 		<Container>
 			<Breadcrumbs header={menuActived.label} links={[]} />
 			<Stack direction="row" spacing={2}>
-				<Stack sx={{ width: '250px' }}>
-					<Stack direction="row" alignItems="center" spacing={1}>
-						<Avatar
-							name="zxbc"
-							src={`${apiConfig.image_url}/_external_/avatar/avatar.png`}
-							sx={{ width: '65px', height: '65px' }}
-						/>
-						<Stack>
-							<Typography variant="caption">Account of</Typography>
-							<Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-								Lê Chính Tuệ
-							</Typography>
+				{profile && (
+					<Fragment>
+						<Stack sx={{ width: '250px' }}>
+							<Stack direction="row" alignItems="center" spacing={1}>
+								<Avatar
+									name={profile.name}
+									src={profile.avatar_url ? profile.avatar_url : `${appConfig.public_image_url}/avatar.png`}
+									sx={{ width: '65px', height: '65px' }}
+								/>
+								<Stack>
+									<Typography variant="caption">Account of</Typography>
+									<Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+										{profile.name}
+									</Typography>
+								</Stack>
+							</Stack>
+							<NavSection navConfig={MENUS} activedPath={menuActived.linkTo} />
 						</Stack>
-					</Stack>
-					<NavSection navConfig={MENUS} activedPath={menuActived.linkTo} />
-				</Stack>
-				<Stack spacing={2} sx={{ flex: 1 }}>
-					<Typography variant="h6">{menuActived.label}</Typography>
-					<Outlet />
-				</Stack>
+						<Stack spacing={2} sx={{ flex: 1 }}>
+							<Typography variant="h6">{menuActived.label}</Typography>
+							<Outlet
+								context={{
+									profile,
+									addresses,
+								}}
+							/>
+						</Stack>
+					</Fragment>
+				)}
 			</Stack>
 		</Container>
 	);

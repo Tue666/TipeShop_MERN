@@ -26,6 +26,22 @@ const GlobalStyles = (theme) => {
 			textDecoration: 'none',
 			color: theme.palette.text.primary,
 		},
+		'.facebook': {
+			width: '58px',
+			height: '58px',
+			border: 'none',
+			borderRadius: '50%',
+			cursor: 'pointer',
+			backgroundColor: theme.palette.background.paper,
+		},
+		'.google': {
+			width: '58px',
+			height: '58px',
+			border: 'none',
+			borderRadius: '50%',
+			cursor: 'pointer',
+			backgroundColor: theme.palette.background.paper,
+		},
 		'.slick-slider:hover button': {
 			opacity: 1,
 		},

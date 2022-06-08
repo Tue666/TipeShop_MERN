@@ -4,8 +4,6 @@ import { Stack, Typography, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { ArrowBackIosOutlined } from '@mui/icons-material';
 
-// hooks
-import useAuth from '../../hooks/useAuth';
 // utils
 import enqueueSnackbar from '../../utils/snackbar';
 
@@ -47,13 +45,13 @@ const reducer = (state, action) =>
 const propTypes = {
 	phoneNumber: string,
 	handleBackDefaultState: func,
+	login: func,
 	closeModal: func,
 };
 
-const LoginForm = ({ phoneNumber, handleBackDefaultState, closeModal }) => {
+const LoginForm = ({ phoneNumber, handleBackDefaultState, login, closeModal }) => {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const [password, setPassword] = useState('');
-	const { login } = useAuth();
 	const handleSignIn = async () => {
 		try {
 			dispatch({ type: 'START_LOADING' });
@@ -75,7 +73,7 @@ const LoginForm = ({ phoneNumber, handleBackDefaultState, closeModal }) => {
 	};
 	return (
 		<Stack spacing={3}>
-			<ArrowBackIosOutlined sx={{ cursor: 'pointer' }} onClick={handleBackDefaultState} />
+			<ArrowBackIosOutlined sx={{ cursor: 'pointer' }} onClick={() => handleBackDefaultState()} />
 			<div>
 				<Typography variant="h6">Enter password</Typography>
 				<Typography variant="body2">

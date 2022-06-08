@@ -15,6 +15,7 @@ router.patch('/addresses/default/:_id', verifyToken, accountsAPI.switchDefault);
 router.put('/addresses', verifyToken, accountsAPI.editAddress);
 router.post('/addresses', verifyToken, accountsAPI.insertAddress);
 router.post('/refreshToken', accountsAPI.refreshToken);
+router.post('/social/login', accountsAPI.socialLogin);
 router.post('/login', accountsAPI.login);
 router.post('/register', accountsAPI.register);
 router.post('/exist', accountsAPI.checkExist);

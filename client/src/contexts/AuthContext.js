@@ -44,6 +44,8 @@ const reducer = (state, action) =>
 const AuthContext = createContext({
 	...initialState,
 	login: () => Promise.resolve(),
+	socialLogin: () => Promise.resolve(),
+	register: () => Promise.resolve(),
 	logout: () => Promise.resolve(),
 });
 
@@ -91,6 +93,24 @@ const AuthProvider = ({ children }) => {
 		dispatch({ type: 'LOGIN' });
 		return name;
 	};
+	const socialLogin = async (body) => {
+		const response = await accountApi.socialLogin(body);
+		const { name, tokens } = response;
+		setToken(tokens);
+		dispatchSlice(getProfile());
+		dispatchSlice(getCart());
+		dispatch({ type: 'LOGIN' });
+		return name;
+	};
+	const register = async (body) => {
+		const response = await accountApi.register(body);
+		const { name, tokens } = response;
+		setToken(tokens);
+		dispatchSlice(getProfile());
+		dispatchSlice(getCart());
+		dispatch({ type: 'LOGIN' });
+		return name;
+	};
 	const logout = () => {
 		setToken(null);
 		dispatchSlice(clearAccount());
@@ -104,6 +124,8 @@ const AuthProvider = ({ children }) => {
 			value={{
 				...state,
 				login,
+				socialLogin,
+				register,
 				logout,
 			}}
 		>

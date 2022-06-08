@@ -1,8 +1,8 @@
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useOutletContext } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, Link, Alert } from '@mui/material';
 import { AddLocationAltOutlined } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useConfirm } from 'material-ui-confirm';
 
 // components
@@ -13,7 +13,7 @@ import { removeAddress } from '../../redux/slices/account';
 import { PATH_CUSTOMER } from '../../routes/path';
 
 const Addresses = () => {
-	const { addresses } = useSelector((state) => state.account);
+	const { addresses } = useOutletContext();
 	const dispatch = useDispatch();
 	const confirm = useConfirm();
 
