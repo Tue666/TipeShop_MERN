@@ -4,10 +4,9 @@ const mongoose = require('mongoose');
 const { dbConfig } = require('./config');
 
 const connect = async () => {
-	const { environment, compassUri, atlasUri } = dbConfig;
+	const { mongoDbUri } = dbConfig;
 	try {
-		const uri = environment === 'dev' ? compassUri : atlasUri;
-		await mongoose.connect(uri, () => {
+		await mongoose.connect(mongoDbUri, () => {
 			console.log('DB connection successful');
 		});
 	} catch (error) {

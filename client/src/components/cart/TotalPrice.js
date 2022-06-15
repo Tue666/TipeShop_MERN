@@ -17,12 +17,18 @@ import { useConfirm } from 'material-ui-confirm';
 
 // apis
 import orderApi from '../../apis/orderApi';
+import paymentApi from '../../apis/paymentApi';
+// components
+import { PaypalButtonsWrapper } from '../../components/_external_/paypal';
+import { paymentKeys } from '../../components/checkout/PaymentMethod';
 // hooks
 import useModal from '../../hooks/useModal';
+// pages
+import { states } from '../../pages/customer/Orders';
 // redux
 import { removeSelected } from '../../redux/slices/cart';
 // routes
-import { PATH_CHECKOUT } from '../../routes/path';
+import { PATH_CHECKOUT, PATH_CUSTOMER } from '../../routes/path';
 // utils
 import { toVND } from '../../utils/formatMoney';
 import enqueueSnackbar from '../../utils/snackbar';
@@ -90,7 +96,7 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 		const linkTo = address ? PATH_CHECKOUT.payment : PATH_CHECKOUT.shipping;
 		navigate(linkTo);
 	};
-	const handleOrder = async () => {
+	const handleValidateOrder = async () => {
 		if (selectedCount < 1) {
 			enqueueSnackbar('You have not selected any products to order yet', {
 				anchorOrigin: {
@@ -99,7 +105,7 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 				},
 				preventDuplicate: true,
 			});
-			return;
+			return false;
 		}
 		if (!paymentMethod.key) {
 			enqueueSnackbar('You have not selected any payment method', {
@@ -109,15 +115,21 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 				},
 				preventDuplicate: true,
 			});
-			return;
+			return false;
 		}
+		await confirm({
+			title: 'Order',
+			content: (
+				<Alert severity="info">Have you checked the product information for sure before order?</Alert>
+			),
+		});
+		return true;
+	};
+	const handleOrder = async (willValidate = true, payment = null) => {
 		try {
-			await confirm({
-				title: 'Order',
-				content: (
-					<Alert severity="info">Have you checked the product information for sure before order?</Alert>
-				),
-			});
+			const permission = willValidate ? await handleValidateOrder() : true;
+			if (!permission) return;
+
 			const { region, district, ward, is_default, ...other } = address;
 			const { key, label } = paymentMethod;
 			const items = selectedItems.map((item) => ({ ...item.product, quantity: item.quantity }));
@@ -125,6 +137,7 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 				const { name, value, sign } = price;
 				return value > 0 && { name, value: value * sign };
 			});
+
 			const orderData = {
 				shipping_address: {
 					region: region.name,
@@ -135,20 +148,57 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 				payment_method: {
 					method_key: key,
 					method_text: label,
+					message: payment?.message || '',
+					description: payment?.description || '',
 				},
 				items,
 				price_summary,
 			};
+			// set up await payment until get response from payment gateways api
+			// otherwise, processcing for order has been paid
+			const tracking_infor = {
+				status: payment?.paid ? states.processing : states.awaiting_payment,
+				status_text: payment?.paid ? 'Pending processing' : 'Awaiting payment',
+			};
+			if (key !== paymentKeys.cash) orderData['tracking_infor'] = tracking_infor;
+
 			dispatch({ type: 'START_LOADING' });
 			const response = await orderApi.insert(orderData);
-			const { msg, orderedItems } = response;
+			const { msg, _id, orderedItems } = response;
 			dispatchSlice(removeSelected(orderedItems));
-			navigate(PATH_CHECKOUT.result, {
-				state: {
-					statusCode: 200,
-					msg,
-				},
-			});
+
+			switch (key) {
+				case paymentKeys.momo:
+					{
+						const payUrl = await paymentApi.momoCreate({
+							_id,
+							phone_number: address.phone_number,
+							amount: price_summary.reduce((sum, price) => sum + price.value, 0),
+							redirectUrl: `${window.location.origin}${PATH_CUSTOMER.orders}`,
+						});
+						window.location.href = payUrl;
+					}
+					break;
+				case paymentKeys.vnpay:
+					{
+						const payUrl = await paymentApi.vnpayCreate({
+							_id,
+							phone_number: address.phone_number,
+							amount: price_summary.reduce((sum, price) => sum + price.value, 0),
+							redirectUrl: `${window.location.origin}${PATH_CUSTOMER.orders}`,
+						});
+						window.location.href = payUrl;
+					}
+					break;
+				default:
+					navigate(PATH_CHECKOUT.result, {
+						state: {
+							statusCode: 200,
+							msg,
+						},
+					});
+					break;
+			}
 		} catch (error) {
 			if (error === undefined) return;
 			const { status, statusText } = error.response;
@@ -224,17 +274,25 @@ const TotalPrice = ({ selectedItems, selectedCount, paymentMethod }) => {
 						Check out ({selectedCount})
 					</Button>
 				)}
-				{!isInCart && (
-					<Button
-						variant="contained"
-						color="error"
-						disableElevation
-						onClick={handleOrder}
-						sx={{ width: '100%' }}
-					>
-						Order ({selectedCount})
-					</Button>
-				)}
+				{!isInCart &&
+					(paymentMethod.key !== paymentKeys.international ? (
+						<Button
+							variant="contained"
+							color="error"
+							disableElevation
+							onClick={() => handleOrder()}
+							sx={{ width: '100%' }}
+						>
+							Order ({selectedCount})
+						</Button>
+					) : (
+						<PaypalButtonsWrapper
+							address={address}
+							selectedItems={selectedItems}
+							priceSummary={priceSummary}
+							handleOrder={handleOrder}
+						/>
+					))}
 			</ContentInner>
 			<Backdrop open={state.isLoading}>
 				<CircularProgress sx={{ color: '#fff' }} />

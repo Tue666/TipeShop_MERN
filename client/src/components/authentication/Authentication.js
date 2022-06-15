@@ -1,3 +1,4 @@
+import { shape, bool } from 'prop-types';
 import { useState, useReducer, Fragment } from 'react';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, TextField } from '@mui/material';
@@ -87,7 +88,14 @@ const handlers = {
 const reducer = (state, action) =>
 	handlers[action.type] ? handlers[action.type](state, action) : state;
 
-const Authentication = () => {
+const propTypes = {
+	params: shape({
+		beClosed: bool,
+	}),
+};
+
+const Authentication = ({ params }) => {
+	const { beClosed } = params;
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const [phoneNumber, setPhoneNumber] = useState('');
 	const { closeModal } = useModal();
@@ -147,7 +155,7 @@ const Authentication = () => {
 	};
 	return (
 		<RootStyle direction="row">
-			<CloseButton onClick={closeModal}>X</CloseButton>
+			{beClosed && <CloseButton onClick={closeModal}>X</CloseButton>}
 			<LeftContent spacing={5}>
 				{state.current === STATE.authentication && (
 					<Fragment>
@@ -259,5 +267,7 @@ const RightContent = styled(Stack)(({ theme }) => ({
 	background: `linear-gradient(136deg, rgb(255 164 140 / 11%), ${theme.palette.error.lighter})`,
 	color: theme.palette.error.main,
 }));
+
+Authentication.propTypes = propTypes;
 
 export default Authentication;

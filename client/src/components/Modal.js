@@ -10,9 +10,9 @@ import { CancelOrder } from '../components/customer';
 import useModal from '../hooks/useModal';
 
 const components = {
-	default: null,
-	authentication: <Authentication />,
-	appPromotion: <AppPromotion />,
+	default: (params) => null,
+	authentication: (params) => <Authentication params={params} />,
+	appPromotion: (params) => <AppPromotion params={params} />,
 	cancelOrder: (params) => <CancelOrder params={params} />,
 };
 
@@ -24,10 +24,16 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 const Modal = () => {
 	const { isOpen, key, params } = useSelector((state) => state.modal);
+	const { beClosed } = params;
 	const { closeModal } = useModal();
 	return (
-		<Dialog open={isOpen} onClose={closeModal} TransitionComponent={Transition} maxWidth={false}>
-			{params ? components[key](params) : components[key]}
+		<Dialog
+			open={isOpen}
+			onClose={() => beClosed && closeModal()}
+			TransitionComponent={Transition}
+			maxWidth={false}
+		>
+			{components[key](params)}
 		</Dialog>
 	);
 };

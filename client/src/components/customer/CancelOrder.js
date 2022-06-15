@@ -1,3 +1,4 @@
+import { shape, string } from 'prop-types';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Typography, TextField, Button } from '@mui/material';
@@ -9,19 +10,24 @@ import useModal from '../../hooks/useModal';
 // utils
 import enqueueSnackbar from '../../utils/snackbar';
 
+const propTypes = {
+	params: shape({
+		_id: string,
+	}),
+};
+
 const CancelOrder = ({ params }) => {
+	const { _id } = params;
 	const [note, setNote] = useState('');
 	const navigate = useNavigate();
-
 	const { closeModal } = useModal();
+
 	const handleChangeNote = (e) => {
 		const value = e.target.value;
 		setNote(value);
 	};
 	const handleConfirm = async () => {
 		try {
-			const _id = params;
-			console.log(note, _id);
 			await orderApi.editStatus({
 				_id,
 				note,
@@ -46,7 +52,7 @@ const CancelOrder = ({ params }) => {
 		}
 	};
 	return (
-		<Stack p={3} spacing={1}>
+		<Stack p={3} spacing={1} sx={{ width: '450px' }}>
 			<Typography variant="body2" sx={{ fontWeight: 'bold' }}>
 				Your feedback is very important to us! <br /> Can you tell us the reason for canceling the order?
 			</Typography>
@@ -69,5 +75,7 @@ const CancelOrder = ({ params }) => {
 		</Stack>
 	);
 };
+
+CancelOrder.propTypes = propTypes;
 
 export default CancelOrder;

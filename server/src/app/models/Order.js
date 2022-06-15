@@ -19,6 +19,8 @@ const Order = new Schema(
 		payment_method: {
 			method_text: { type: String, required: true },
 			method_key: { type: String, required: true },
+			message: { type: String, default: '' },
+			description: { type: String, default: '' },
 		},
 		items: [
 			{

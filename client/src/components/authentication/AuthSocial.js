@@ -8,7 +8,7 @@ import accountApi from '../../apis/accountApi';
 // utils
 import enqueueSnackbar from '../../utils/snackbar';
 // config
-import { facebookConfig, appConfig } from '../../config';
+import { socialConfig, appConfig } from '../../config';
 
 const propTypes = {
 	handleBackDefaultState: func,
@@ -88,7 +88,7 @@ const AuthSocial = ({ handleBackDefaultState, socialLogin, closeModal }) => {
 			<Divider sx={{ width: '100%' }}>Or continue by</Divider>
 			<Stack direction="row" spacing={2}>
 				<FacebookLogin
-					appId={facebookConfig.appId}
+					appId={socialConfig.facebook.appId}
 					fields="name,email,picture"
 					callback={handleFacebookLogin}
 					cssClass="facebook"

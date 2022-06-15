@@ -22,13 +22,13 @@ import { SettingsProvider } from './contexts/SettingsContext';
 // redux
 import store from './redux/store';
 // config
-import { googleConfig } from './config';
+import { socialConfig } from './config';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
 	<HelmetProvider>
 		<ReduxProvider store={store}>
-			<GoogleOAuthProvider clientId={googleConfig.clientId}>
+			<GoogleOAuthProvider clientId={socialConfig.google.clientId}>
 				<SettingsProvider>
 					<ConfirmProvider>
 						<SnackbarProvider maxSnack={4}>

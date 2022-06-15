@@ -1,7 +1,5 @@
 const dbConfig = {
-	environment: process.env.NODE_ENV,
-	compassUri: process.env.COMPASS_URI,
-	atlasUri: process.env.ATLAS_URI,
+	mongoDbUri: process.env.MONGODB_URI,
 };
 
 const cloudinaryConfig = {
@@ -10,4 +8,18 @@ const cloudinaryConfig = {
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 };
 
-module.exports = { dbConfig, cloudinaryConfig };
+const paymentConfig = {
+	momo: {
+		domain: process.env.MOMO_DOMAIN,
+		partnerCode: process.env.MOMO_PARTNER_CODE,
+		accessKey: process.env.MOMO_ACCESS_KEY,
+		secretKey: process.env.MOMO_SECRET_KEY,
+	},
+	vnpay: {
+		url: process.env.VNPAY_URL,
+		terminalCode: process.env.VNPAY_TERMINAL_CODE,
+		secretKey: process.env.VNPAY_SECRET_KEY,
+	},
+};
+
+module.exports = { dbConfig, cloudinaryConfig, paymentConfig };

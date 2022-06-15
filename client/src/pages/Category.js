@@ -43,6 +43,8 @@ const Category = () => {
 			});
 		};
 		getCategory();
+
+		return () => setCategory(null);
 	}, [_id, searchParams]);
 
 	const handleNavigate = (key, value, multiple = false, resetPage = false) => {

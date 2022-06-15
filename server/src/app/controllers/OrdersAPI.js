@@ -105,6 +105,10 @@ class OrdersAPI {
 				value: Number,
 			},
 		],
+		[tracking_infor]: {
+			status: String,
+			status_text: String,
+		}
 	*/
 	async insert(req, res, next) {
 		try {
@@ -114,7 +118,7 @@ class OrdersAPI {
 			items = items.map((item) => ({ ...item, _id: mongoose.Types.ObjectId(item._id) }));
 
 			if (items.length < 1) {
-				next({ status: 500, msg: 'You have not selected any products to order yet!' });
+				next({ status: 400, msg: 'You have not selected any products to order yet!' });
 				return;
 			}
 
@@ -151,6 +155,7 @@ class OrdersAPI {
 
 			res.status(201).json({
 				msg: 'Order is successful, please review the invoice while waiting for processing',
+				_id: order._id,
 				orderedItems,
 			});
 		} catch (error) {

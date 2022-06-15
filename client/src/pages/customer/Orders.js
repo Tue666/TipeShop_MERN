@@ -1,6 +1,13 @@
 import { useState, useRef, useReducer, useEffect } from 'react';
 import { Stack, Tabs, Tab, TextField, InputAdornment, Pagination } from '@mui/material';
-import { Search } from '@mui/icons-material';
+import {
+	Search,
+	RunningWithErrors,
+	CreditCardOffOutlined,
+	LocalShippingOutlined,
+	InventoryOutlined,
+	WrongLocationOutlined,
+} from '@mui/icons-material';
 
 // apis
 import orderApi from '../../apis/orderApi';
@@ -11,6 +18,10 @@ const ORDER_TABS = [
 	{
 		value: 'all',
 		label: 'ALL ORDERS',
+	},
+	{
+		value: 'awaiting_payment',
+		label: 'UNPAID',
 	},
 	{
 		value: 'processing',
@@ -30,28 +41,45 @@ const ORDER_TABS = [
 	},
 ];
 
-const initialState = {
-	all: {
-		orders: null,
-		totalPage: 0,
-	},
-	processing: {
-		orders: null,
-		totalPage: 0,
-	},
-	transporting: {
-		orders: null,
-		totalPage: 0,
-	},
-	delivered: {
-		orders: null,
-		totalPage: 0,
-	},
-	canceled: {
-		orders: null,
-		totalPage: 0,
-	},
-};
+const states = ORDER_TABS.reduce((states, state) => {
+	const { value } = state;
+	return { ...states, [value]: value };
+}, {});
+
+const colors = ['error.light', 'warning.dark', 'warning.darker', 'success.main', 'error.main'];
+const icons = [
+	<CreditCardOffOutlined />,
+	<RunningWithErrors />,
+	<LocalShippingOutlined />,
+	<InventoryOutlined />,
+	<WrongLocationOutlined />,
+];
+const status_colors = Object.keys(states)
+	.filter((state) => state !== states.all)
+	.reduce((statuses, status, index) => {
+		const color = colors[index] ? colors[index] : 'warning.dark';
+		const icon = icons[index] ? icons[index] : <RunningWithErrors />;
+		return {
+			...statuses,
+			[status]: {
+				color,
+				icon,
+			},
+		};
+	}, {});
+
+export { states, status_colors };
+
+const initialState = ORDER_TABS.reduce((states, state) => {
+	const { value } = state;
+	return {
+		...states,
+		[value]: {
+			orders: null,
+			totalPage: 0,
+		},
+	};
+}, {});
 
 const handlers = {
 	FILL_TAB: (state, action) => {

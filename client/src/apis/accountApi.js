@@ -6,6 +6,7 @@ const accountApi = {
 		const url = `/accounts/profile`;
 		return axiosInstance.get(url);
 	},
+
 	// [POST] /accounts/exist
 	checkExist: (phone_number) => {
 		const url = `/accounts/exist`;
@@ -13,6 +14,7 @@ const accountApi = {
 			phone_number,
 		});
 	},
+
 	// [POST] /accounts/login
 	login: (body) => {
 		const url = `/accounts/login`;
@@ -20,6 +22,7 @@ const accountApi = {
 			...body,
 		});
 	},
+
 	// [POST] /accounts/social/login
 	socialLogin: (body) => {
 		const url = `/accounts/social/login`;
@@ -27,6 +30,7 @@ const accountApi = {
 			...body,
 		});
 	},
+
 	// [POST] /accounts/register
 	register: (body) => {
 		const url = `/accounts/register`;
@@ -34,6 +38,7 @@ const accountApi = {
 			...body,
 		});
 	},
+
 	// [POST] /accounts/addresses
 	insertAddress: (body) => {
 		const url = `/accounts/addresses`;
@@ -41,11 +46,13 @@ const accountApi = {
 			...body,
 		});
 	},
+
 	// [PATCH] /accounts/addresses/default/:_id
 	switchDefault: (_id) => {
 		const url = `/accounts/addresses/default/${_id}`;
 		return axiosInstance.patch(url);
 	},
+
 	// [PUT] /accounts/addresses
 	editAddress: (body) => {
 		const url = `/accounts/addresses`;
@@ -53,11 +60,13 @@ const accountApi = {
 			...body,
 		});
 	},
+
 	// [DELETE] /accounts/addresses/:_id
 	removeAddress: (_id) => {
 		const url = `/accounts/addresses/${_id}`;
 		return axiosInstance.delete(url);
 	},
+
 	// google apis
 	getGoogleProfile: (tokenResponse) => {
 		const url = 'https://www.googleapis.com/oauth2/v3/userinfo';

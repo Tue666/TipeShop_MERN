@@ -3,7 +3,9 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
 	isOpen: false,
 	key: 'default',
-	params: null,
+	params: {
+		beClosed: true,
+	},
 };
 
 const slice = createSlice({
@@ -16,9 +18,15 @@ const slice = createSlice({
 			state.key = key;
 			state.params = params;
 		},
+		disappearModal: (state) => {
+			const { isOpen, key, params } = initialState;
+			state.isOpen = isOpen;
+			state.key = key;
+			state.params = params;
+		},
 	},
 });
 
 const { reducer, actions } = slice;
-export const { renderModal } = actions;
+export const { renderModal, disappearModal } = actions;
 export default reducer;

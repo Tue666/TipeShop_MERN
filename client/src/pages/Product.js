@@ -75,6 +75,8 @@ const Product = () => {
 			setSimilarSection(similarProducts);
 		};
 		getProduct();
+
+		return () => setProduct(null);
 	}, [_id]);
 	return (
 		<Page title={`${product?.information.name || ''} | Tipe Shop`}>

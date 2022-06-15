@@ -1,11 +1,14 @@
 import { lazy, Suspense } from 'react';
 import { useRoutes, Navigate } from 'react-router-dom';
 
-import Loading from '../pages/Loading';
+// guards
+import AuthGuard from '../guards/AuthGuard';
 // layouts
 import MainLayout from '../layouts/main';
 import CustomerLayout from '../layouts/customer';
 import CheckoutLayout from '../layouts/checkout';
+// pages
+import Loading from '../pages/Loading';
 
 const PageLoader = (Component) => (props) => {
 	return (
@@ -20,7 +23,11 @@ const Router = () => {
 		// Checkout routes
 		{
 			path: '/checkout',
-			element: <CheckoutLayout />,
+			element: (
+				<AuthGuard>
+					<CheckoutLayout />
+				</AuthGuard>
+			),
 			children: [
 				{ path: '', element: <Navigate to="/checkout/shipping" replace /> },
 				{ path: 'shipping', element: <Shipping /> },
@@ -37,7 +44,11 @@ const Router = () => {
 				{ path: 'cart', element: <Cart /> },
 				{
 					path: 'customer',
-					element: <CustomerLayout />,
+					element: (
+						<AuthGuard>
+							<CustomerLayout />
+						</AuthGuard>
+					),
 					children: [
 						{ path: '', element: <Navigate to="/customer/profile" replace /> },
 						{ path: 'profile', element: <Profile /> },

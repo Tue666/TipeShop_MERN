@@ -6,6 +6,7 @@ const categoriesRouter = require('./categories');
 const propertiesRouter = require('./properties');
 const locationsRouter = require('./locations');
 const ordersRouter = require('./orders');
+const paymentRouter = require('./payment');
 
 const initialRoutes = (app) => {
 	app.use('/api/accounts', accountsRouter);
@@ -15,6 +16,7 @@ const initialRoutes = (app) => {
 	app.use('/api/properties', propertiesRouter);
 	app.use('/api/locations', locationsRouter);
 	app.use('/api/orders', ordersRouter);
+	app.use('/api/payment', paymentRouter);
 };
 
 module.exports = initialRoutes;

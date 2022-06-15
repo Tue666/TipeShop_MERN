@@ -6,6 +6,7 @@ const cartApi = {
 		const url = `/carts`;
 		return axiosInstance.get(url);
 	},
+
 	// [POST] /carts
 	insert: (body) => {
 		const url = `/carts`;
@@ -13,6 +14,7 @@ const cartApi = {
 			...body,
 		});
 	},
+
 	// [PATCH] /carts/quantity
 	editQuantity: (body) => {
 		const url = `/carts/quantity`;
@@ -20,6 +22,7 @@ const cartApi = {
 			...body,
 		});
 	},
+
 	// [PATCH] /carts/selected
 	editSelected: (body) => {
 		const url = `/carts/selected`;
@@ -27,6 +30,7 @@ const cartApi = {
 			...body,
 		});
 	},
+
 	// [PUT] /carts
 	remove: (body) => {
 		const url = `/carts`;

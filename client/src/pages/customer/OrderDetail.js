@@ -21,6 +21,8 @@ import orderApi from '../../apis/orderApi';
 // components
 import Page from '../../components/Page';
 import ImageLoader from '../../components/ImageLoader';
+// pages
+import { status_colors } from '../../pages/customer/Orders';
 // routes
 import { PATH_CUSTOMER } from '../../routes/path';
 // utils
@@ -82,7 +84,11 @@ const OrderDetail = () => {
 							Order details #<strong>{order._id}</strong>
 						</Typography>
 						<span>-</span>
-						<Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+						<Typography
+							variant="body1"
+							color={status_colors[order.tracking_infor.status].color}
+							sx={{ fontWeight: 'bold' }}
+						>
 							{order.tracking_infor.status_text} ({fDate(order.tracking_infor.time)})
 						</Typography>
 					</Stack>
@@ -103,7 +109,7 @@ const OrderDetail = () => {
 								<Typography variant="subtitle2" sx={{ textTransform: 'uppercase' }}>
 									shipping address
 								</Typography>
-								<Wrapper spacing={1}>
+								<Wrapper>
 									{order.shipping_address.company && (
 										<Typography variant="body1" sx={{ textTransform: 'uppercase', fontWeight: 'bold' }}>
 											Company: {order.shipping_address.company}
@@ -125,8 +131,18 @@ const OrderDetail = () => {
 								<Typography variant="subtitle2" sx={{ textTransform: 'uppercase' }}>
 									payment method
 								</Typography>
-								<Wrapper spacing={1}>
+								<Wrapper>
 									<Typography variant="caption">{order.payment_method.method_text}</Typography>
+									{order.payment_method.message && (
+										<Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+											Status: {order.payment_method.message}
+										</Typography>
+									)}
+									{order.payment_method.description && (
+										<Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+											Description: {order.payment_method.description}
+										</Typography>
+									)}
 								</Wrapper>
 							</Stack>
 						</Grid>
@@ -136,7 +152,7 @@ const OrderDetail = () => {
 									<Typography variant="subtitle2" color="error.main" sx={{ textTransform: 'uppercase' }}>
 										note
 									</Typography>
-									<Wrapper spacing={1}>
+									<Wrapper>
 										<Typography variant="caption">{order.note}</Typography>
 									</Wrapper>
 								</Stack>

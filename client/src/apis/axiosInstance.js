@@ -30,7 +30,7 @@ const AxiosInterceptor = ({ children }) => {
 					const tokens = getToken();
 					// unauthorized
 					if (!tokens) {
-						openModal(keys.authentication);
+						openModal(keys.authentication, null, false);
 						return Promise.reject(error);
 					}
 					// generate new token if the authentication is successful
