@@ -101,7 +101,7 @@ const reducer = (state, action) =>
 const Orders = () => {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const [current, setCurrent] = useState({
-		value: 'all',
+		value: ORDER_TABS[0].value,
 		page: 1,
 		limit: 10,
 		search: '',

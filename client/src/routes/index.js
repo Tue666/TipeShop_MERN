@@ -42,6 +42,7 @@ const Router = () => {
 			children: [
 				{ path: '', element: <Home /> },
 				{ path: 'cart', element: <Cart /> },
+				{ path: 'news', element: <News /> },
 				{
 					path: 'customer',
 					element: (
@@ -81,6 +82,7 @@ const Home = PageLoader(lazy(() => import('../pages/Home')));
 const Cart = PageLoader(lazy(() => import('../pages/Cart')));
 const Product = PageLoader(lazy(() => import('../pages/Product')));
 const Category = PageLoader(lazy(() => import('../pages/Category')));
+const News = PageLoader(lazy(() => import('../pages/News')));
 const NotFound = PageLoader(lazy(() => import('../pages/NotFound')));
 // Profile
 const Profile = PageLoader(lazy(() => import('../pages/customer/Profile')));

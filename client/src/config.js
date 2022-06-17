@@ -14,9 +14,7 @@ export const paymentConfig = {
 };
 
 export const apiConfig = {
-	environment: process.env.REACT_APP_ENV,
-	api_url_dev: process.env.REACT_APP_API_URL_DEV,
-	api_url_productiton: process.env.REACT_APP_API_URL_PRODUCTION,
+	api_url: process.env.REACT_APP_API_URL,
 	image_url: process.env.REACT_APP_IMAGE_URL,
 	currency_converter_api_key: process.env.REACT_APP_CURRENCY_CONVERTER_API_KEY,
 };

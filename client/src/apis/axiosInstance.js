@@ -9,7 +9,7 @@ import { getToken, setToken } from '../utils/jwt';
 import { apiConfig } from '../config';
 
 const axiosInstance = axios.create({
-	baseURL: apiConfig.environment === 'dev' ? apiConfig.api_url_dev : apiConfig.api_url_productiton,
+	baseURL: apiConfig.api_url,
 });
 
 axiosInstance.interceptors.request.use(

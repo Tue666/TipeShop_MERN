@@ -9,6 +9,7 @@ const ROOT_CHECKOUT = '/checkout';
 export const PATH_MAIN = {
 	home: ROOT_MAIN,
 	cart: '/cart',
+	news: '/news',
 };
 
 export const PATH_CUSTOMER = {

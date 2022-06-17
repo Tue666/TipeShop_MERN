@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Stack, Link } from '@mui/material';
 import { useSelector } from 'react-redux';
@@ -8,6 +9,8 @@ import Hidden from '../../components/Hidden';
 // hooks
 import useModal from '../../hooks/useModal';
 import useAuth from '../../hooks/useAuth';
+// routes
+import { PATH_MAIN } from '../../routes/path';
 //
 import AccountPopover from './AccountPopover';
 
@@ -31,8 +34,8 @@ const HeaderTop = () => {
 						</Linking>
 					</Stack>
 					<Stack direction="row" justifyContent="space-between">
-						<Linking component="a" href="https://www.facebook.com/exe.shiro" target="_blank">
-							<i className="bi bi-bell"></i> Notification
+						<Linking component={RouterLink} to={PATH_MAIN.news}>
+							<i className="bi bi-file-earmark-richtext"></i> News
 						</Linking>
 						<Linking component="a" href="https://www.facebook.com/exe.shiro" target="_blank">
 							<i className="bi bi-question-circle"></i> Support

@@ -2,6 +2,10 @@ const dbConfig = {
 	mongoDbUri: process.env.MONGODB_URI,
 };
 
+const corsConfig = {
+	whiteList: process.env.CORS_WHITELIST.split('-'),
+};
+
 const cloudinaryConfig = {
 	cloud_name: process.env.CLOUDINARY_NAME,
 	api_key: process.env.CLOUDINARY_API_KEY,
@@ -22,4 +26,4 @@ const paymentConfig = {
 	},
 };
 
-module.exports = { dbConfig, cloudinaryConfig, paymentConfig };
+module.exports = { dbConfig, corsConfig, cloudinaryConfig, paymentConfig };
