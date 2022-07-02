@@ -10,6 +10,7 @@ export const PATH_MAIN = {
 	home: ROOT_MAIN,
 	cart: '/cart',
 	news: '/news',
+	invoiceLookup: '/invoice/lookup',
 };
 
 export const PATH_CUSTOMER = {

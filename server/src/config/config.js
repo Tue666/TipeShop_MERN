@@ -3,7 +3,7 @@ const dbConfig = {
 };
 
 const corsConfig = {
-	whiteList: process.env.CORS_WHITELIST.split('-'),
+	whiteList: process.env.CORS_WHITELIST.split(','),
 };
 
 const cloudinaryConfig = {

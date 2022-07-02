@@ -9,8 +9,8 @@ const propTypes = {
 	sxImg: PropTypes.object,
 };
 
-const ImageLoader = ({ sx, sxImg, src, alt }) => (
-	<RootStyle sx={sx}>
+const ImageLoader = ({ sx, sxImg, src, alt, ...others }) => (
+	<RootStyle sx={sx} {...others}>
 		<LazyLoadImage alt={alt} src={src} effect="blur" width="100%" height="100%" style={sxImg} />
 	</RootStyle>
 );

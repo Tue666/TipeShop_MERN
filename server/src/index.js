@@ -7,7 +7,7 @@ const cors = require('cors');
 const errorsHandling = require('./app/middlewares/errorsHandling');
 // config
 const db = require('./config/db');
-const { corsConfig } = require('./config/config');
+const corsOptions = require('./config/cors');
 // routes
 const initialRoutes = require('./routes');
 
@@ -19,15 +19,6 @@ db.connect();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const corsOptions = {
-	origin: (origin, callback) => {
-		if (corsConfig.whiteList.indexOf(origin) !== -1) {
-			callback(null, true);
-		} else {
-			callback(new Error('Not allowed by CORS'));
-		}
-	},
-};
 app.use(cors(corsOptions));
 
 app.use('/images', express.static(path.join(__dirname, '../uploads')));

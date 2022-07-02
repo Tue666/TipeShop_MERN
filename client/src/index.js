@@ -4,6 +4,8 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 // lazy-load
 import 'react-lazy-load-image-component/src/effects/blur.css';
+// react-image-lightbox
+import 'react-image-lightbox/style.css';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';

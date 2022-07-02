@@ -15,14 +15,16 @@ import {
 	Skeleton,
 } from '@mui/material';
 import { ArrowBackIosOutlined } from '@mui/icons-material';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 
 // apis
 import orderApi from '../../apis/orderApi';
 // components
 import Page from '../../components/Page';
 import ImageLoader from '../../components/ImageLoader';
+import { InvoicePDF } from '../../components/customer';
 // pages
-import { status_colors } from '../../pages/customer/Orders';
+import { states, status_colors } from '../../pages/customer/Orders';
 // routes
 import { PATH_CUSTOMER } from '../../routes/path';
 // utils
@@ -92,6 +94,21 @@ const OrderDetail = () => {
 							{order.tracking_infor.status_text} ({fDate(order.tracking_infor.time)})
 						</Typography>
 					</Stack>
+					{order && order.tracking_infor.status === states.delivered && (
+						<PDFDownloadLink document={<InvoicePDF order={order} />} fileName={`invoice-${order._id}`}>
+							{({ loading }) =>
+								loading ? (
+									<Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+										Invoice loading...
+									</Typography>
+								) : (
+									<Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'rgb(27, 168, 255)' }}>
+										Invoice
+									</Typography>
+								)
+							}
+						</PDFDownloadLink>
+					)}
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<ArrowBackIosOutlined sx={{ cursor: 'pointer' }} onClick={handleNavigateOrders} />
 						<Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'end' }}>
@@ -119,10 +136,10 @@ const OrderDetail = () => {
 										{order.shipping_address.name}
 									</Typography>
 									<Typography variant="caption">
-										Địa chỉ:{' '}
+										Address:{' '}
 										{`${order.shipping_address.street}, ${order.shipping_address.ward}, ${order.shipping_address.district}, ${order.shipping_address.region}`}
 									</Typography>
-									<Typography variant="caption">Điện thoại: {order.shipping_address.phone_number}</Typography>
+									<Typography variant="caption">Phone number: {order.shipping_address.phone_number}</Typography>
 								</Wrapper>
 							</Stack>
 						</Grid>
@@ -197,7 +214,7 @@ const OrderDetail = () => {
 															</Typography>
 														</Link>
 														<Stack direction="row" alignItems="center" spacing={1}>
-															{order.tracking_infor.status === 'delivered' && (
+															{order.tracking_infor.status === states.delivered && (
 																<Button variant="outlined" size="small">
 																	WRITE A REVIEW
 																</Button>

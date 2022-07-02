@@ -30,23 +30,27 @@ const slice = createSlice({
 		},
 		switchDefaultSuccess(state, action) {
 			const _id = action.payload;
-			const addressIndex = state.addresses.findIndex((address) => address._id === _id);
-			const addressToMove = state.addresses.splice(addressIndex, 1)[0];
-			state.addresses = [{ ...addressToMove, is_default: true }, ...state.addresses];
+			let newAddresses = [];
+			newAddresses = state.addresses.map((address) => ({ ...address, is_default: address._id === _id }));
+			// move to first
+			const addressIndex = newAddresses.findIndex((address) => address._id === _id);
+			const addressToMove = newAddresses.splice(addressIndex, 1)[0];
+			state.addresses = [addressToMove, ...newAddresses];
 		},
 		editAddressSuccess(state, action) {
 			const address = action.payload;
 			const { _id, ...other } = address;
-			state.addresses = state.addresses.map((address) =>
+			let newAddresses = [];
+			newAddresses = state.addresses.map((address) =>
 				address._id === _id
 					? { ...address, ...other }
 					: { ...address, is_default: other.is_default ? false : address.is_default }
 			);
 			// move to first if address is default
 			if (other.is_default) {
-				const addressIndex = state.addresses.findIndex((address) => address._id === _id);
-				const addressToMove = state.addresses.splice(addressIndex, 1)[0];
-				state.addresses = [addressToMove, ...state.addresses];
+				const addressIndex = newAddresses.findIndex((address) => address._id === _id);
+				const addressToMove = newAddresses.splice(addressIndex, 1)[0];
+				state.addresses = [addressToMove, ...newAddresses];
 			}
 		},
 		removeAddressSuccess(state, action) {

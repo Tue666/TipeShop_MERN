@@ -20,6 +20,11 @@ const PageLoader = (Component) => (props) => {
 
 const Router = () => {
 	return useRoutes([
+		// Invoice routes
+		{
+			path: '/invoice/lookup',
+			element: <InvoiceLookUp />,
+		},
 		// Checkout routes
 		{
 			path: '/checkout',
@@ -94,3 +99,5 @@ const OrderDetail = PageLoader(lazy(() => import('../pages/customer/OrderDetail'
 const Shipping = PageLoader(lazy(() => import('../pages/checkout/Shipping')));
 const Payment = PageLoader(lazy(() => import('../pages/checkout/Payment')));
 const Result = PageLoader(lazy(() => import('../pages/checkout/Result')));
+// Invoice
+const InvoiceLookUp = PageLoader(lazy(() => import('../pages/InvoiceLookUp')));

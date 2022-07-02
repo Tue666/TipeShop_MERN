@@ -1,7 +1,8 @@
 import { array } from 'prop-types';
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography } from '@mui/material';
+import Lightbox from 'react-image-lightbox';
 
 // components
 import ImageLoader from '../ImageLoader';
@@ -16,49 +17,69 @@ const propTypes = {
 
 const ImageZoom = ({ images }) => {
 	const [index, setIndex] = useState(0);
+	const [lightboxIndex, setLightboxIndex] = useState(0);
+	const [isOpenLightbox, setIsOpenLightbox] = useState(false);
 	const shownCount = 4;
-	const imageShow = images.slice(0, shownCount + 1); // Get first 4 images for showing;
+	const imageShow = images.slice(0, shownCount + 1); // Get first shownCount images for showing;
 
 	const handleSwitchImage = (i) => {
 		if (i === shownCount) {
-			console.log('Show All Images');
+			setIsOpenLightbox(true);
 			return;
 		}
 		setIndex(i);
 	};
+	const handleCloseLightbox = () => {
+		setLightboxIndex(0);
+		setIsOpenLightbox(false);
+	};
 	return (
-		<RootStyle>
-			<ImageLoader
-				src={`${apiConfig.image_url}/${imageShow[index]}`}
-				alt={imageShow[index]}
-				sx={{
-					height: '370px',
-					cursor: 'pointer',
-					marginBottom: '10px',
-				}}
-				sxImg={{
-					borderRadius: '5px',
-				}}
-			/>
-			<Stack direction="row" spacing={1}>
-				{imageShow.map((image, i) => (
-					<MiniImage key={i} className={index === i ? 'active' : ''} onClick={() => handleSwitchImage(i)}>
-						<ImageLoader
-							src={`${apiConfig.image_url}/${image}`}
-							alt={image}
-							sx={{
-								width: '100%',
-								height: '100%',
-							}}
-							sxImg={{
-								borderRadius: '5px',
-							}}
-						/>
-						{i === shownCount && <ViewAllText>View all images</ViewAllText>}
-					</MiniImage>
-				))}
-			</Stack>
-		</RootStyle>
+		<Fragment>
+			<RootStyle>
+				<ImageLoader
+					src={`${apiConfig.image_url}/${imageShow[index]}`}
+					alt={imageShow[index]}
+					sx={{
+						height: '370px',
+						cursor: 'pointer',
+						marginBottom: '10px',
+					}}
+					sxImg={{
+						borderRadius: '5px',
+					}}
+					onClick={() => setIsOpenLightbox(true)}
+				/>
+				<Stack direction="row" spacing={1}>
+					{imageShow.map((image, i) => (
+						<MiniImage key={i} className={index === i ? 'active' : ''} onClick={() => handleSwitchImage(i)}>
+							<ImageLoader
+								src={`${apiConfig.image_url}/${image}`}
+								alt={image}
+								sx={{
+									width: '100%',
+									height: '100%',
+								}}
+								sxImg={{
+									borderRadius: '5px',
+								}}
+							/>
+							{i === shownCount && <ViewAllText>View all images</ViewAllText>}
+						</MiniImage>
+					))}
+				</Stack>
+			</RootStyle>
+			{isOpenLightbox && (
+				<Lightbox
+					mainSrc={`${apiConfig.image_url}/${images[lightboxIndex]}`}
+					nextSrc={`${apiConfig.image_url}/${images[(lightboxIndex + 1) % images.length]}`}
+					prevSrc={`${apiConfig.image_url}/${images[(lightboxIndex + images.length - 1) % images.length]}`}
+					onCloseRequest={handleCloseLightbox}
+					onMovePrevRequest={() => setLightboxIndex((lightboxIndex + images.length - 1) % images.length)}
+					onMoveNextRequest={() => setLightboxIndex((lightboxIndex + 1) % images.length)}
+					imageCaption={`${lightboxIndex + 1}/${images.length}`}
+				/>
+			)}
+		</Fragment>
 	);
 };
 

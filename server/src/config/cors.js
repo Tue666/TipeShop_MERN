@@ -1,16 +1,14 @@
-// used cors package instead
-const cors = (req, res, next) => {
-	res.header('Access-Control-Allow-Origin', '*');
-	res.header(
-		'Access-Control-Allow-Headers',
-		'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-	);
+//
+const { corsConfig } = require('./config');
 
-	if (req.method === 'OPTIONS') {
-		res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
-		return res.status(200).json({});
-	}
-	next();
+const corsOptions = {
+	origin: (origin, callback) => {
+		if (!origin || corsConfig.whiteList.indexOf(origin) !== -1) {
+			callback(null, true);
+		} else {
+			callback(new Error('Not allowed by CORS'));
+		}
+	},
 };
 
-module.exports = cors;
+module.exports = corsOptions;
