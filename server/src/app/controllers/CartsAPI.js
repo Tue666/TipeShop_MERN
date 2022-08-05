@@ -8,11 +8,12 @@ class CartsAPI {
 	// [GET] /carts
 	async findByCustomerId(req, res, next) {
 		try {
-			const customer_id = req.account._id;
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
 
 			const cart = await Cart.aggregate([
 				{
-					$match: { customer_id: mongoose.Types.ObjectId(customer_id) },
+					$match: { customer_id },
 				},
 				{
 					$lookup: {
@@ -70,21 +71,20 @@ class CartsAPI {
 	*/
 	async insert(req, res, next) {
 		try {
-			const customer_id = req.account._id;
-			const { product_id, quantity } = req.body;
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { product_id, quantity } = req.body;
+			product_id = mongoose.Types.ObjectId(product_id);
 
-			const originalProduct = await Product.findOne({
-				_id: mongoose.Types.ObjectId(product_id),
-			}).select('_id name images quantity original_price price limit inventory_status slug');
+			const originalProduct = await Product.findOne({ _id: product_id }).select(
+				'_id name images quantity original_price price limit inventory_status slug'
+			);
 			if (!originalProduct) {
 				next({ status: 400, msg: 'Product to be added could not be found!' });
 				return;
 			}
 
-			let cartItem = await Cart.findOne({
-				customer_id: mongoose.Types.ObjectId(customer_id),
-				product_id: mongoose.Types.ObjectId(originalProduct._id),
-			});
+			let cartItem = await Cart.findOne({ customer_id, product_id });
 			let newQuantity = cartItem?.quantity + quantity || quantity;
 
 			if (newQuantity > originalProduct.quantity) {
@@ -144,18 +144,17 @@ class CartsAPI {
 
 	// [PATCH] /carts/quantity
 	/*
-		_id: ObjectId as String,
 		product_id: ObjectId as String,
 		new_quantity: Number,
 	*/
 	async editQuantity(req, res, next) {
 		try {
-			const customer_id = req.account._id;
-			const { product_id, new_quantity } = req.body;
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { product_id, new_quantity } = req.body;
+			product_id = mongoose.Types.ObjectId(product_id);
 
-			const originalProduct = await Product.findOne({
-				_id: mongoose.Types.ObjectId(product_id),
-			}).select('quantity limit');
+			const originalProduct = await Product.findOne({ _id: product_id }).select('quantity limit');
 			if (!originalProduct) {
 				next({ status: 400, msg: 'Product to be added could not be found!' });
 				return;
@@ -178,10 +177,7 @@ class CartsAPI {
 			}
 
 			const cartItem = await Cart.findOneAndUpdate(
-				{
-					customer_id: mongoose.Types.ObjectId(customer_id),
-					product_id: mongoose.Types.ObjectId(originalProduct._id),
-				},
+				{ customer_id, product_id },
 				{
 					quantity: new_quantity,
 				},
@@ -208,8 +204,10 @@ class CartsAPI {
 	*/
 	async editSelected(req, res, next) {
 		try {
-			const customer_id = req.account._id;
-			const { type, _id } = req.body;
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { type, _id } = req.body;
+			_id = typeof _id === 'boolean' ? _id : mongoose.Types.ObjectId(_id);
 
 			switch (type) {
 				case 'item':
@@ -254,22 +252,18 @@ class CartsAPI {
 	*/
 	async remove(req, res, next) {
 		try {
-			const customer_id = req.account._id;
-			const { _id } = req.body;
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { _id } = req.body;
+			_id = !_id ? _id : mongoose.Types.ObjectId(_id);
 
 			let result;
 			// _id with null will remove all selected items
 			if (!_id) {
-				result = await Cart.deleteMany({
-					customer_id: mongoose.Types.ObjectId(customer_id),
-					selected: true,
-				});
+				result = await Cart.deleteMany({ customer_id, selected: true });
 			} else {
 				// otherwise, remove item with _id only
-				result = await Cart.deleteOne({
-					_id: mongoose.Types.ObjectId(_id),
-					customer_id: mongoose.Types.ObjectId(customer_id),
-				});
+				result = await Cart.deleteOne({ _id, customer_id });
 			}
 
 			res.status(200).json({

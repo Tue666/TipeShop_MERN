@@ -25,13 +25,12 @@ class LocationsAPI {
 	// [GET] /locations/districts/:region_id
 	async findDistrictsByRegionId(req, res, next) {
 		try {
-			const { region_id } = req.params;
+			let { region_id } = req.params;
+			region_id = mongoose.Types.ObjectId(region_id);
 
 			const districts = await Location.aggregate([
 				{
-					$match: {
-						_id: mongoose.Types.ObjectId(region_id),
-					},
+					$match: { _id: region_id },
 				},
 				{
 					$project: {
@@ -60,12 +59,13 @@ class LocationsAPI {
 	// [GET] /locations/wards/:district_id
 	async findWardsByDistrictId(req, res, next) {
 		try {
-			const { district_id } = req.params;
+			let { district_id } = req.params;
+			district_id = mongoose.Types.ObjectId(district_id);
 
 			const wards = await Location.aggregate([
 				{
 					$match: {
-						'districts._id': mongoose.Types.ObjectId(district_id),
+						'districts._id': district_id,
 					},
 				},
 				{
@@ -74,7 +74,7 @@ class LocationsAPI {
 							$filter: {
 								input: '$districts',
 								cond: {
-									$eq: ['$$this._id', mongoose.Types.ObjectId(district_id)],
+									$eq: ['$$this._id', district_id],
 								},
 							},
 						},
@@ -147,7 +147,8 @@ class LocationsAPI {
     */
 	async insertDistrict(req, res, next) {
 		try {
-			const { region_id } = req.params;
+			let { region_id } = req.params;
+			region_id = mongoose.Types.ObjectId(region_id);
 			const { name } = req.body;
 
 			// check if region existed

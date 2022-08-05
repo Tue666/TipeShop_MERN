@@ -2,21 +2,23 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 // models
-const Account = require('../models/Account');
+const { Types, Account, Customer, Administrator } = require('../models/Account');
 const Address = require('../models/Address');
 const Location = require('../models/Location');
 // utils
 const { generateToken, verify } = require('../../utils/jwt');
+const { capitalize } = require('../../utils/formatString');
 
 class AccountsAPI {
 	// [GET] /accounts/profile
 	async getProfile(req, res, next) {
 		try {
-			const { _id } = req.account;
+			let { _id } = req.account;
+			_id = mongoose.Types.ObjectId(_id);
 
 			const profile = await Account.aggregate([
 				{
-					$match: { _id: mongoose.Types.ObjectId(_id) },
+					$match: { _id },
 				},
 				{
 					$project: {
@@ -27,101 +29,116 @@ class AccountsAPI {
 				},
 			]);
 
-			const addresses = await Address.aggregate([
-				{
-					$match: {
-						customer_id: mongoose.Types.ObjectId(_id),
-					},
-				},
-				// get the location matched for receive region, district, ward
-				{
-					$lookup: {
-						from: 'locations',
-						let: {
-							region_id: '$region_id',
+			const type = profile[0].type;
+			switch (type) {
+				case Types.customer:
+					const addresses = await Address.aggregate([
+						{
+							$match: {
+								customer_id: _id,
+							},
 						},
-						pipeline: [
-							{
-								$match: {
-									$expr: { $eq: ['$_id', '$$region_id'] },
+						// get the location matched for receive region, district, ward
+						{
+							$lookup: {
+								from: 'locations',
+								let: {
+									region_id: '$region_id',
+								},
+								pipeline: [
+									{
+										$match: {
+											$expr: { $eq: ['$_id', '$$region_id'] },
+										},
+									},
+								],
+								as: 'location',
+							},
+						},
+						{
+							$addFields: {
+								location: { $arrayElemAt: ['$location', 0] },
+							},
+						},
+						{
+							$addFields: {
+								country: '$location.country',
+								region: {
+									name: '$location.name',
+									code: '$location.code',
+									_id: '$location._id',
+								},
+								district: {
+									$arrayElemAt: [
+										{
+											$filter: {
+												input: '$location.districts',
+												cond: {
+													$eq: ['$$this._id', '$district_id'],
+												},
+											},
+										},
+										0,
+									],
 								},
 							},
-						],
-						as: 'location',
-					},
-				},
-				{
-					$addFields: {
-						location: { $arrayElemAt: ['$location', 0] },
-					},
-				},
-				{
-					$addFields: {
-						country: '$location.country',
-						region: {
-							name: '$location.name',
-							code: '$location.code',
-							_id: '$location._id',
 						},
-						district: {
-							$arrayElemAt: [
-								{
-									$filter: {
-										input: '$location.districts',
-										cond: {
-											$eq: ['$$this._id', '$district_id'],
+						{
+							$addFields: {
+								ward: {
+									$arrayElemAt: [
+										{
+											$filter: {
+												input: '$district.wards',
+												cond: {
+													$eq: ['$$this._id', '$ward_id'],
+												},
+											},
 										},
-									},
+										0,
+									],
 								},
-								0,
-							],
+							},
 						},
-					},
-				},
-				{
-					$addFields: {
-						ward: {
-							$arrayElemAt: [
-								{
-									$filter: {
-										input: '$district.wards',
-										cond: {
-											$eq: ['$$this._id', '$ward_id'],
-										},
-									},
+						{
+							$project: {
+								name: 1,
+								company: 1,
+								phone_number: 1,
+								street: 1,
+								delivery_address_type: 1,
+								is_default: 1,
+								country: 1,
+								region: 1,
+								district: {
+									name: 1,
+									code: 1,
+									_id: 1,
 								},
-								0,
-							],
+								ward: 1,
+							},
 						},
-					},
-				},
-				{
-					$project: {
-						name: 1,
-						company: 1,
-						phone_number: 1,
-						street: 1,
-						delivery_address_type: 1,
-						is_default: 1,
-						country: 1,
-						region: 1,
-						district: {
-							name: 1,
-							code: 1,
-							_id: 1,
+						{
+							$sort: { is_default: -1 },
 						},
-						ward: 1,
-					},
-				},
-				{
-					$sort: { is_default: -1 },
-				},
-			]);
+					]);
 
-			res.status(200).json({
-				profile: profile[0],
-				addresses,
-			});
+					res.status(200).json({
+						profile: profile[0],
+						addresses,
+					});
+					break;
+				case Types.administrator:
+					res.status(200).json({
+						profile: profile[0],
+					});
+					break;
+				default:
+					res.status(200).json({
+						profile: profile[0],
+					});
+					break;
+			}
 		} catch (error) {
 			console.error(error);
 			next({ status: 500, msg: error.message });
@@ -164,7 +181,7 @@ class AccountsAPI {
 		try {
 			const { phone_number, password } = req.body;
 
-			const account = await Account.findOne({ phone_number }).select('name password refreshToken');
+			const account = await Account.findOne({ phone_number }).select('name password');
 			if (!account) {
 				next({ status: 400, msg: 'Account not found!' });
 				return;
@@ -200,7 +217,7 @@ class AccountsAPI {
 		try {
 			const { id } = req.body;
 
-			const account = await Account.findOne({ 'social.id': id }).select('name refreshToken');
+			const account = await Account.findOne({ 'social.id': id }).select('name');
 			if (!account) {
 				next({ status: 400, msg: 'Account not found!' });
 				return;
@@ -224,13 +241,17 @@ class AccountsAPI {
 
 	// [POST] /accounts/register
 	/*
+		account_type: String,
 		phone_number: String,
-		name: String,
+		[is_phone_verified]: Bool,
         password: String,
 		passwordConfirm: String,
 		[email]: String,
 		[is_email_verified]: Bool,
+		[name]: String,
 		[avatar_url]: String,
+		----Customer----
+		[gender]: String,
 		[social]: [{
 			id: String,
 			type: String,
@@ -238,7 +259,19 @@ class AccountsAPI {
 	*/
 	async register(req, res, next) {
 		try {
-			const { phone_number, password, passwordConfirm } = req.body;
+			const { account_type, phone_number, password, passwordConfirm } = req.body;
+			const capitalizedType = capitalize(account_type);
+
+			const valueOfTypes = Object.values(Types);
+			if (!valueOfTypes.includes(capitalizedType)) {
+				next({
+					status: 400,
+					msg: `Type of ${capitalizedType} not included. Try the following: ${valueOfTypes.join(
+						', '
+					)} instead!`,
+				});
+				return;
+			}
 
 			const accountExisted = await Account.findOne({ phone_number });
 			if (accountExisted) {
@@ -253,10 +286,23 @@ class AccountsAPI {
 
 			const saltRounds = 10;
 			const hashedPassword = await bcrypt.hash(password, saltRounds);
-			const account = new Account({
+
+			let account = null;
+			const details = {
 				...req.body,
 				password: hashedPassword,
-			});
+			};
+			switch (capitalizedType) {
+				case Types.customer:
+					account = new Customer(details);
+					break;
+				case Types.administrator:
+					account = new Administrator(details);
+					break;
+				default:
+					next({ status: 400, msg: `Unable to resolve, type of ${capitalizedType} not matched!` });
+					return;
+			}
 			await account.save();
 
 			const { _id, name } = account;
@@ -434,23 +480,20 @@ class AccountsAPI {
 	// [PATCH] /accounts/addresses/default/:_id
 	async switchDefault(req, res, next) {
 		try {
-			const customer_id = req.account._id;
-			const { _id } = req.params;
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { _id } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
 
-			await Address.updateMany(
+			await Address.updateMany({ customer_id }, [
 				{
-					customer_id: mongoose.Types.ObjectId(customer_id),
-				},
-				[
-					{
-						$set: {
-							is_default: {
-								$eq: ['$_id', mongoose.Types.ObjectId(_id)],
-							},
+					$set: {
+						is_default: {
+							$eq: ['$_id', _id],
 						},
 					},
-				]
-			);
+				},
+			]);
 
 			res.status(200).json({
 				msg: 'Switch default successfully!',
@@ -486,15 +529,7 @@ class AccountsAPI {
 			ward_id = mongoose.Types.ObjectId(ward_id);
 
 			// if it's default then update everything else to non-default
-			if (is_default)
-				await Address.updateMany(
-					{
-						customer_id,
-					},
-					{
-						is_default: false,
-					}
-				);
+			if (is_default) await Address.updateMany({ customer_id }, { is_default: false });
 
 			const address = await Address.findByIdAndUpdate(
 				_id,
@@ -587,13 +622,12 @@ class AccountsAPI {
 	// [DELETE] /accounts/addresses/:_id
 	async removeAddress(req, res, next) {
 		try {
-			const customer_id = req.account._id;
-			const { _id } = req.params;
+			let customer_id = req.account._id;
+			customer_id = mongoose.Types.ObjectId(customer_id);
+			let { _id } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
 
-			const result = await Address.deleteOne({
-				_id: mongoose.Types.ObjectId(_id),
-				customer_id: mongoose.Types.ObjectId(customer_id),
-			});
+			const result = await Address.deleteOne({ _id, customer_id });
 
 			res.status(200).json({
 				msg: 'Remove address successfully!',

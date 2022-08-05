@@ -8,17 +8,15 @@ const cloudinaryUpload = require('../../utils/cloudinaryUpload');
 
 class ProductsAPI {
 	// [GET] /products/:_id
-	/*
-		_id: ObjectId as String
-	*/
 	async findById(req, res, next) {
 		try {
-			const { _id } = req.params;
+			let { _id } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
 
 			const result = await Product.aggregate([
 				{
 					$match: {
-						_id: mongoose.Types.ObjectId(_id),
+						_id,
 						inventory_status: 'availabel',
 					},
 				},
@@ -114,6 +112,15 @@ class ProductsAPI {
 	}
 
 	// [POST] /products/filtered
+	/*
+		categoryIds: [Number],
+		take: Number,
+		query: {
+			page: Number,
+			sort: String,
+			...
+		}
+	*/
 	async findFilteredProducts(req, res, next) {
 		try {
 			const { categoryIds, take, query } = req.body;
@@ -391,6 +398,7 @@ class ProductsAPI {
 	async findSimilarProducts(req, res, next) {
 		try {
 			let { _id, number } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
 			number = parseInt(number);
 
 			const product = await Product.findOne({
