@@ -16,6 +16,14 @@ const PageLoader = (Component: React.LazyExoticComponent<() => JSX.Element>) => 
 
 const Router = () => {
   return useRoutes([
+    // Auth routes
+    {
+      path: 'auth',
+      children: [
+        { path: '', element: <Navigate to="/auth/login" replace /> },
+        { path: 'login', element: <Login /> },
+      ],
+    },
     // Main routes
     {
       path: '/',
@@ -37,6 +45,8 @@ const Router = () => {
   ]);
 };
 
+// Auth
+const Login = PageLoader(lazy(() => import('../pages/Login')));
 // Main
 const Dashboard = PageLoader(lazy(() => import('../pages/Dashboard')));
 const ProductList = PageLoader(lazy(() => import('../pages/product/ProductList')));

@@ -16,20 +16,48 @@ class AccountsAPI {
 			let { _id } = req.account;
 			_id = mongoose.Types.ObjectId(_id);
 
-			const profile = await Account.aggregate([
+			const result = await Account.aggregate([
 				{
 					$match: { _id },
+				},
+				{
+					$lookup: {
+						from: 'roles',
+						let: {
+							roles: '$roles',
+						},
+						pipeline: [
+							{
+								$match: { $expr: { $in: ['$name', '$$roles'] } },
+							},
+						],
+						as: 'roles',
+					},
+				},
+				{
+					$addFields: {
+						permissions: {
+							$reduce: {
+								input: '$roles',
+								initialValue: [],
+								in: { $concatArrays: ['$$value', '$$this.permissions'] },
+							},
+						},
+					},
 				},
 				{
 					$project: {
 						password: 0,
 						refreshToken: 0,
+						roles: 0,
 						__v: 0,
 					},
 				},
 			]);
 
-			const type = profile[0].type;
+			const { permissions, ...profile } = result[0];
+			let dependentDetails = {};
+			const type = profile.type;
 			switch (type) {
 				case Types.customer:
 					const addresses = await Address.aggregate([
@@ -123,22 +151,17 @@ class AccountsAPI {
 						},
 					]);
 
-					res.status(200).json({
-						profile: profile[0],
-						addresses,
-					});
-					break;
-				case Types.administrator:
-					res.status(200).json({
-						profile: profile[0],
-					});
+					dependentDetails['addresses'] = addresses;
 					break;
 				default:
-					res.status(200).json({
-						profile: profile[0],
-					});
 					break;
 			}
+
+			res.status(200).json({
+				profile,
+				permissions,
+				...dependentDetails,
+			});
 		} catch (error) {
 			console.error(error);
 			next({ status: 500, msg: error.message });
@@ -250,6 +273,7 @@ class AccountsAPI {
 		[is_email_verified]: Bool,
 		[name]: String,
 		[avatar_url]: String,
+		roles: [String],
 		----Customer----
 		[gender]: String,
 		[social]: [{

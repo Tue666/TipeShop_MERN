@@ -7,6 +7,8 @@ const propertiesRouter = require('./properties');
 const locationsRouter = require('./locations');
 const ordersRouter = require('./orders');
 const paymentRouter = require('./payment');
+const operationsRouter = require('./operations');
+const rolesRouter = require('./roles');
 
 const initialRoutes = (app) => {
 	app.use('/api/accounts', accountsRouter);
@@ -17,6 +19,8 @@ const initialRoutes = (app) => {
 	app.use('/api/locations', locationsRouter);
 	app.use('/api/orders', ordersRouter);
 	app.use('/api/payment', paymentRouter);
+	app.use('/api/operations', operationsRouter);
+	app.use('/api/roles', rolesRouter);
 };
 
 module.exports = initialRoutes;

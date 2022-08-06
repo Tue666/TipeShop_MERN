@@ -10,6 +10,7 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider as ReduxProvider } from 'react-redux';
 // contexts
+import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 // redux
 import store from './redux/store';
@@ -20,7 +21,9 @@ root.render(
     <ReduxProvider store={store}>
       <SettingsProvider>
         <BrowserRouter>
-          <App />
+          <AuthProvider>
+            <App />
+          </AuthProvider>
         </BrowserRouter>
       </SettingsProvider>
     </ReduxProvider>

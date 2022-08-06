@@ -3,6 +3,7 @@ const path = (root: string, sublink: string): string => {
 };
 
 const ROOT_DASHBOARD = '/';
+const ROOT_AUTH = '/auth';
 
 const ROOT_PRODUCT = path(ROOT_DASHBOARD, 'product');
 const ROOT_ACCESS_CONTROL = path(ROOT_DASHBOARD, 'access-control');
@@ -17,4 +18,8 @@ export const PATH_DASHBOARD = {
     root: ROOT_ACCESS_CONTROL,
     operations: path(ROOT_ACCESS_CONTROL, '/operations'),
   },
+};
+
+export const PATH_AUTH = {
+  login: path(ROOT_AUTH, '/login'),
 };
