@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { useRoutes, Navigate } from 'react-router-dom';
 
+// guards
+import AuthGuard from '../guards/AuthGuard';
 // layouts
 import MainLayout from '../layouts/main';
 // pages
@@ -27,7 +29,11 @@ const Router = () => {
     // Main routes
     {
       path: '/',
-      element: <MainLayout />,
+      element: (
+        <AuthGuard>
+          <MainLayout />
+        </AuthGuard>
+      ),
       children: [
         { path: '', element: <Dashboard /> },
         { path: 'product/list', element: <ProductList /> },

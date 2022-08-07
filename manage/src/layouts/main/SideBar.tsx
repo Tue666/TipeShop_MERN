@@ -3,12 +3,20 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Space, MenuProps, Layout, Menu, Image } from 'antd';
 import { DashboardOutlined, SkinOutlined, ControlOutlined } from '@ant-design/icons';
 
+// hooks
+import useAuth from '../../hooks/useAuth';
 // routes
 import { PATH_DASHBOARD } from '../../routes/path';
+//
+import { OBJECTS, accessibleObjects } from './ObjectsConfig';
 
 const { Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
+
+const getSubKeyByDeepLevel = (level: number, path: string): string => {
+  return path.split('/')[level];
+};
 
 const getItem = (
   key: Key, // also path
@@ -22,10 +30,6 @@ const getItem = (
     icon,
     children,
   };
-};
-
-const getSubKeyByDeepLevel = (level: number, path: string): string => {
-  return path.split('/')[level];
 };
 
 const items: MenuItem[] = [
@@ -42,7 +46,10 @@ const items: MenuItem[] = [
 ];
 
 const SideBar = () => {
+  console.log(accessibleObjects(OBJECTS, ['access-control']));
   const navigate = useNavigate();
+  const { permissions } = useAuth();
+  console.log(permissions);
   const isActive = window.location.pathname;
   const deep = (isActive.match(/\//g) || []).length;
   const openKeys = isActive

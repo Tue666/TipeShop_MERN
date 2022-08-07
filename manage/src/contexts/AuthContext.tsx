@@ -2,8 +2,10 @@ import { ReactNode, useEffect, useReducer, createContext } from 'react';
 
 // apis
 import accountApi from '../apis/accountApi';
+// utils
+import { TokenProps, getToken, setToken, isValidToken } from '../utils/jwt';
 
-interface PermissionProps {
+export interface PermissionProps {
   object: string;
   actions: string[];
 }
@@ -23,7 +25,19 @@ interface AuthContextStates {
   permissions: ProfileProps['permissions'];
 }
 
-interface AuthContextMethods {}
+export interface LoginParams {
+  phone_number: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  name: string;
+  tokens: TokenProps;
+}
+
+interface AuthContextMethods {
+  login: (params: LoginParams) => Promise<string>;
+}
 
 const initialState: AuthContextStates = {
   isInitialized: false,
@@ -31,10 +45,14 @@ const initialState: AuthContextStates = {
   profile: null,
   permissions: null,
 };
-const AuthContext = createContext<AuthContextStates & AuthContextMethods>(initialState);
+const AuthContext = createContext<AuthContextStates & AuthContextMethods>({
+  ...initialState,
+  login: () => Promise.resolve(''),
+});
 
 enum HandleType {
   INITIALIZE = 'INITIALIZE',
+  LOGIN = 'LOGIN',
 }
 
 interface PayloadAction<T> {
@@ -52,6 +70,13 @@ const handlers: {
       ...action?.payload,
     };
   },
+  [HandleType.LOGIN]: (state, action) => {
+    return {
+      ...state,
+      isAuthenticated: true,
+      ...action?.payload,
+    };
+  },
 };
 
 const reducer = (state: AuthContextStates, action: PayloadAction<any>): AuthContextStates =>
@@ -63,18 +88,20 @@ interface AuthProviderProps {
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  const initNecessaryData = async (): Promise<ProfileProps> => {
+    const response = await accountApi.getProfile();
+    // fetch data depend permissions
+    return response;
+  };
   useEffect(() => {
     const initialize = async () => {
       try {
-        // check accessToken
-        const isAuthenticated = false;
-        // fetch profile if token valid
+        const tokens = getToken();
+        setToken(tokens);
+        const isAuthenticated = await isValidToken(tokens);
         if (isAuthenticated) {
-          const response = await accountApi.getProfile();
-          const { profile, permissions } = response;
-
-          // fetch data depend permissions
-
+          const { profile, permissions } = await initNecessaryData();
           dispatch({
             type: HandleType.INITIALIZE,
             payload: {
@@ -92,12 +119,27 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
           });
         }
       } catch (error) {
-        console.log(error);
+        // console.log('zxc', error);
       }
     };
     initialize();
   }, []);
-  return <AuthContext.Provider value={{ ...state }}>{children}</AuthContext.Provider>;
+
+  const login = async (params: LoginParams): Promise<string> => {
+    const response = await accountApi.login(params);
+    const { name, tokens } = response;
+    setToken(tokens);
+    const { profile, permissions } = await initNecessaryData();
+    dispatch({
+      type: HandleType.LOGIN,
+      payload: {
+        profile,
+        permissions,
+      },
+    });
+    return name;
+  };
+  return <AuthContext.Provider value={{ ...state, login }}>{children}</AuthContext.Provider>;
 };
 
 export { AuthProvider, AuthContext };

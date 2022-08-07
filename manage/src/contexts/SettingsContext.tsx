@@ -21,8 +21,12 @@ const initialState: SettingsContextStates & SettingsContextMethods = {
 const SettingsContext = createContext<SettingsContextStates & SettingsContextMethods>(initialState);
 
 const SettingsProvider = ({ children }: SettingsProviderProps) => {
-  const [settings, setSettings] = useState<SettingsContextStates>({
-    themeMode: 'light',
+  const [settings, setSettings] = useState<SettingsContextStates>(() => {
+    const themeLocalStorage: SettingsContextStates = {
+      themeMode: 'light',
+    };
+    (window as any).less.modifyVars(theme[themeLocalStorage.themeMode]);
+    return themeLocalStorage;
   });
   const onChangeTheme = async (currentMode: ThemeMode): Promise<void> => {
     try {

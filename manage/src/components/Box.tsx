@@ -1,14 +1,8 @@
-import { ReactNode } from 'react';
 import { Space, SpaceProps } from 'antd';
 
-interface BoxProps {
-  style?: { [key: string]: string | number };
-  children: ReactNode;
-}
-
-const Box = ({ style, children, ...props }: BoxProps & SpaceProps) => {
+const Box = ({ children, className, ...props }: SpaceProps) => {
   return (
-    <Space className="box-component" style={style} {...props}>
+    <Space className={`box-component ${className}`} {...props}>
       {children}
     </Space>
   );

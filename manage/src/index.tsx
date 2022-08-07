@@ -2,13 +2,13 @@
 import 'antd/dist/antd.variable.min.css';
 import './theme/globalSelectors.css';
 
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 import { BrowserRouter } from 'react-router-dom';
 import { Provider as ReduxProvider } from 'react-redux';
+import { AxiosInterceptor } from './apis/axiosInstance';
 // contexts
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -17,17 +17,17 @@ import store from './redux/store';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
-  <React.StrictMode>
-    <ReduxProvider store={store}>
-      <SettingsProvider>
-        <BrowserRouter>
-          <AuthProvider>
+  <ReduxProvider store={store}>
+    <BrowserRouter>
+      <AuthProvider>
+        <AxiosInterceptor>
+          <SettingsProvider>
             <App />
-          </AuthProvider>
-        </BrowserRouter>
-      </SettingsProvider>
-    </ReduxProvider>
-  </React.StrictMode>
+          </SettingsProvider>
+        </AxiosInterceptor>
+      </AuthProvider>
+    </BrowserRouter>
+  </ReduxProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
