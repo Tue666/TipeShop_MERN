@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 
 // hooks
 import useAuth from '../hooks/useAuth';
@@ -12,7 +12,8 @@ interface AuthGuardProps {
 
 const AuthGuard = ({ children }: AuthGuardProps) => {
   const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to={PATH_AUTH.login} />;
+  const { pathname } = useLocation();
+  if (!isAuthenticated) return <Navigate to={PATH_AUTH.login} replace state={{ from: pathname }} />;
   return <>{children}</>;
 };
 

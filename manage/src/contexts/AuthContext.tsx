@@ -2,13 +2,10 @@ import { ReactNode, useEffect, useReducer, createContext } from 'react';
 
 // apis
 import accountApi from '../apis/accountApi';
+// config
+import { PermissionProps } from '../config';
 // utils
 import { TokenProps, getToken, setToken, isValidToken } from '../utils/jwt';
-
-export interface PermissionProps {
-  object: string;
-  actions: string[];
-}
 
 export interface ProfileProps {
   profile: {

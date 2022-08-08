@@ -4,12 +4,19 @@ const path = (root: string, sublink: string): string => {
 
 const ROOT_DASHBOARD = '/';
 const ROOT_AUTH = '/auth';
+const ROOT_EXTERNAL = '/external';
 
+const ROOT_ACCOUNT = path(ROOT_DASHBOARD, 'account');
 const ROOT_PRODUCT = path(ROOT_DASHBOARD, 'product');
 const ROOT_ACCESS_CONTROL = path(ROOT_DASHBOARD, 'access-control');
 
 export const PATH_DASHBOARD = {
   root: ROOT_DASHBOARD,
+  account: {
+    root: ROOT_ACCOUNT,
+    administrator: path(ROOT_ACCOUNT, '/administrator'),
+    customer: path(ROOT_ACCOUNT, '/customer'),
+  },
   product: {
     root: ROOT_PRODUCT,
     list: path(ROOT_PRODUCT, '/list'),
@@ -22,4 +29,8 @@ export const PATH_DASHBOARD = {
 
 export const PATH_AUTH = {
   login: path(ROOT_AUTH, '/login'),
+};
+
+export const PATH_EXTERNAL = {
+  denied: path(ROOT_EXTERNAL, '/denied'),
 };

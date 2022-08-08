@@ -1,55 +1,38 @@
-import { Key, ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Space, MenuProps, Layout, Menu, Image } from 'antd';
-import { DashboardOutlined, SkinOutlined, ControlOutlined } from '@ant-design/icons';
 
+// config
+import { PermissionProps, accessibleObjects, OBJECTS } from '../../config';
 // hooks
 import useAuth from '../../hooks/useAuth';
 // routes
 import { PATH_DASHBOARD } from '../../routes/path';
-//
-import { OBJECTS, accessibleObjects } from './ObjectsConfig';
 
 const { Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
 
-const getSubKeyByDeepLevel = (level: number, path: string): string => {
-  return path.split('/')[level];
-};
-
-const getItem = (
-  key: Key, // also path
-  label: ReactNode,
-  icon?: ReactNode,
-  children?: MenuItem[]
-): MenuItem => {
-  return {
-    key,
-    label,
-    icon,
-    children,
-  };
-};
-
-const items: MenuItem[] = [
-  getItem(PATH_DASHBOARD.root, 'Dashboard', <DashboardOutlined />),
-  getItem(getSubKeyByDeepLevel(1, PATH_DASHBOARD.product.root), 'Product', <SkinOutlined />, [
-    getItem(PATH_DASHBOARD.product.list, 'List Product'),
-  ]),
-  getItem(
-    getSubKeyByDeepLevel(1, PATH_DASHBOARD.accessControl.root),
-    'Access Control',
-    <ControlOutlined />,
-    [getItem(PATH_DASHBOARD.accessControl.operations, 'Operations')]
-  ),
-];
-
 const SideBar = () => {
-  console.log(accessibleObjects(OBJECTS, ['access-control']));
   const navigate = useNavigate();
   const { permissions } = useAuth();
-  console.log(permissions);
+  const accessible = [
+    ...Array.from(
+      new Set(
+        permissions?.reduce(
+          (
+            result: PermissionProps['object'][],
+            permission: PermissionProps
+          ): PermissionProps['object'][] => [...result, ...permission.object.split('/')],
+          []
+        )
+      )
+    ),
+  ];
+  const menuItems = accessibleObjects(OBJECTS, accessible).map((item) => {
+    const { key, label, icon, children } = item;
+    const menuItem: MenuItem = { key, label, icon, children };
+    return menuItem;
+  });
   const isActive = window.location.pathname;
   const deep = (isActive.match(/\//g) || []).length;
   const openKeys = isActive
@@ -73,7 +56,7 @@ const SideBar = () => {
         mode="inline"
         defaultOpenKeys={openKeys}
         selectedKeys={[isActive]}
-        items={items}
+        items={menuItems}
         onClick={handleClickItem}
       />
     </Sider>
