@@ -1,8 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { Space, MenuProps, Layout, Menu, Image } from 'antd';
 
-// config
-import { PermissionProps, accessibleObjects, OBJECTS } from '../../config';
 // hooks
 import useAuth from '../../hooks/useAuth';
 // routes
@@ -14,21 +12,8 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 const SideBar = () => {
   const navigate = useNavigate();
-  const { permissions } = useAuth();
-  const accessible = [
-    ...Array.from(
-      new Set(
-        permissions?.reduce(
-          (
-            result: PermissionProps['object'][],
-            permission: PermissionProps
-          ): PermissionProps['object'][] => [...result, ...permission.object.split('/')],
-          []
-        )
-      )
-    ),
-  ];
-  const menuItems = accessibleObjects(OBJECTS, accessible).map((item) => {
+  const { accessibleObjects } = useAuth();
+  const menuItems = accessibleObjects.map((item) => {
     const { key, label, icon, children } = item;
     const menuItem: MenuItem = { key, label, icon, children };
     return menuItem;

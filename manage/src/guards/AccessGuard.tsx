@@ -9,13 +9,13 @@ import useAuth from '../hooks/useAuth';
 import { PATH_EXTERNAL } from '../routes/path';
 
 interface AccessGuardProps {
-  objectAccessible: PermissionProps;
+  accessibleObject: PermissionProps;
   children: JSX.Element;
 }
 
-const AccessGuard = ({ objectAccessible, children }: AccessGuardProps) => {
+const AccessGuard = ({ accessibleObject, children }: AccessGuardProps) => {
   const { permissions } = useAuth();
-  const { object, actions } = objectAccessible;
+  const { object, actions } = accessibleObject;
   const currentAccess = permissions?.find((permission) => permission.object === object);
   if (!currentAccess) return <Navigate to={PATH_EXTERNAL.denied} replace />;
   return <>{cloneElement(children, { currentActions: currentAccess.actions, actions })}</>;

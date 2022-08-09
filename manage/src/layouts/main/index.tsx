@@ -12,7 +12,7 @@ const MainLayout = () => {
       <SideBar />
       <Layout>
         <Header style={{ backgroundColor: '#fff' }} />
-        <Content style={{ padding: '10px' }}>
+        <Content style={{ padding: '20px' }}>
           <Outlet />
         </Content>
         <Footer style={{ textAlign: 'center' }}>©{new Date().getFullYear()} Created by Pihe</Footer>

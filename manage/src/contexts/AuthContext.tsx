@@ -3,7 +3,9 @@ import { ReactNode, useEffect, useReducer, createContext } from 'react';
 // apis
 import accountApi from '../apis/accountApi';
 // config
-import { PermissionProps } from '../config';
+import { PermissionProps, ObjectProps, filterAccessibleObjects, OBJECTS } from '../config';
+// redux
+import { useAppDispatch } from '../redux/hooks';
 // utils
 import { TokenProps, getToken, setToken, isValidToken } from '../utils/jwt';
 
@@ -15,11 +17,10 @@ export interface ProfileProps {
   [key: string]: any;
 }
 
-interface AuthContextStates {
+interface AuthContextStates extends ProfileProps {
   isInitialized: boolean;
   isAuthenticated: boolean;
-  profile: ProfileProps['profile'];
-  permissions: ProfileProps['permissions'];
+  accessibleObjects: ObjectProps[];
 }
 
 export interface LoginParams {
@@ -39,6 +40,7 @@ interface AuthContextMethods {
 const initialState: AuthContextStates = {
   isInitialized: false,
   isAuthenticated: false,
+  accessibleObjects: [],
   profile: null,
   permissions: null,
 };
@@ -85,11 +87,37 @@ interface AuthProviderProps {
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const sliceDispatch = useAppDispatch();
 
-  const initNecessaryData = async (): Promise<ProfileProps> => {
+  const initNecessaryData = (objects: ObjectProps[]): void => {
+    objects.forEach((object: ObjectProps) => {
+      const { fetching, children } = object;
+      if (fetching) sliceDispatch(fetching);
+      if (children) initNecessaryData(children);
+    });
+  };
+  const getProfile = async (): Promise<
+    ProfileProps & (AuthContextStates['accessibleObjects'] | {})
+  > => {
     const response = await accountApi.getProfile();
-    // fetch data depend permissions
-    return response;
+    const { permissions, profile } = response;
+    const accessible = [
+      ...Array.from(
+        new Set(
+          permissions?.reduce(
+            (
+              result: PermissionProps['object'][],
+              permission: PermissionProps
+            ): PermissionProps['object'][] => [...result, ...permission.object.split('/')],
+            []
+          )
+        )
+      ),
+    ];
+    const accessibleObjects = filterAccessibleObjects(OBJECTS, accessible);
+    // fetch data depend accessible objects
+    initNecessaryData(accessibleObjects);
+    return { permissions, profile, accessibleObjects };
   };
   useEffect(() => {
     const initialize = async () => {
@@ -98,13 +126,14 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         setToken(tokens);
         const isAuthenticated = await isValidToken(tokens);
         if (isAuthenticated) {
-          const { profile, permissions } = await initNecessaryData();
+          const { profile, permissions, accessibleObjects } = await getProfile();
           dispatch({
             type: HandleType.INITIALIZE,
             payload: {
               isAuthenticated,
               profile,
               permissions,
+              accessibleObjects,
             },
           });
         } else {
@@ -116,22 +145,24 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
           });
         }
       } catch (error) {
-        // console.log('zxc', error);
+        console.log(error);
       }
     };
     initialize();
+    // eslint-disable-next-line
   }, []);
 
   const login = async (params: LoginParams): Promise<string> => {
     const response = await accountApi.login(params);
     const { name, tokens } = response;
     setToken(tokens);
-    const { profile, permissions } = await initNecessaryData();
+    const { profile, permissions, accessibleObjects } = await getProfile();
     dispatch({
       type: HandleType.LOGIN,
       payload: {
         profile,
         permissions,
+        accessibleObjects,
       },
     });
     return name;

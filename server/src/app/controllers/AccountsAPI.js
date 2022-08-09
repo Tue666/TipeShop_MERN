@@ -10,6 +10,25 @@ const { generateToken, verify } = require('../../utils/jwt');
 const { capitalize } = require('../../utils/formatString');
 
 class AccountsAPI {
+	// [GET] /accounts/:type
+	async findAllByType(req, res, next) {
+		try {
+			const { type } = req.params;
+			const capitalizedType = capitalize(type);
+
+			const accounts = await Account.find({
+				type: capitalizedType,
+			}).select('phone_number avatar_url name type');
+
+			res.status(200).json({
+				data: accounts,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [GET] /accounts/profile
 	async getProfile(req, res, next) {
 		try {

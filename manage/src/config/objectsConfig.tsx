@@ -1,6 +1,9 @@
 import { Key, ReactNode } from 'react';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { UserOutlined, DashboardOutlined, SkinOutlined, ControlOutlined } from '@ant-design/icons';
 
+// redux
+import { accountActions } from '../redux/slices/account';
 // routes
 import { PATH_DASHBOARD } from '../routes/path';
 
@@ -21,10 +24,11 @@ export interface ObjectProps {
   icon?: ReactNode;
   children?: ObjectProps[];
   actions?: PermissionProps['actions'];
+  fetching?: PayloadAction<any>;
 }
 
-export const accessibleObjects = (
-  objects: ObjectProps[],
+export const filterAccessibleObjects = (
+  objects: Readonly<ObjectProps[]>,
   accessible: PermissionProps['object'][]
 ) => {
   return objects.reduce((result: ObjectProps[], object: ObjectProps) => {
@@ -33,7 +37,7 @@ export const accessibleObjects = (
     else if (rest.children) {
       result.push({
         ...rest,
-        children: accessibleObjects(
+        children: filterAccessibleObjects(
           rest.children,
           accessible.filter((e) => e !== rest.id)
         ),
@@ -45,7 +49,7 @@ export const accessibleObjects = (
   }, []);
 };
 
-const handleNestedObject = (object: ObjectProps, path: string) => {
+const handleNestedObjectPath = (object: ObjectProps, path: string) => {
   const { id, children, actions } = object;
   const result: { [key: string]: any } = {};
   if (children) {
@@ -53,7 +57,7 @@ const handleNestedObject = (object: ObjectProps, path: string) => {
       const camelCaseKey = o.id
         .split('-')
         .reduce((a, b) => a + b.charAt(0).toUpperCase() + b.slice(1));
-      result[camelCaseKey] = handleNestedObject(o, path + id + '/');
+      result[camelCaseKey] = handleNestedObjectPath(o, path + id + '/');
     });
   } else {
     result.object = path + id;
@@ -62,18 +66,18 @@ const handleNestedObject = (object: ObjectProps, path: string) => {
   return result;
 };
 
-const objectTree = (objects: ObjectProps[]) => {
+const objectPath = (objects: Readonly<ObjectProps[]>) => {
   const result: { [key: string]: any } = {};
   objects.forEach((object: ObjectProps) => {
     const { id, avoid } = object;
     if (avoid) return;
     const camelCaseKey = id.split('-').reduce((a, b) => a + b.charAt(0).toUpperCase() + b.slice(1));
-    result[camelCaseKey] = handleNestedObject(object, '');
+    result[camelCaseKey] = handleNestedObjectPath(object, '');
   });
   return result;
 };
 
-export const OBJECTS: ObjectProps[] = [
+export const OBJECTS: Readonly<ObjectProps[]> = [
   {
     id: 'dashboard',
     key: PATH_DASHBOARD.root,
@@ -82,29 +86,31 @@ export const OBJECTS: ObjectProps[] = [
     icon: <DashboardOutlined />,
   },
   {
-    id: 'account',
+    id: 'accounts',
     key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.account.root),
-    label: 'Account',
+    label: 'Accounts',
     icon: <UserOutlined />,
     children: [
       {
-        id: 'administrator',
+        id: 'administrators',
         key: PATH_DASHBOARD.account.administrator,
-        label: 'Administrator',
+        label: 'Administrators',
         actions: ['create', 'read', 'update', 'delete', 'authorize'],
+        fetching: accountActions.getAccounts({ type: 'administrator' }),
       },
       {
-        id: 'customer',
+        id: 'customers',
         key: PATH_DASHBOARD.account.customer,
-        label: 'Customer',
+        label: 'Customers',
         actions: ['create', 'read', 'update', 'delete'],
+        fetching: accountActions.getAccounts({ type: 'customer' }),
       },
     ],
   },
   {
-    id: 'product',
+    id: 'products',
     key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.product.root),
-    label: 'Product',
+    label: 'Products',
     icon: <SkinOutlined />,
     children: [
       {
@@ -131,4 +137,4 @@ export const OBJECTS: ObjectProps[] = [
   },
 ];
 
-export const accessibleObjectTree = objectTree(OBJECTS);
+export const accessibleObjectPath = objectPath(OBJECTS);

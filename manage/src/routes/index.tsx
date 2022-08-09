@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { useRoutes, Navigate } from 'react-router-dom';
 
 // config
-import { accessibleObjectTree } from '../config';
+import { accessibleObjectPath } from '../config';
 // guards
 import AuthGuard from '../guards/AuthGuard';
 import AccessGuard from '../guards/AccessGuard';
@@ -33,25 +33,25 @@ const Router = () => {
       children: [
         { path: '', element: <Dashboard /> },
         {
-          path: 'account/administrator',
+          path: 'accounts/administrators',
           element: (
-            <AccessGuard objectAccessible={accessibleObjectTree.account.administrator}>
+            <AccessGuard accessibleObject={accessibleObjectPath.accounts.administrators}>
               <AccountList />
             </AccessGuard>
           ),
         },
         {
-          path: 'account/customer',
+          path: 'accounts/customers',
           element: (
-            <AccessGuard objectAccessible={accessibleObjectTree.account.customer}>
+            <AccessGuard accessibleObject={accessibleObjectPath.accounts.customers}>
               <AccountList />
             </AccessGuard>
           ),
         },
         {
-          path: 'product/list',
+          path: 'products/list',
           element: (
-            <AccessGuard objectAccessible={accessibleObjectTree.product.list}>
+            <AccessGuard accessibleObject={accessibleObjectPath.products.list}>
               <ProductList />
             </AccessGuard>
           ),
@@ -59,7 +59,7 @@ const Router = () => {
         {
           path: 'access-control/operations',
           element: (
-            <AccessGuard objectAccessible={accessibleObjectTree.accessControl.operations}>
+            <AccessGuard accessibleObject={accessibleObjectPath.accessControl.operations}>
               <Operations />
             </AccessGuard>
           ),

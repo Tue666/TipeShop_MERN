@@ -1,8 +1,8 @@
 import { all } from 'redux-saga/effects';
 
 // slices
-import { operationSaga } from './slices/operation';
+import { accountSaga } from './slices/account';
 
 export default function* rootSaga() {
-  yield all([operationSaga()]);
+  yield all([accountSaga()]);
 }

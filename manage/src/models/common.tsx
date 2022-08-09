@@ -1,3 +1,5 @@
+import { PermissionProps } from '../config';
+
 export interface PaginationParams {
   page: number;
   number: number;
@@ -12,4 +14,9 @@ export interface PaginationProps {
 export interface ListResponse<T> {
   data: T[];
   pagination?: PaginationProps;
+}
+
+export interface AccessActionGuardProps {
+  currentActions: PermissionProps['actions'];
+  actions: PermissionProps['actions'];
 }

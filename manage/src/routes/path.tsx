@@ -6,16 +6,16 @@ const ROOT_DASHBOARD = '/';
 const ROOT_AUTH = '/auth';
 const ROOT_EXTERNAL = '/external';
 
-const ROOT_ACCOUNT = path(ROOT_DASHBOARD, 'account');
-const ROOT_PRODUCT = path(ROOT_DASHBOARD, 'product');
+const ROOT_ACCOUNT = path(ROOT_DASHBOARD, 'accounts');
+const ROOT_PRODUCT = path(ROOT_DASHBOARD, 'products');
 const ROOT_ACCESS_CONTROL = path(ROOT_DASHBOARD, 'access-control');
 
 export const PATH_DASHBOARD = {
   root: ROOT_DASHBOARD,
   account: {
     root: ROOT_ACCOUNT,
-    administrator: path(ROOT_ACCOUNT, '/administrator'),
-    customer: path(ROOT_ACCOUNT, '/customer'),
+    administrator: path(ROOT_ACCOUNT, '/administrators'),
+    customer: path(ROOT_ACCOUNT, '/customers'),
   },
   product: {
     root: ROOT_PRODUCT,

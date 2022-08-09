@@ -2,10 +2,18 @@ import axiosInstance from './axiosInstance';
 
 // contexts
 import { ProfileProps, LoginParams, LoginResponse } from '../contexts/AuthContext';
+// models
+import { ListResponse, Account, GetAccountsPayload } from '../models';
 // utils
 import { TokenProps } from '../utils/jwt';
 
 const accountApi = {
+  // [GET] /accounts/:type
+  findAllByType: ({ type }: GetAccountsPayload): Promise<ListResponse<Account>> => {
+    const url = `/accounts/${type}`;
+    return axiosInstance.get(url);
+  },
+
   // [GET] /accounts/profile
   getProfile: (): Promise<ProfileProps> => {
     const url = `/accounts/profile`;

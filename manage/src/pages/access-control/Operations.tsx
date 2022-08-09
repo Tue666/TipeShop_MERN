@@ -2,20 +2,14 @@ import styled from 'styled-components';
 import { Space, Typography, Button, Input } from 'antd';
 import { SearchOutlined, FolderAddOutlined } from '@ant-design/icons';
 
-// config
-import { PermissionProps } from '../../config';
 // components
 import Box from '../../components/Box';
+// models
+import { AccessActionGuardProps } from '../../models';
 
 const { Text, Paragraph } = Typography;
 
-interface OperationsProps {
-  currentActions: PermissionProps['actions'];
-  actions: PermissionProps['actions'];
-}
-
-const Operations = ({ currentActions, actions }: OperationsProps) => {
-  console.log(currentActions, actions);
+const Operations = ({ currentActions, actions }: AccessActionGuardProps) => {
   return (
     <Space direction="vertical" size="middle">
       <Space size="large">

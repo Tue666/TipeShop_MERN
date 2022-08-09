@@ -20,5 +20,6 @@ router.post('/login', accountsAPI.login);
 router.post('/register', accountsAPI.register);
 router.post('/exist', accountsAPI.checkExist);
 router.get('/profile', verifyToken, accountsAPI.getProfile);
+router.get('/:type', verifyToken, accountsAPI.findAllByType);
 
 module.exports = router;
