@@ -3,7 +3,9 @@ import axiosInstance from './axiosInstance';
 // contexts
 import { ProfileProps, LoginParams, LoginResponse } from '../contexts/AuthContext';
 // models
-import { ListResponse, Account, GetAccountsPayload } from '../models';
+import { ListResponse, Account } from '../models';
+// redux
+import type { GetAccountsPayload } from '../redux/actions/account';
 // utils
 import { TokenProps } from '../utils/jwt';
 

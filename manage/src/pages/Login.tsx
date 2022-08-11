@@ -30,7 +30,7 @@ const Login = () => {
   };
   return (
     <RootStyled>
-      <Box direction="vertical" size="large" style={{ width: '400px', padding: '20px 50px' }}>
+      <Box direction="vertical" style={{ width: '400px', padding: '20px 50px' }}>
         <Title level={3} style={{ textAlign: 'center' }}>
           Tipe Management
         </Title>

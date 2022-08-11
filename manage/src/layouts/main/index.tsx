@@ -3,15 +3,25 @@ import { Layout } from 'antd';
 
 //
 import SideBar from './SideBar';
+import Header from './Header';
 
-const { Header, Content, Footer } = Layout;
+const { Content, Footer } = Layout;
 
 const MainLayout = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <SideBar />
+      <SideBar
+        collapsible
+        breakpoint="sm"
+        style={{
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflow: 'auto',
+        }}
+      />
       <Layout>
-        <Header style={{ backgroundColor: '#fff' }} />
+        <Header />
         <Content style={{ padding: '20px' }}>
           <Outlet />
         </Content>

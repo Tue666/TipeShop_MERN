@@ -1,34 +1,69 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
-import { Table } from 'antd';
+import { Table, Space, Avatar, Image, Typography, Tag, Button } from 'antd';
+import {
+  UserOutlined,
+  FolderViewOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ControlOutlined,
+  FolderAddOutlined,
+} from '@ant-design/icons';
 
+// config
+import { appConfig } from '../../config';
 // models
 import { AccessActionGuardProps, Account } from '../../models';
 // redux
 import { useAppSelector } from '../../redux/hooks';
 import { selectAccount } from '../../redux/slices/account';
+// routes
+import { PATH_DASHBOARD } from '../../routes/path';
 
-const columns: ColumnsType<Omit<Account, Account['type']>> = [
+const { Text } = Typography;
+
+const columns: ColumnsType<Omit<Account, 'type'>> = [
   {
     title: 'Name',
     dataIndex: 'name',
+    render: (_, record) => {
+      const { name, avatar_url } = record;
+      return (
+        <Space size="middle" align="center">
+          <Avatar
+            icon={!avatar_url && <UserOutlined />}
+            src={
+              avatar_url && (
+                <Image
+                  src={avatar_url}
+                  onError={({ currentTarget }) => {
+                    currentTarget.onerror = null; // prevents looping
+                    currentTarget.src = `${appConfig.public_image_url}/avatar.png`;
+                  }}
+                  style={{ width: 32 }}
+                />
+              )
+            }
+          />
+          <Text strong>{name}</Text>
+        </Space>
+      );
+    },
   },
   {
     title: 'Phone number',
     dataIndex: 'phone_number',
+    render: (text) => <a href={`tel:${text}`}>{text}</a>,
   },
   {
     title: 'Email',
     dataIndex: 'email',
-  },
-  {
-    title: 'Actions',
-    dataIndex: '',
-    render: () => <p>Thêm Xóa Sửa blabla</p>,
+    render: (text) => <a href={`mailto:${text}`}>{text}</a>,
   },
 ];
 
 const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const type = pathname.split('/').pop();
   const { isLoading, ...rest } = useAppSelector(selectAccount);
@@ -43,18 +78,63 @@ const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
     default:
       break;
   }
-  console.log(accounts);
-  console.log(currentActions, actions);
+  const actionsAccessible: ColumnsType<Omit<Account, 'type'>> = [
+    {
+      title: 'Actions',
+      dataIndex: '',
+      render: () => (
+        <Space size="middle" align="center">
+          {actions.includes('read') && currentActions.includes('read') && (
+            <Tag icon={<FolderViewOutlined />} style={{ cursor: 'pointer' }}>
+              Read
+            </Tag>
+          )}
+          {actions.includes('update') && currentActions.includes('update') && (
+            <Tag icon={<EditOutlined />} color="success" style={{ cursor: 'pointer' }}>
+              Update
+            </Tag>
+          )}
+          {actions.includes('delete') && currentActions.includes('delete') && (
+            <Tag icon={<DeleteOutlined />} color="error" style={{ cursor: 'pointer' }}>
+              Delete
+            </Tag>
+          )}
+          {/* Administrator account type */}
+          {actions.includes('authorize') && currentActions.includes('authorize') && (
+            <Tag icon={<ControlOutlined />} color="warning" style={{ cursor: 'pointer' }}>
+              Authorize
+            </Tag>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  const handleCreate = () => {
+    navigate(PATH_DASHBOARD.account.create(type));
+  };
   return (
-    <Table
-      rowKey="_id"
-      loading={isLoading}
-      rowSelection={{
-        type: 'checkbox',
-      }}
-      columns={columns}
-      dataSource={accounts}
-    />
+    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+      <Space size="middle">
+        {actions.includes('create') && currentActions.includes('create') && (
+          <Button type="primary" icon={<FolderAddOutlined />} onClick={handleCreate}>
+            Create account
+          </Button>
+        )}
+        <Button type="primary" danger icon={<DeleteOutlined />} disabled>
+          Delete selected accounts
+        </Button>
+      </Space>
+      <Table
+        rowKey="_id"
+        loading={isLoading}
+        rowSelection={{
+          type: 'checkbox',
+        }}
+        columns={currentActions.length > 0 ? [...columns, ...actionsAccessible] : columns}
+        dataSource={accounts}
+      />
+    </Space>
   );
 };
 

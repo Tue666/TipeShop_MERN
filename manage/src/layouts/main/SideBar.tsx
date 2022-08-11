@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { Space, MenuProps, Layout, Menu, Image } from 'antd';
+import { Space, MenuProps, Layout, Menu, Image, SiderProps } from 'antd';
 
 // hooks
 import useAuth from '../../hooks/useAuth';
@@ -10,7 +10,7 @@ const { Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
 
-const SideBar = () => {
+const SideBar = (props: SiderProps) => {
   const navigate = useNavigate();
   const { accessibleObjects } = useAuth();
   const menuItems = accessibleObjects.map((item) => {
@@ -19,6 +19,9 @@ const SideBar = () => {
     return menuItem;
   });
   const isActive = window.location.pathname;
+  const extraActions = ['/create', '/edit'];
+  const currentAction = extraActions.find((action) => isActive.indexOf(action) >= 0);
+  const extraActive = currentAction && isActive.substring(0, isActive.indexOf(currentAction));
   const deep = (isActive.match(/\//g) || []).length;
   const openKeys = isActive
     .substring(1)
@@ -30,7 +33,7 @@ const SideBar = () => {
     navigate(key);
   };
   return (
-    <Sider collapsible breakpoint="sm">
+    <Sider {...props}>
       <Space align="center" style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
         <Link to={PATH_DASHBOARD.root}>
           <Image preview={false} width={50} src="/logo.png" />
@@ -40,7 +43,7 @@ const SideBar = () => {
         theme="dark"
         mode="inline"
         defaultOpenKeys={openKeys}
-        selectedKeys={[isActive]}
+        selectedKeys={extraActive ? [isActive, extraActive] : [isActive]}
         items={menuItems}
         onClick={handleClickItem}
       />

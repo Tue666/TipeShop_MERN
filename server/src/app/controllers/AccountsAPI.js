@@ -18,7 +18,7 @@ class AccountsAPI {
 
 			const accounts = await Account.find({
 				type: capitalizedType,
-			}).select('phone_number avatar_url name type');
+			}).select('phone_number avatar_url name email type');
 
 			res.status(200).json({
 				data: accounts,

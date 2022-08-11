@@ -49,6 +49,17 @@ const Router = () => {
           ),
         },
         {
+          path: 'accounts/:type/create',
+          element: (
+            <AccessGuard
+              accessibleObject={accessibleObjectPath.accounts.customers}
+              actionsRequired={['create']}
+            >
+              <AccountCreate />
+            </AccessGuard>
+          ),
+        },
+        {
           path: 'products/list',
           element: (
             <AccessGuard accessibleObject={accessibleObjectPath.products.list}>
@@ -96,6 +107,7 @@ const Router = () => {
 // Main
 const Dashboard = PageLoader(lazy(() => import('../pages/Dashboard')));
 const AccountList = PageLoader(lazy(() => import('../pages/account/AccountList')));
+const AccountCreate = PageLoader(lazy(() => import('../pages/account/AccountCreate')));
 const ProductList = PageLoader(lazy(() => import('../pages/product/ProductList')));
 const Operations = PageLoader(lazy(() => import('../pages/access-control/Operations')));
 // Auth

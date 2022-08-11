@@ -14,10 +14,11 @@ export const PATH_DASHBOARD = {
   root: ROOT_DASHBOARD,
   account: {
     root: ROOT_ACCOUNT,
-    administrator: path(ROOT_ACCOUNT, '/administrators'),
-    customer: path(ROOT_ACCOUNT, '/customers'),
+    administrators: path(ROOT_ACCOUNT, '/administrators'),
+    customers: path(ROOT_ACCOUNT, '/customers'),
+    create: (type: string = 'customers') => path(ROOT_ACCOUNT, `/${type}/create`),
   },
-  product: {
+  products: {
     root: ROOT_PRODUCT,
     list: path(ROOT_PRODUCT, '/list'),
   },

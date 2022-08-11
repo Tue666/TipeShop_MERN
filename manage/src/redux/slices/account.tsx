@@ -1,12 +1,14 @@
+import { message } from 'antd';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { call, delay, put, takeEvery, takeLatest } from 'redux-saga/effects';
 
 // apis
 import accountApi from '../../apis/accountApi';
 // models
-import { ListResponse, Account, GetAccountsPayload } from '../../models';
+import { ListResponse, Account } from '../../models';
 // redux
 import { RootState } from '../store';
+import { GetAccountsPayload, GET_ACCOUNTS, CREATE_ACCOUNT } from '../actions/account';
 
 export interface AccountState {
   isLoading: boolean;
@@ -24,9 +26,6 @@ const slice = createSlice({
   name: 'account',
   initialState,
   reducers: {
-    getAccounts: (state, action: PayloadAction<GetAccountsPayload>) => {
-      state.isLoading = true;
-    },
     getAccountsSuccess: (
       state,
       action: PayloadAction<ListResponse<Account> & GetAccountsPayload>
@@ -65,6 +64,15 @@ function* fetchAccounts(action: PayloadAction<GetAccountsPayload>) {
   }
 }
 
+function* createAccount(action: PayloadAction<FormData>) {
+  yield delay(3000);
+  const { get } = action.payload;
+  const phone = get('phone_number');
+  console.log('success hehe test test', phone);
+  message.success({ content: 'Loaded!', key: phone?.toString(), duration: 2 });
+}
+
 export function* accountSaga() {
-  yield takeEvery(accountActions.getAccounts.type, fetchAccounts);
+  yield takeEvery(GET_ACCOUNTS, fetchAccounts);
+  yield takeLatest(CREATE_ACCOUNT, createAccount);
 }

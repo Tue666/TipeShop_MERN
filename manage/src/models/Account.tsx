@@ -1,6 +1,4 @@
-export type GetAccountsPayload = {
-  type: 'administrator' | 'customer';
-};
+export type AccountType = 'administrator' | 'customer';
 
 export interface Account {
   _id: string;
@@ -8,8 +6,10 @@ export interface Account {
   avatar_url: string;
   name: string;
   email: string;
-  type: string;
+  type: AccountType;
 }
 
 export interface Administrator {}
-export interface Customer {}
+export interface Customer {
+  gender: string;
+}

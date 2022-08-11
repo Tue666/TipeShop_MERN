@@ -15,3 +15,11 @@ html {
     font-family: 'Quicksand';
     list-style: none;
 }
+
+.caption {
+    font-size: 12px;
+}
+
+.ant-space {
+    width: 100%;
+}

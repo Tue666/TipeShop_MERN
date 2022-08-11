@@ -3,7 +3,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { UserOutlined, DashboardOutlined, SkinOutlined, ControlOutlined } from '@ant-design/icons';
 
 // redux
-import { accountActions } from '../redux/slices/account';
+import { getAccounts } from '../redux/actions/account';
 // routes
 import { PATH_DASHBOARD } from '../routes/path';
 
@@ -31,7 +31,7 @@ export const filterAccessibleObjects = (
   objects: Readonly<ObjectProps[]>,
   accessible: PermissionProps['object'][]
 ) => {
-  return objects.reduce((result: ObjectProps[], object: ObjectProps) => {
+  return objects.reduce((result, object) => {
     const { avoid, ...rest } = object;
     if (!accessible.includes(rest.id) && !avoid) return result;
     else if (rest.children) {
@@ -46,7 +46,7 @@ export const filterAccessibleObjects = (
     }
     result.push(rest);
     return result;
-  }, []);
+  }, [] as ObjectProps[]);
 };
 
 const handleNestedObjectPath = (object: ObjectProps, path: string) => {
@@ -93,29 +93,29 @@ export const OBJECTS: Readonly<ObjectProps[]> = [
     children: [
       {
         id: 'administrators',
-        key: PATH_DASHBOARD.account.administrator,
+        key: PATH_DASHBOARD.account.administrators,
         label: 'Administrators',
         actions: ['create', 'read', 'update', 'delete', 'authorize'],
-        fetching: accountActions.getAccounts({ type: 'administrator' }),
+        fetching: getAccounts({ type: 'administrator' }),
       },
       {
         id: 'customers',
-        key: PATH_DASHBOARD.account.customer,
+        key: PATH_DASHBOARD.account.customers,
         label: 'Customers',
         actions: ['create', 'read', 'update', 'delete'],
-        fetching: accountActions.getAccounts({ type: 'customer' }),
+        fetching: getAccounts({ type: 'customer' }),
       },
     ],
   },
   {
     id: 'products',
-    key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.product.root),
+    key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.products.root),
     label: 'Products',
     icon: <SkinOutlined />,
     children: [
       {
         id: 'list',
-        key: PATH_DASHBOARD.product.list,
+        key: PATH_DASHBOARD.products.list,
         label: 'List Product',
         actions: ['create', 'read', 'update', 'delete'],
       },
