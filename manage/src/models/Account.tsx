@@ -1,4 +1,4 @@
-export type AccountType = 'administrator' | 'customer';
+export type AccountType = 'Administrator' | 'Customer';
 
 export interface Account {
   _id: string;

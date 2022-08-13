@@ -44,7 +44,7 @@ const AccountCreate = () => {
   return (
     <div>
       <Back backTo={backTo} scrollKeys={scrollKeys} />
-      <Space direction="vertical" size="small" id={keys.general.key} style={{ height: '1000px' }}>
+      <Space direction="vertical" size="small" id={keys.general.key}>
         <Title level={5}>{keys.general.label}</Title>
         <AccountGeneralForm />
       </Space>

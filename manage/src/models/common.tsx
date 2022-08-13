@@ -1,4 +1,8 @@
 import { PermissionProps } from '../config';
+// apis
+export interface StatusResponse {
+  msg: string;
+}
 
 export interface PaginationParams {
   page: number;
@@ -14,9 +18,17 @@ export interface PaginationProps {
 export interface ListResponse<T> {
   data: T[];
   pagination?: PaginationProps;
+  [key: string]: any;
 }
-
+// app
 export interface AccessActionGuardProps {
   currentActions: PermissionProps['actions'];
   actions: PermissionProps['actions'];
 }
+
+export type UploadFileType =
+  | {
+      file: File;
+      preview: string;
+    }
+  | string;

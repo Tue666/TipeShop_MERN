@@ -4,12 +4,13 @@ import { Typography, Tag } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useDropzone, DropzoneOptions } from 'react-dropzone';
 
+// models
+import { UploadFileType } from '../../../models';
+
 const { Text } = Typography;
 
-export type FileUploadType = (File & { preview: string }) | string;
-
 interface UploadSingleFileProps extends DropzoneOptions {
-  file: FileUploadType;
+  file: UploadFileType;
   caption?: ReactNode;
   error?: boolean;
   showRejected?: boolean;

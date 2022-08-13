@@ -1,14 +1,16 @@
 import { message } from 'antd';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { call, delay, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import axios from 'axios';
 
 // apis
 import accountApi from '../../apis/accountApi';
 // models
-import { ListResponse, Account } from '../../models';
+import type { ListResponse, Account, StatusResponse } from '../../models';
 // redux
 import { RootState } from '../store';
-import { GetAccountsPayload, GET_ACCOUNTS, CREATE_ACCOUNT } from '../actions/account';
+import type { GetAccountsPayload, FormAccountPayload } from '../actions/account';
+import { GET_ACCOUNTS, CREATE_ACCOUNT } from '../actions/account';
 
 export interface AccountState {
   isLoading: boolean;
@@ -33,11 +35,24 @@ const slice = createSlice({
       const { data, type } = action.payload;
       state.isLoading = false;
       switch (type) {
-        case 'administrator':
+        case 'Administrator':
           state.administrators = data;
           break;
-        case 'customer':
+        case 'Customer':
           state.customers = data;
+          break;
+        default:
+          break;
+      }
+    },
+    createAccountSuccess: (state, action: PayloadAction<Account>) => {
+      const account = action.payload;
+      switch (account.type) {
+        case 'Administrator':
+          state.administrators = [...state.administrators, account];
+          break;
+        case 'Customer':
+          state.customers = [...state.customers, account];
           break;
         default:
           break;
@@ -60,16 +75,28 @@ function* fetchAccounts(action: PayloadAction<GetAccountsPayload>) {
     const { data } = response;
     yield put(actions.getAccountsSuccess({ data, type }));
   } catch (error) {
-    console.log(error);
+    if (axios.isAxiosError(error)) message.error(error.response?.statusText);
   }
 }
 
-function* createAccount(action: PayloadAction<FormData>) {
-  yield delay(3000);
-  const { get } = action.payload;
-  const phone = get('phone_number');
-  console.log('success hehe test test', phone);
-  message.success({ content: 'Loaded!', key: phone?.toString(), duration: 2 });
+function* createAccount(action: PayloadAction<FormAccountPayload>) {
+  try {
+    const { resetForm, ...formValues } = action.payload;
+    const formData = new FormData();
+    Object.entries(formValues).forEach(([key, value]) => {
+      if (key === 'avatar_url' && typeof value !== 'string')
+        formData.append('avatar_url', value.file);
+      else formData.append(key, value);
+    });
+    const response: { account: Account } & StatusResponse = yield call(accountApi.insert, formData);
+    const { account, msg } = response;
+    yield put(actions.createAccountSuccess(account));
+    resetForm && resetForm();
+    message.success({ content: msg, key: 'create' });
+  } catch (error) {
+    if (axios.isAxiosError(error))
+      message.error({ content: error.response?.statusText, key: 'create' });
+  }
 }
 
 export function* accountSaga() {

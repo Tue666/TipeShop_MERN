@@ -1,4 +1,3 @@
-import { ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Row, Col, Space, Typography, Input, Radio, Button, RadioChangeEvent, message } from 'antd';
@@ -6,57 +5,54 @@ import { useFormik, FormikProvider, Form } from 'formik';
 
 // components
 import Box from '../Box';
-import { UploadSingleFile, FileUploadType } from '../_external_/dropzone';
+import { UploadSingleFile } from '../_external_/dropzone';
+// models
+import type { AccountType, Administrator, Customer } from '../../models';
 // redux
 import { useAppDispatch } from '../../redux/hooks';
+import type { FormAccountPayload } from '../../redux/actions/account';
 import { createAccount } from '../../redux/actions/account';
 // utils
 import { createAccountValidation } from '../../utils/validation';
 
 const { Text } = Typography;
 
-interface FormikValues {
-  name: string;
-  email: string;
-  phone_number: string;
-  password: string;
-  passwordConfirm: string;
-  avatar_url: FileUploadType;
-}
-
 const AccountGeneralForm = () => {
   const dispatch = useAppDispatch();
   const { type } = useParams();
+  let account_type: AccountType = type === 'administrators' ? 'Administrator' : 'Customer';
+  const customer: Customer = {
+    gender: '',
+  };
+  const administrator: Administrator = {};
+  let dependentValues = type === 'administrators' ? administrator : customer;
   const isEdit = window.location.pathname.indexOf('/edit') >= 0;
-  const initialValues: FormikValues = {
+  const initialValues: FormAccountPayload = {
     name: '',
     email: '',
     phone_number: '',
     password: '',
     passwordConfirm: '',
     avatar_url: '',
+    account_type,
+    ...dependentValues,
   };
   const formik = useFormik({
     initialValues,
     validationSchema: createAccountValidation,
-    onSubmit: (values) => {
-      message.loading({ content: 'Loading...', key: values.phone_number });
-      const formData = new FormData();
-      Object.entries(values).forEach(([key, value]) => {
-        if (key === 'avatar_url' && typeof value !== 'string')
-          formData.append('avatar_url', value.file);
-        else formData.append(key, value);
-      });
-      dispatch(createAccount(formData));
+    onSubmit: async (values, { resetForm }) => {
+      message.loading({ content: 'Processing...', key: 'create' });
+      dispatch(
+        createAccount({
+          ...values,
+          account_type,
+          resetForm,
+        })
+      );
     },
   });
-  const { values, touched, errors, handleBlur, isSubmitting, setFieldValue } = formik;
+  const { values, touched, errors, isSubmitting, getFieldProps, setFieldValue } = formik;
 
-  const handleChangeInput = (e: ChangeEvent<HTMLInputElement>) => {
-    handleBlur(e);
-    const value = e.target.value;
-    setFieldValue(e.target.name, value);
-  };
   const handleChangeGender = (e: RadioChangeEvent) => {
     const value = e.target.value;
     setFieldValue('gender', value);
@@ -79,11 +75,9 @@ const AccountGeneralForm = () => {
               <Space direction="vertical" size="small">
                 <Text strong>Name:</Text>
                 <Input
-                  name="name"
                   size="large"
                   placeholder="Enter your name..."
-                  defaultValue={values.name}
-                  onBlur={handleChangeInput}
+                  {...getFieldProps('name')}
                   status={Boolean(touched.name && errors.name) ? 'error' : ''}
                 />
                 {touched.name && (
@@ -96,22 +90,18 @@ const AccountGeneralForm = () => {
                 <Space direction="vertical" size="small">
                   <Text strong>Email:</Text>
                   <Input
-                    name="email"
                     size="large"
                     placeholder="Enter your email..."
-                    defaultValue={values.email}
-                    onBlur={handleChangeInput}
+                    {...getFieldProps('email')}
                     status={Boolean(touched.email && errors.email) ? 'error' : ''}
                   />
                 </Space>
                 <Space direction="vertical" size="small">
                   <Text strong>Phone number:</Text>
                   <Input
-                    name="phone_number"
                     size="large"
                     placeholder="Enter your phone number..."
-                    defaultValue={values.phone_number}
-                    onBlur={handleChangeInput}
+                    {...getFieldProps('phone_number')}
                     status={Boolean(touched.phone_number && errors.phone_number) ? 'error' : ''}
                   />
                   {touched.phone_number && (
@@ -121,43 +111,45 @@ const AccountGeneralForm = () => {
                   )}
                 </Space>
               </Stack>
-              <Space direction="vertical" size="small">
-                <Text strong>Password:</Text>
-                <Input.Password
-                  name="password"
-                  size="large"
-                  placeholder="Enter your password..."
-                  defaultValue={values.password}
-                  onBlur={handleChangeInput}
-                  status={Boolean(touched.password && errors.password) ? 'error' : ''}
-                />
-                {touched.password && (
-                  <Text strong type="danger">
-                    {errors.password}
-                  </Text>
-                )}
-              </Space>
-              <Space direction="vertical" size="small">
-                <Text strong>Password confirm:</Text>
-                <Input.Password
-                  name="passwordConfirm"
-                  size="large"
-                  placeholder="Confirm your password..."
-                  defaultValue={values.passwordConfirm}
-                  onBlur={handleChangeInput}
-                  status={Boolean(touched.passwordConfirm && errors.passwordConfirm) ? 'error' : ''}
-                />
-                {touched.passwordConfirm && (
-                  <Text strong type="danger">
-                    {errors.passwordConfirm}
-                  </Text>
-                )}
-              </Space>
+              {!isEdit && (
+                <>
+                  <Space direction="vertical" size="small">
+                    <Text strong>Password:</Text>
+                    <Input.Password
+                      size="large"
+                      placeholder="Enter your password..."
+                      {...getFieldProps('password')}
+                      status={Boolean(touched.password && errors.password) ? 'error' : ''}
+                    />
+                    {touched.password && (
+                      <Text strong type="danger">
+                        {errors.password}
+                      </Text>
+                    )}
+                  </Space>
+                  <Space direction="vertical" size="small">
+                    <Text strong>Password confirm:</Text>
+                    <Input.Password
+                      size="large"
+                      placeholder="Confirm your password..."
+                      {...getFieldProps('passwordConfirm')}
+                      status={
+                        Boolean(touched.passwordConfirm && errors.passwordConfirm) ? 'error' : ''
+                      }
+                    />
+                    {touched.passwordConfirm && (
+                      <Text strong type="danger">
+                        {errors.passwordConfirm}
+                      </Text>
+                    )}
+                  </Space>
+                </>
+              )}
               {type === 'customers' && (
                 <>
                   <Space direction="vertical" size="small">
                     <Text strong>Gender:</Text>
-                    <Radio.Group value="male" onChange={handleChangeGender}>
+                    <Radio.Group value={values.gender} onChange={handleChangeGender}>
                       <Radio value="male">Male</Radio>
                       <Radio value="female">Female</Radio>
                       <Radio value="other">Other</Radio>

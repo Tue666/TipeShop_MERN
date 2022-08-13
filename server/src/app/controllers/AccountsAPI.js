@@ -6,6 +6,7 @@ const { Types, Account, Customer, Administrator } = require('../models/Account')
 const Address = require('../models/Address');
 const Location = require('../models/Location');
 // utils
+const cloudinaryUpload = require('../../utils/cloudinaryUpload');
 const { generateToken, verify } = require('../../utils/jwt');
 const { capitalize } = require('../../utils/formatString');
 
@@ -187,6 +188,83 @@ class AccountsAPI {
 		}
 	}
 
+	// [POST] /accounts
+	/*
+		account_type: String,
+		phone_number: String,
+		password: String,
+		passwordConfirm: String,
+		[is_phone_verified]: Bool,
+		[email]: String,
+		[is_email_verified]: Bool,
+		[name]: String,
+		[avatar_url]: File,
+		[roles]: [String],
+	*/
+	async insert(req, res, next) {
+		try {
+			const avatar = req.file;
+			const { account_type, phone_number, password, passwordConfirm } = req.body;
+			const capitalizedType = capitalize(account_type);
+
+			const valueOfTypes = Object.values(Types);
+			if (!valueOfTypes.includes(capitalizedType)) {
+				next({
+					status: 400,
+					msg: `Type of ${capitalizedType} not included. Try the following: ${valueOfTypes.join(
+						', '
+					)} instead!`,
+				});
+				return;
+			}
+
+			const accountExisted = await Account.findOne({ phone_number });
+			if (accountExisted) {
+				next({ status: 400, msg: 'Account existed!' });
+				return;
+			}
+
+			if (password !== passwordConfirm) {
+				next({ status: 400, msg: 'Password not sync!' });
+				return;
+			}
+
+			const saltRounds = 10;
+			const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+			let account = null;
+			const details = {
+				...req.body,
+				password: hashedPassword,
+			};
+			if (avatar) {
+				const { public_id } = await cloudinaryUpload(avatar.path, 'account');
+				details['avatar_url'] = public_id;
+			}
+
+			switch (capitalizedType) {
+				case Types.customer:
+					account = new Customer(details);
+					break;
+				case Types.administrator:
+					account = new Administrator(details);
+					break;
+				default:
+					next({ status: 400, msg: `Unable to resolve, type of ${capitalizedType} not matched!` });
+					return;
+			}
+			await account.save();
+
+			res.status(201).json({
+				msg: 'Insert account successfully!',
+				account,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /accounts/exist
 	/*
 		phone_number: String
@@ -285,14 +363,14 @@ class AccountsAPI {
 	/*
 		account_type: String,
 		phone_number: String,
-		[is_phone_verified]: Bool,
-        password: String,
+		password: String,
 		passwordConfirm: String,
+		[is_phone_verified]: Bool,
 		[email]: String,
 		[is_email_verified]: Bool,
 		[name]: String,
 		[avatar_url]: String,
-		roles: [String],
+		[roles]: [String],
 		----Customer----
 		[gender]: String,
 		[social]: [{
@@ -339,9 +417,7 @@ class AccountsAPI {
 				case Types.customer:
 					account = new Customer(details);
 					break;
-				case Types.administrator:
-					account = new Administrator(details);
-					break;
+				// user type which can be register such as shipper, seller, ... goes here
 				default:
 					next({ status: 400, msg: `Unable to resolve, type of ${capitalizedType} not matched!` });
 					return;

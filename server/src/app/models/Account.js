@@ -13,7 +13,7 @@ const Account = new Schema(
 		name: { type: String, default: '' },
 		avatar_url: { type: String, default: null },
 		refreshToken: { type: String, default: null },
-		roles: { type: [String], required: true },
+		roles: { type: [String], default: [] },
 	},
 	{
 		timestamps: true,

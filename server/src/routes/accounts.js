@@ -5,6 +5,7 @@ const router = express.Router();
 const accountsAPI = require('../app/controllers/AccountsAPI');
 // middlewares
 const verifyToken = require('../app/middlewares/verifyToken');
+const upload = require('../app/middlewares/upload');
 
 router.get('/verify', verifyToken, (req, res) => {
 	res.json(!!req.account._id);
@@ -19,6 +20,7 @@ router.post('/social/login', accountsAPI.socialLogin);
 router.post('/login', accountsAPI.login);
 router.post('/register', accountsAPI.register);
 router.post('/exist', accountsAPI.checkExist);
+router.post('/', upload(false).single('avatar_url'), accountsAPI.insert);
 router.get('/profile', verifyToken, accountsAPI.getProfile);
 router.get('/:type', verifyToken, accountsAPI.findAllByType);
 

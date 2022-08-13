@@ -3,7 +3,7 @@ import axiosInstance from './axiosInstance';
 // contexts
 import { ProfileProps, LoginParams, LoginResponse } from '../contexts/AuthContext';
 // models
-import { ListResponse, Account } from '../models';
+import type { ListResponse, Account, StatusResponse } from '../models';
 // redux
 import type { GetAccountsPayload } from '../redux/actions/account';
 // utils
@@ -20,6 +20,12 @@ const accountApi = {
   getProfile: (): Promise<ProfileProps> => {
     const url = `/accounts/profile`;
     return axiosInstance.get(url);
+  },
+
+  // [POST] /accounts
+  insert: (body: FormData): Promise<{ account: Account } & StatusResponse> => {
+    const url = `/accounts`;
+    return axiosInstance.post(url, body);
   },
 
   // [POST] /accounts/login

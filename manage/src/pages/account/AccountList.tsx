@@ -1,3 +1,4 @@
+import { useState, Key } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import { Table, Space, Avatar, Image, Typography, Tag, Button } from 'antd';
@@ -19,6 +20,8 @@ import { useAppSelector } from '../../redux/hooks';
 import { selectAccount } from '../../redux/slices/account';
 // routes
 import { PATH_DASHBOARD } from '../../routes/path';
+// utils
+import { distinguishImage } from '../../utils/formatImage';
 
 const { Text } = Typography;
 
@@ -35,12 +38,12 @@ const columns: ColumnsType<Omit<Account, 'type'>> = [
             src={
               avatar_url && (
                 <Image
-                  src={avatar_url}
+                  src={distinguishImage(['https'], avatar_url)}
                   onError={({ currentTarget }) => {
                     currentTarget.onerror = null; // prevents looping
                     currentTarget.src = `${appConfig.public_image_url}/avatar.png`;
                   }}
-                  style={{ width: 32 }}
+                  style={{ width: '100%', height: '100%' }}
                 />
               )
             }
@@ -63,6 +66,7 @@ const columns: ColumnsType<Omit<Account, 'type'>> = [
 ];
 
 const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const type = pathname.split('/').pop();
@@ -113,6 +117,9 @@ const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
   const handleCreate = () => {
     navigate(PATH_DASHBOARD.account.create(type));
   };
+  const handleChangeSelectedRow = (newSelectedRowKeys: Key[]) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
   return (
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
       <Space size="middle">
@@ -121,15 +128,18 @@ const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
             Create account
           </Button>
         )}
-        <Button type="primary" danger icon={<DeleteOutlined />} disabled>
-          Delete selected accounts
-        </Button>
+        {selectedRowKeys.length > 0 && (
+          <Button type="primary" danger icon={<DeleteOutlined />}>
+            Delete selected accounts
+          </Button>
+        )}
       </Space>
       <Table
         rowKey="_id"
         loading={isLoading}
         rowSelection={{
-          type: 'checkbox',
+          selectedRowKeys,
+          onChange: handleChangeSelectedRow,
         }}
         columns={currentActions.length > 0 ? [...columns, ...actionsAccessible] : columns}
         dataSource={accounts}
