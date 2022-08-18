@@ -1,4 +1,3 @@
-import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Row, Col, Space, Typography, Input, Radio, Button, RadioChangeEvent, message } from 'antd';
 import { useFormik, FormikProvider, Form } from 'formik';
@@ -17,16 +16,18 @@ import { createAccountValidation } from '../../utils/validation';
 
 const { Text } = Typography;
 
-const AccountGeneralForm = () => {
+interface AccountGeneralFormProps {
+  account_type: AccountType;
+}
+
+const AccountGeneralForm = ({ account_type }: AccountGeneralFormProps) => {
   const dispatch = useAppDispatch();
-  const { type } = useParams();
-  let account_type: AccountType = type === 'administrators' ? 'Administrator' : 'Customer';
+  const isEdit = window.location.pathname.indexOf('/edit') >= 0;
   const customer: Customer = {
     gender: '',
   };
   const administrator: Administrator = {};
-  let dependentValues = type === 'administrators' ? administrator : customer;
-  const isEdit = window.location.pathname.indexOf('/edit') >= 0;
+  let dependentValues = account_type === 'Administrator' ? administrator : customer;
   const initialValues: FormAccountPayload = {
     name: '',
     email: '',
@@ -145,7 +146,7 @@ const AccountGeneralForm = () => {
                   </Space>
                 </>
               )}
-              {type === 'customers' && (
+              {account_type === 'Customer' && (
                 <>
                   <Space direction="vertical" size="small">
                     <Text strong>Gender:</Text>

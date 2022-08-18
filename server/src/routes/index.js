@@ -8,6 +8,7 @@ const locationsRouter = require('./locations');
 const ordersRouter = require('./orders');
 const paymentRouter = require('./payment');
 const operationsRouter = require('./operations');
+const resourcesRouter = require('./resources');
 const rolesRouter = require('./roles');
 
 const initialRoutes = (app) => {
@@ -20,6 +21,7 @@ const initialRoutes = (app) => {
 	app.use('/api/orders', ordersRouter);
 	app.use('/api/payment', paymentRouter);
 	app.use('/api/operations', operationsRouter);
+	app.use('/api/resources', resourcesRouter);
 	app.use('/api/roles', rolesRouter);
 };
 

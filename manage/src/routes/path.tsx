@@ -16,7 +16,8 @@ export const PATH_DASHBOARD = {
     root: ROOT_ACCOUNT,
     administrators: path(ROOT_ACCOUNT, '/administrators'),
     customers: path(ROOT_ACCOUNT, '/customers'),
-    create: (type: string = 'customers') => path(ROOT_ACCOUNT, `/${type}/create`),
+    create: (type: String | undefined) => path(ROOT_ACCOUNT, `/${type}/create`),
+    edit: (type: string | undefined, _id: string) => path(ROOT_ACCOUNT, `/${type}/edit/${_id}`),
   },
   products: {
     root: ROOT_PRODUCT,

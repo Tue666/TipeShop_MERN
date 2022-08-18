@@ -12,9 +12,9 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 const SideBar = (props: SiderProps) => {
   const navigate = useNavigate();
-  const { accessibleObjects } = useAuth();
-  const menuItems = accessibleObjects.map((item) => {
-    const { key, label, icon, children } = item;
+  const { accessibleResources } = useAuth();
+  const menuItems = accessibleResources.map((item) => {
+    const { key, label, icon, children } = item!;
     const menuItem: MenuItem = { key, label, icon, children };
     return menuItem;
   });

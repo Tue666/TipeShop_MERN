@@ -1,9 +1,9 @@
 // slices
 import accountReducer from './slices/account';
-import operationReducer from './slices/operation';
+import accessControlReducer from './slices/accessControl';
 
 const rootReducer = {
-  operation: operationReducer,
+  accessControl: accessControlReducer,
   account: accountReducer,
 };
 

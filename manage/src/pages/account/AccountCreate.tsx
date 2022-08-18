@@ -5,6 +5,8 @@ import { Space, Typography } from 'antd';
 // components
 import Back from '../../components/Back';
 import { AccountGeneralForm } from '../../components/account';
+// models
+import type { AccountType } from '../../models';
 // routes
 import { PATH_DASHBOARD } from '../../routes/path';
 
@@ -37,6 +39,7 @@ const keys = scrollKeys.reduce((accumulator, current) => {
 
 const AccountCreate = () => {
   const { type } = useParams();
+  const account_type: AccountType = 'Customer';
   const backTo =
     type === 'administrators'
       ? PATH_DASHBOARD.account.administrators
@@ -46,7 +49,7 @@ const AccountCreate = () => {
       <Back backTo={backTo} scrollKeys={scrollKeys} />
       <Space direction="vertical" size="small" id={keys.general.key}>
         <Title level={5}>{keys.general.label}</Title>
-        <AccountGeneralForm />
+        <AccountGeneralForm account_type={account_type} />
       </Space>
     </div>
   );

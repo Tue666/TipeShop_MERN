@@ -10,6 +10,7 @@ export interface Account {
 }
 
 export interface Administrator {}
+
 export interface Customer {
   gender: string;
 }

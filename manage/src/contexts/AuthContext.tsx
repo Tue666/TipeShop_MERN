@@ -2,10 +2,15 @@ import { ReactNode, useEffect, useReducer, createContext } from 'react';
 
 // apis
 import accountApi from '../apis/accountApi';
+import accessControlApi from '../apis/accessControlApi';
 // config
-import { PermissionProps, ObjectProps, filterAccessibleObjects, OBJECTS } from '../config';
+import type { ResourceConfig } from '../config';
+import { generateResources, filterAccessibleResources } from '../config';
+// models
+import type { Permission } from '../models';
 // redux
 import { useAppDispatch } from '../redux/hooks';
+import { initializeAccessControl } from '../redux/slices/accessControl';
 // utils
 import { TokenProps, getToken, setToken, isValidToken } from '../utils/jwt';
 
@@ -13,14 +18,13 @@ export interface ProfileProps {
   profile: {
     [key: string]: any;
   } | null;
-  permissions: PermissionProps[] | null;
-  [key: string]: any;
+  permissions: Permission[] | null;
 }
 
 interface AuthContextStates extends ProfileProps {
   isInitialized: boolean;
   isAuthenticated: boolean;
-  accessibleObjects: ObjectProps[];
+  accessibleResources: ResourceConfig[];
 }
 
 export interface LoginParams {
@@ -40,7 +44,7 @@ interface AuthContextMethods {
 const initialState: AuthContextStates = {
   isInitialized: false,
   isAuthenticated: false,
-  accessibleObjects: [],
+  accessibleResources: [],
   profile: null,
   permissions: null,
 };
@@ -89,35 +93,43 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const sliceDispatch = useAppDispatch();
 
-  const initNecessaryData = (objects: ObjectProps[]): void => {
-    objects.forEach((object: ObjectProps) => {
-      const { fetching, children } = object;
-      if (fetching) sliceDispatch(fetching);
-      if (children) initNecessaryData(children);
+  const initNecessaryData = (resources: ResourceConfig[]): void => {
+    resources.forEach((resource) => {
+      if (resource) {
+        const { fetching, children } = resource;
+        if (fetching) sliceDispatch(fetching);
+        if (children) initNecessaryData(children);
+      }
     });
   };
-  const getProfile = async (): Promise<
-    ProfileProps & (AuthContextStates['accessibleObjects'] | {})
+  const initRequiredData = async (): Promise<
+    Omit<AuthContextStates, 'isInitialized' | 'isAuthenticated'>
   > => {
-    const response = await accountApi.getProfile();
-    const { permissions, profile } = response;
-    const accessible = [
+    const [resources, operations] = await Promise.all([
+      accessControlApi.findAllResourceWithNested(),
+      accessControlApi.findAllOperation(),
+    ]);
+    sliceDispatch(initializeAccessControl({ resources, operations }));
+
+    const account = await accountApi.getProfile();
+    const { permissions, profile } = account;
+    const resourcesAllowed = [
       ...Array.from(
         new Set(
           permissions?.reduce(
-            (
-              result: PermissionProps['object'][],
-              permission: PermissionProps
-            ): PermissionProps['object'][] => [...result, ...permission.object.split('/')],
-            []
+            (result, permission) => [...result, ...permission.resource.split('/')],
+            [] as Permission['resource'][]
           )
         )
       ),
     ];
-    const accessibleObjects = filterAccessibleObjects(OBJECTS, accessible);
+    const accessibleResources = filterAccessibleResources(
+      generateResources(resources),
+      resourcesAllowed
+    );
     // fetch data depend accessible objects
-    initNecessaryData(accessibleObjects);
-    return { permissions, profile, accessibleObjects };
+    initNecessaryData(accessibleResources);
+    return { permissions, profile, accessibleResources };
   };
   useEffect(() => {
     const initialize = async () => {
@@ -126,14 +138,14 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         setToken(tokens);
         const isAuthenticated = await isValidToken(tokens);
         if (isAuthenticated) {
-          const { profile, permissions, accessibleObjects } = await getProfile();
+          const { profile, permissions, accessibleResources } = await initRequiredData();
           dispatch({
             type: HandleType.INITIALIZE,
             payload: {
               isAuthenticated,
               profile,
               permissions,
-              accessibleObjects,
+              accessibleResources,
             },
           });
         } else {
@@ -156,13 +168,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     const response = await accountApi.login(params);
     const { name, tokens } = response;
     setToken(tokens);
-    const { profile, permissions, accessibleObjects } = await getProfile();
+    const { profile, permissions, accessibleResources } = await initRequiredData();
     dispatch({
       type: HandleType.LOGIN,
       payload: {
         profile,
         permissions,
-        accessibleObjects,
+        accessibleResources,
       },
     });
     return name;

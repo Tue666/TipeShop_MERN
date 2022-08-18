@@ -7,8 +7,8 @@ const Role = new Schema({
 		type: [
 			{
 				_id: false,
-				object: { type: String, required: true },
-				actions: { type: [String], default: [] },
+				resource: { type: String, required: true },
+				operations: { type: [String], default: [] },
 			},
 		],
 		default: [],

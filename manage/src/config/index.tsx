@@ -1,2 +1,2 @@
 export * from './appConfig';
-export * from './objectsConfig';
+export * from './resourcesConfig';

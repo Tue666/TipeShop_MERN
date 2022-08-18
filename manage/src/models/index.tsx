@@ -1,3 +1,3 @@
 export * from './Account';
-export * from './Resource';
+export * from './AccessControl';
 export * from './common';

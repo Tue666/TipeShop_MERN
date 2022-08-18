@@ -2,9 +2,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 const Operation = new Schema({
-	object: { type: String, required: true },
+	name: { type: String, required: true, unique: true },
 	description: { type: String, default: '' },
-	actions: { type: [String], default: [] },
 	locked: { type: Boolean, default: false },
 });
 

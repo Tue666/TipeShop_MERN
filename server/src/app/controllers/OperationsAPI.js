@@ -17,14 +17,21 @@ class OperationsAPI {
 
 	// [POST] /operations
 	/*
-        object: String,
+        name: String,
         [description]: String,
-        [actions]: [String],
+		[locked]: Boolean,
     */
 	async insert(req, res, next) {
 		try {
-			const operation = new Operation(req.body);
+			let { name, ...others } = req.body;
+			name = name.toLowerCase();
+
+			const operation = new Operation({
+				name,
+				...others,
+			});
 			await operation.save();
+
 			res.status(201).json({
 				msg: 'Insert operation successfully!',
 				operation,

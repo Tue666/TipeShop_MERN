@@ -1,10 +1,9 @@
 import { useState, Key } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import { Table, Space, Avatar, Image, Typography, Tag, Button } from 'antd';
 import {
   UserOutlined,
-  FolderViewOutlined,
   EditOutlined,
   DeleteOutlined,
   ControlOutlined,
@@ -13,8 +12,10 @@ import {
 
 // config
 import { appConfig } from '../../config';
+// guard
+import type { ActionsPassedGuardProps } from '../../guards/AccessGuard';
 // models
-import { AccessActionGuardProps, Account } from '../../models';
+import { Account } from '../../models';
 // redux
 import { useAppSelector } from '../../redux/hooks';
 import { selectAccount } from '../../redux/slices/account';
@@ -65,11 +66,11 @@ const columns: ColumnsType<Omit<Account, 'type'>> = [
   },
 ];
 
-const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
+const AccountList = () => {
+  const { actionsAllowed } = useOutletContext<ActionsPassedGuardProps>();
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const type = pathname.split('/').pop();
+  const { type } = useParams();
   const { isLoading, ...rest } = useAppSelector(selectAccount);
   let accounts: Account[] = [];
   switch (type) {
@@ -86,25 +87,25 @@ const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
     {
       title: 'Actions',
       dataIndex: '',
-      render: () => (
+      render: (_, record) => (
         <Space size="middle" align="center">
-          {actions.includes('read') && currentActions.includes('read') && (
-            <Tag icon={<FolderViewOutlined />} style={{ cursor: 'pointer' }}>
-              Read
-            </Tag>
-          )}
-          {actions.includes('update') && currentActions.includes('update') && (
-            <Tag icon={<EditOutlined />} color="success" style={{ cursor: 'pointer' }}>
+          {actionsAllowed.includes('update') && (
+            <Tag
+              icon={<EditOutlined />}
+              color="success"
+              onClick={() => navigate(PATH_DASHBOARD.account.edit(type, record._id))}
+              style={{ cursor: 'pointer' }}
+            >
               Update
             </Tag>
           )}
-          {actions.includes('delete') && currentActions.includes('delete') && (
+          {actionsAllowed.includes('delete') && (
             <Tag icon={<DeleteOutlined />} color="error" style={{ cursor: 'pointer' }}>
               Delete
             </Tag>
           )}
           {/* Administrator account type */}
-          {actions.includes('authorize') && currentActions.includes('authorize') && (
+          {actionsAllowed.includes('authorize') && (
             <Tag icon={<ControlOutlined />} color="warning" style={{ cursor: 'pointer' }}>
               Authorize
             </Tag>
@@ -123,7 +124,7 @@ const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
   return (
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
       <Space size="middle">
-        {actions.includes('create') && currentActions.includes('create') && (
+        {actionsAllowed.includes('create') && (
           <Button type="primary" icon={<FolderAddOutlined />} onClick={handleCreate}>
             Create account
           </Button>
@@ -141,7 +142,7 @@ const AccountList = ({ currentActions, actions }: AccessActionGuardProps) => {
           selectedRowKeys,
           onChange: handleChangeSelectedRow,
         }}
-        columns={currentActions.length > 0 ? [...columns, ...actionsAccessible] : columns}
+        columns={actionsAllowed.length > 0 ? [...columns, ...actionsAccessible] : columns}
         dataSource={accounts}
       />
     </Space>

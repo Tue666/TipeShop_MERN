@@ -4,12 +4,10 @@ import { SearchOutlined, FolderAddOutlined } from '@ant-design/icons';
 
 // components
 import Box from '../../components/Box';
-// models
-import { AccessActionGuardProps } from '../../models';
 
 const { Text, Paragraph } = Typography;
 
-const Operations = ({ currentActions, actions }: AccessActionGuardProps) => {
+const Operations = () => {
   return (
     <Space direction="vertical" size="middle">
       <Space size="large">

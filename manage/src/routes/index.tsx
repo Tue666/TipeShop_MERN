@@ -1,15 +1,16 @@
 import { lazy, Suspense } from 'react';
 import { useRoutes, Navigate } from 'react-router-dom';
 
-// config
-import { accessibleObjectPath } from '../config';
 // guards
 import AuthGuard from '../guards/AuthGuard';
-import AccessGuard from '../guards/AccessGuard';
+import AccessGuard, { ActionGuard } from '../guards/AccessGuard';
 // layouts
 import MainLayout from '../layouts/main';
 // pages
 import Loading from '../pages/external/Loading';
+// redux
+import { useAppSelector } from '../redux/hooks';
+import { selectAccessControl } from '../redux/slices/accessControl';
 
 const PageLoader =
   (Component: React.LazyExoticComponent<(props: any) => JSX.Element>) => (props: any) => {
@@ -21,6 +22,7 @@ const PageLoader =
   };
 
 const Router = () => {
+  const { resources } = useAppSelector(selectAccessControl);
   return useRoutes([
     // Main routes
     {
@@ -33,36 +35,40 @@ const Router = () => {
       children: [
         { path: '', element: <Dashboard /> },
         {
-          path: 'accounts/administrators',
-          element: (
-            <AccessGuard accessibleObject={accessibleObjectPath.accounts.administrators}>
-              <AccountList />
-            </AccessGuard>
-          ),
-        },
-        {
-          path: 'accounts/customers',
-          element: (
-            <AccessGuard accessibleObject={accessibleObjectPath.accounts.customers}>
-              <AccountList />
-            </AccessGuard>
-          ),
-        },
-        {
-          path: 'accounts/:type/create',
+          path: 'accounts/:type',
           element: (
             <AccessGuard
-              accessibleObject={accessibleObjectPath.accounts.customers}
-              actionsRequired={['create']}
-            >
-              <AccountCreate />
-            </AccessGuard>
+              accessConditions={({ type }) =>
+                resources.accounts?.children.find((e) => e._id === type)
+              }
+            />
           ),
+          children: [
+            { path: '', element: <AccountList /> },
+            {
+              path: 'create',
+              element: (
+                <ActionGuard actionsRequired={['create']}>
+                  <AccountCreate />
+                </ActionGuard>
+              ),
+            },
+            {
+              path: 'edit/:_id',
+              element: (
+                <ActionGuard actionsRequired={['update']}>
+                  <AccountCreate />
+                </ActionGuard>
+              ),
+            },
+          ],
         },
         {
           path: 'products/list',
           element: (
-            <AccessGuard accessibleObject={accessibleObjectPath.products.list}>
+            <AccessGuard
+              accessConditions={resources.products?.children.find((e) => e._id === 'list')}
+            >
               <ProductList />
             </AccessGuard>
           ),
@@ -70,7 +76,9 @@ const Router = () => {
         {
           path: 'access-control/operations',
           element: (
-            <AccessGuard accessibleObject={accessibleObjectPath.accessControl.operations}>
+            <AccessGuard
+              accessConditions={resources.accounts?.children.find((e) => e.name === 'customers')}
+            >
               <Operations />
             </AccessGuard>
           ),
