@@ -12,6 +12,7 @@ import { AxiosInterceptor } from './apis/axiosInstance';
 // contexts
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { DrawerProvider } from './contexts/DrawerContext';
 // redux
 import store from './redux/store';
 
@@ -19,13 +20,15 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <ReduxProvider store={store}>
     <BrowserRouter>
-      <AuthProvider>
-        <AxiosInterceptor>
-          <SettingsProvider>
-            <App />
-          </SettingsProvider>
-        </AxiosInterceptor>
-      </AuthProvider>
+      <DrawerProvider>
+        <AuthProvider>
+          <AxiosInterceptor>
+            <SettingsProvider>
+              <App />
+            </SettingsProvider>
+          </AxiosInterceptor>
+        </AuthProvider>
+      </DrawerProvider>
     </BrowserRouter>
   </ReduxProvider>
 );

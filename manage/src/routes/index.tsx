@@ -74,14 +74,46 @@ const Router = () => {
           ),
         },
         {
-          path: 'access-control/operations',
-          element: (
-            <AccessGuard
-              accessConditions={resources.accounts?.children.find((e) => e.name === 'customers')}
-            >
-              <Operations />
-            </AccessGuard>
-          ),
+          path: 'access-control',
+          children: [
+            { path: '', element: <Navigate to="/access-control/roles" replace /> },
+            {
+              path: 'roles',
+              element: (
+                <AccessGuard
+                  accessConditions={resources['access control']?.children.find(
+                    (e) => e._id === 'roles'
+                  )}
+                >
+                  <Roles />
+                </AccessGuard>
+              ),
+            },
+            {
+              path: 'resources',
+              element: (
+                <AccessGuard
+                  accessConditions={resources['access control']?.children.find(
+                    (e) => e._id === 'resources'
+                  )}
+                >
+                  <Resources />
+                </AccessGuard>
+              ),
+            },
+            {
+              path: 'operations',
+              element: (
+                <AccessGuard
+                  accessConditions={resources['access control']?.children.find(
+                    (e) => e._id === 'operations'
+                  )}
+                >
+                  <Operations />
+                </AccessGuard>
+              ),
+            },
+          ],
         },
       ],
     },
@@ -117,6 +149,8 @@ const Dashboard = PageLoader(lazy(() => import('../pages/Dashboard')));
 const AccountList = PageLoader(lazy(() => import('../pages/account/AccountList')));
 const AccountCreate = PageLoader(lazy(() => import('../pages/account/AccountCreate')));
 const ProductList = PageLoader(lazy(() => import('../pages/product/ProductList')));
+const Roles = PageLoader(lazy(() => import('../pages/access-control/Roles')));
+const Resources = PageLoader(lazy(() => import('../pages/access-control/Resources')));
 const Operations = PageLoader(lazy(() => import('../pages/access-control/Operations')));
 // Auth
 const Login = PageLoader(lazy(() => import('../pages/Login')));

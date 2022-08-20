@@ -12,6 +12,4 @@ cloudinary.config({
 module.exports = (file, folder) =>
 	cloudinary.uploader.upload(file, {
 		folder,
-		use_filename: true,
-		unique_filename: false,
 	});

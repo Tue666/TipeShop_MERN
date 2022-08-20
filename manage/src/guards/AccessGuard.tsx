@@ -33,17 +33,18 @@ const AccessGuard = ({ accessConditions, actionsRequired, children }: AccessGuar
 
   const currentAccess = permissions?.find((permission) => permission.resource.indexOf(_id) >= 0);
   if (!currentAccess) return <Navigate to={PATH_EXTERNAL.denied} replace />;
-  if (
-    actionsRequired &&
-    actionsRequired.length > 0 &&
-    !actionsRequired.every((action) => currentAccess.operations.indexOf(action) >= 0)
-  )
-    return <Navigate to={PATH_EXTERNAL.denied} replace />;
 
   const actionsAllowed: Permission['operations'] = currentAccess.operations.filter((action) => {
     const operation = operations.find((operation) => operation.name === action);
     return operation && !operation.locked;
   });
+  if (
+    actionsRequired &&
+    actionsRequired.length > 0 &&
+    !actionsRequired.every((action) => actionsAllowed.indexOf(action) >= 0)
+  )
+    return <Navigate to={PATH_EXTERNAL.denied} replace />;
+
   const actionsPassed: ActionsPassedGuardProps = {
     currentActions: currentAccess.operations, // The actions that current account logged in can do
     actions: operations, // All original actions on resources
@@ -60,10 +61,10 @@ interface ActionGuardProps extends Required<Omit<AccessGuardProps, 'accessCondit
 
 export const ActionGuard = ({ actionsRequired, children }: ActionGuardProps) => {
   const actionsPassed = useOutletContext<ActionsPassedGuardProps>();
-  const { currentActions } = actionsPassed;
+  const { actionsAllowed } = actionsPassed;
   if (
     actionsRequired.length > 0 &&
-    !actionsRequired.every((action) => currentActions.indexOf(action) >= 0)
+    !actionsRequired.every((action) => actionsAllowed.indexOf(action) >= 0)
   )
     return <Navigate to={PATH_EXTERNAL.denied} replace />;
   return <>{cloneElement(children, actionsPassed)}</>;

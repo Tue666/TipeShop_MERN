@@ -238,8 +238,8 @@ class AccountsAPI {
 				password: hashedPassword,
 			};
 			if (avatar) {
-				const { public_id } = await cloudinaryUpload(avatar.path, 'account');
-				details['avatar_url'] = public_id;
+				const { secure_url } = await cloudinaryUpload(avatar.path, 'account');
+				details['avatar_url'] = secure_url;
 			}
 
 			switch (capitalizedType) {

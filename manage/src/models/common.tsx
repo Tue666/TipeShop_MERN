@@ -1,3 +1,13 @@
+export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+export type Nullable<T> = {
+  [P in keyof T]: T[P] | null;
+};
+
+export type NullableBy<T, K extends keyof T> = Omit<T, K> & Record<K, T[K] | null>;
+
 // apis
 export interface StatusResponse {
   msg: string;
@@ -21,6 +31,11 @@ export interface ListResponse<T> {
 }
 
 // app
+export interface ReducerPayloadAction<T, K> {
+  type: K;
+  payload: T;
+}
+
 export type UploadFileType =
   | {
       file: File;

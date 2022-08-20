@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { UserOutlined, DashboardOutlined, SkinOutlined } from '@ant-design/icons';
+import { UserOutlined, DashboardOutlined, SkinOutlined, ControlOutlined } from '@ant-design/icons';
 
 // models
 import type { Resources, Resource, Permission } from '../models';
 // redux
-import { getAccounts } from '../redux/actions/account';
+import { fetchAccounts } from '../redux/actions/account';
 // routes
 import { PATH_DASHBOARD } from '../routes/path';
 // utils
@@ -44,14 +44,14 @@ export const generateResources = (resources: Resources): ResourceConfig[] => {
           id: resources.accounts.children.find((e) => e._id === 'administrators')!._id,
           key: PATH_DASHBOARD.account.administrators,
           label: resources.accounts.children.find((e) => e._id === 'administrators')!.name,
-          fetching: getAccounts({ type: 'Administrator' }),
+          fetching: fetchAccounts({ type: 'Administrator' }),
         }) ||
           null,
         (resources.accounts.children.find((e) => e._id === 'customers') && {
           id: resources.accounts.children.find((e) => e._id === 'customers')!._id,
           key: PATH_DASHBOARD.account.customers,
           label: resources.accounts.children.find((e) => e._id === 'customers')!.name,
-          fetching: getAccounts({ type: 'Customer' }),
+          fetching: fetchAccounts({ type: 'Customer' }),
         }) ||
           null,
       ],
@@ -67,6 +67,33 @@ export const generateResources = (resources: Resources): ResourceConfig[] => {
           id: resources.products.children.find((e) => e._id === 'list')!._id,
           key: PATH_DASHBOARD.products.list,
           label: resources.products.children.find((e) => e._id === 'list')!.name,
+        }) ||
+          null,
+      ],
+    }) ||
+      null,
+    (resources['access control'] && {
+      id: resources['access control']._id,
+      key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.accessControl.root),
+      label: resources['access control'].name,
+      icon: <ControlOutlined />,
+      children: [
+        (resources['access control'].children.find((e) => e._id === 'roles') && {
+          id: resources['access control'].children.find((e) => e._id === 'roles')!._id,
+          key: PATH_DASHBOARD.accessControl.roles,
+          label: resources['access control'].children.find((e) => e._id === 'roles')!.name,
+        }) ||
+          null,
+        (resources['access control'].children.find((e) => e._id === 'resources') && {
+          id: resources['access control'].children.find((e) => e._id === 'resources')!._id,
+          key: PATH_DASHBOARD.accessControl.resources,
+          label: resources['access control'].children.find((e) => e._id === 'resources')!.name,
+        }) ||
+          null,
+        (resources['access control'].children.find((e) => e._id === 'operations') && {
+          id: resources['access control'].children.find((e) => e._id === 'operations')!._id,
+          key: PATH_DASHBOARD.accessControl.operations,
+          label: resources['access control'].children.find((e) => e._id === 'operations')!.name,
         }) ||
           null,
       ],

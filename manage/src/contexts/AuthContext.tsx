@@ -1,40 +1,24 @@
 import { ReactNode, useEffect, useReducer, createContext } from 'react';
 
 // apis
+import type { GetProfileResponse, LoginParams } from '../apis/accountApi';
 import accountApi from '../apis/accountApi';
 import accessControlApi from '../apis/accessControlApi';
 // config
 import type { ResourceConfig } from '../config';
 import { generateResources, filterAccessibleResources } from '../config';
 // models
-import type { Permission } from '../models';
+import type { Nullable, Permission, ReducerPayloadAction } from '../models';
 // redux
 import { useAppDispatch } from '../redux/hooks';
 import { initializeAccessControl } from '../redux/slices/accessControl';
 // utils
-import { TokenProps, getToken, setToken, isValidToken } from '../utils/jwt';
+import { getToken, setToken, isValidToken } from '../utils/jwt';
 
-export interface ProfileProps {
-  profile: {
-    [key: string]: any;
-  } | null;
-  permissions: Permission[] | null;
-}
-
-interface AuthContextStates extends ProfileProps {
+interface AuthContextStates extends Nullable<GetProfileResponse> {
   isInitialized: boolean;
   isAuthenticated: boolean;
   accessibleResources: ResourceConfig[];
-}
-
-export interface LoginParams {
-  phone_number: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  name: string;
-  tokens: TokenProps;
 }
 
 interface AuthContextMethods {
@@ -58,13 +42,11 @@ enum HandleType {
   LOGIN = 'LOGIN',
 }
 
-interface PayloadAction<T> {
-  type: HandleType;
-  payload: T;
-}
-
 const handlers: {
-  [key in HandleType]: (state: AuthContextStates, action?: PayloadAction<any>) => AuthContextStates;
+  [key in HandleType]: (
+    state: AuthContextStates,
+    action?: ReducerPayloadAction<any, HandleType>
+  ) => AuthContextStates;
 } = {
   [HandleType.INITIALIZE]: (state, action) => {
     return {
@@ -82,8 +64,10 @@ const handlers: {
   },
 };
 
-const reducer = (state: AuthContextStates, action: PayloadAction<any>): AuthContextStates =>
-  handlers[action.type] ? handlers[action.type](state, action) : state;
+const reducer = (
+  state: AuthContextStates,
+  action: ReducerPayloadAction<any, HandleType>
+): AuthContextStates => (handlers[action.type] ? handlers[action.type](state, action) : state);
 
 interface AuthProviderProps {
   children: ReactNode;

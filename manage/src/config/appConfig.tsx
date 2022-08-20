@@ -1,6 +1,5 @@
 export const apiConfig = {
   api_url: process.env.REACT_APP_API_URL,
-  image_url: process.env.REACT_APP_IMAGE_URL,
 };
 
 export const appConfig = {

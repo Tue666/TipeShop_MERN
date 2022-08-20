@@ -36,12 +36,7 @@ const Customer = Base.discriminator(
 	})
 );
 
-const Administrator = Base.discriminator(
-	Types.administrator,
-	new Schema({
-		test: { type: String, default: '' },
-	})
-);
+const Administrator = Base.discriminator(Types.administrator, new Schema({}));
 
 module.exports = {
 	Types,

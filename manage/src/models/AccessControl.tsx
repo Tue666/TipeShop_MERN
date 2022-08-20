@@ -5,7 +5,7 @@ export interface Operation {
   locked: boolean;
 }
 
-export type RootResource = 'accounts' | 'products';
+export type RootResource = 'accounts' | 'products' | 'access control';
 
 export interface Resource {
   _id: string;

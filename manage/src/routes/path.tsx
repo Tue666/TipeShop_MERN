@@ -25,6 +25,8 @@ export const PATH_DASHBOARD = {
   },
   accessControl: {
     root: ROOT_ACCESS_CONTROL,
+    roles: path(ROOT_ACCESS_CONTROL, '/roles'),
+    resources: path(ROOT_ACCESS_CONTROL, '/resources'),
     operations: path(ROOT_ACCESS_CONTROL, '/operations'),
   },
 };

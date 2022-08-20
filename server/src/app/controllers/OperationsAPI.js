@@ -15,6 +15,25 @@ class OperationsAPI {
 		}
 	}
 
+	// [POST] /operations/exist
+	/*
+		names: String[]
+	*/
+	async checkExist(req, res, next) {
+		try {
+			const { names } = req.body;
+
+			const operationsExist = await Operation.find({ name: { $in: names } });
+
+			res.status(200).json({
+				exist: operationsExist.length > 0 ? true : false,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /operations
 	/*
         name: String,
@@ -24,6 +43,11 @@ class OperationsAPI {
 	async insert(req, res, next) {
 		try {
 			let { name, ...others } = req.body;
+
+			if (!name) {
+				next({ status: 400, msg: 'Operation name is required!' });
+				return;
+			}
 			name = name.toLowerCase();
 
 			const operation = new Operation({
@@ -34,6 +58,40 @@ class OperationsAPI {
 
 			res.status(201).json({
 				msg: 'Insert operation successfully!',
+				operation,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [PUT] /operations/:_id
+	/*
+        name: String,
+        [description]: String,
+		[locked]: Boolean,
+    */
+	async edit(req, res, next) {
+		try {
+			let { _id } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
+			let { name } = req.body;
+
+			if (name !== undefined) {
+				if (name === '') {
+					next({ status: 400, msg: 'Operation name is required!' });
+					return;
+				}
+				req.body.name = name.toLowerCase();
+			}
+
+			const operation = await Operation.findByIdAndUpdate(_id, req.body, {
+				new: true,
+			});
+
+			res.status(201).json({
+				msg: 'Edit operation successfully!',
 				operation,
 			});
 		} catch (error) {

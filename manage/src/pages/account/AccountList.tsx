@@ -21,8 +21,6 @@ import { useAppSelector } from '../../redux/hooks';
 import { selectAccount } from '../../redux/slices/account';
 // routes
 import { PATH_DASHBOARD } from '../../routes/path';
-// utils
-import { distinguishImage } from '../../utils/formatImage';
 
 const { Text } = Typography;
 
@@ -39,7 +37,7 @@ const columns: ColumnsType<Omit<Account, 'type'>> = [
             src={
               avatar_url && (
                 <Image
-                  src={distinguishImage(['https'], avatar_url)}
+                  src={avatar_url}
                   onError={({ currentTarget }) => {
                     currentTarget.onerror = null; // prevents looping
                     currentTarget.src = `${appConfig.public_image_url}/avatar.png`;

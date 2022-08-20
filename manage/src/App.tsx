@@ -1,5 +1,7 @@
 import { FC } from 'react';
 
+// components
+import Drawer from './components/Drawer';
 // hooks
 import useAuth from './hooks/useAuth';
 // pages
@@ -10,7 +12,10 @@ import Router from './routes';
 const App: FC = () => {
   const { isInitialized } = useAuth();
   return isInitialized ? (
-    <Router />
+    <>
+      <Router />
+      <Drawer />
+    </>
   ) : (
     <div style={{ width: '100vw', height: '100vh' }}>
       <Loading />

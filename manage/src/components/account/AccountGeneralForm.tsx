@@ -6,21 +6,17 @@ import { useFormik, FormikProvider, Form } from 'formik';
 import Box from '../Box';
 import { UploadSingleFile } from '../_external_/dropzone';
 // models
-import type { AccountType, Administrator, Customer } from '../../models';
+import type { Account, Administrator, Customer } from '../../models';
 // redux
 import { useAppDispatch } from '../../redux/hooks';
-import type { FormAccountPayload } from '../../redux/actions/account';
+import type { CreateAccountPayload } from '../../redux/actions/account';
 import { createAccount } from '../../redux/actions/account';
 // utils
 import { createAccountValidation } from '../../utils/validation';
 
 const { Text } = Typography;
 
-interface AccountGeneralFormProps {
-  account_type: AccountType;
-}
-
-const AccountGeneralForm = ({ account_type }: AccountGeneralFormProps) => {
+const AccountGeneralForm = ({ account_type }: Record<'account_type', Account['type']>) => {
   const dispatch = useAppDispatch();
   const isEdit = window.location.pathname.indexOf('/edit') >= 0;
   const customer: Customer = {
@@ -28,7 +24,7 @@ const AccountGeneralForm = ({ account_type }: AccountGeneralFormProps) => {
   };
   const administrator: Administrator = {};
   let dependentValues = account_type === 'Administrator' ? administrator : customer;
-  const initialValues: FormAccountPayload = {
+  const initialValues: CreateAccountPayload = {
     name: '',
     email: '',
     phone_number: '',
@@ -41,13 +37,12 @@ const AccountGeneralForm = ({ account_type }: AccountGeneralFormProps) => {
   const formik = useFormik({
     initialValues,
     validationSchema: createAccountValidation,
-    onSubmit: async (values, { resetForm }) => {
+    onSubmit: async (values) => {
       message.loading({ content: 'Processing...', key: 'create' });
       dispatch(
         createAccount({
           ...values,
           account_type,
-          resetForm,
         })
       );
     },

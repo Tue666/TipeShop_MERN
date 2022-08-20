@@ -4,13 +4,13 @@ import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import axios from 'axios';
 
 // apis
-import accountApi from '../../apis/accountApi';
+import accountApi, { InsertAccountResponse } from '../../apis/accountApi';
 // models
-import type { ListResponse, Account, StatusResponse } from '../../models';
+import type { ListResponse, Account } from '../../models';
 // redux
 import { RootState } from '../store';
-import type { GetAccountsPayload, FormAccountPayload } from '../actions/account';
-import { GET_ACCOUNTS, CREATE_ACCOUNT } from '../actions/account';
+import type { FetchAccountsPayload, CreateAccountPayload } from '../actions/account';
+import { FETCH_ACCOUNTS, CREATE_ACCOUNT } from '../actions/account';
 
 export interface AccountState {
   isLoading: boolean;
@@ -30,7 +30,7 @@ const slice = createSlice({
   reducers: {
     getAccountsSuccess: (
       state,
-      action: PayloadAction<ListResponse<Account> & GetAccountsPayload>
+      action: PayloadAction<ListResponse<Account> & FetchAccountsPayload>
     ) => {
       const { data, type } = action.payload;
       state.isLoading = false;
@@ -68,7 +68,7 @@ export default reducer;
 
 // ------------------------ saga ------------------------
 
-function* fetchAccounts(action: PayloadAction<GetAccountsPayload>) {
+function* fetchAccounts(action: PayloadAction<FetchAccountsPayload>) {
   try {
     const { type } = action.payload;
     const response: ListResponse<Account> = yield call(accountApi.findAllByType, { type });
@@ -79,19 +79,11 @@ function* fetchAccounts(action: PayloadAction<GetAccountsPayload>) {
   }
 }
 
-function* createAccount(action: PayloadAction<FormAccountPayload>) {
+function* createAccount(action: PayloadAction<CreateAccountPayload>) {
   try {
-    const { resetForm, ...formValues } = action.payload;
-    const formData = new FormData();
-    Object.entries(formValues).forEach(([key, value]) => {
-      if (key === 'avatar_url' && typeof value !== 'string')
-        formData.append('avatar_url', value.file);
-      else formData.append(key, value);
-    });
-    const response: { account: Account } & StatusResponse = yield call(accountApi.insert, formData);
+    const response: InsertAccountResponse = yield call(accountApi.insert, action.payload);
     const { account, msg } = response;
     yield put(actions.createAccountSuccess(account));
-    resetForm && resetForm();
     message.success({ content: msg, key: 'create' });
   } catch (error) {
     if (axios.isAxiosError(error))
@@ -100,6 +92,6 @@ function* createAccount(action: PayloadAction<FormAccountPayload>) {
 }
 
 export function* accountSaga() {
-  yield takeEvery(GET_ACCOUNTS, fetchAccounts);
+  yield takeEvery(FETCH_ACCOUNTS, fetchAccounts);
   yield takeLatest(CREATE_ACCOUNT, createAccount);
 }

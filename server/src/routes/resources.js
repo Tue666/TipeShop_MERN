@@ -5,6 +5,7 @@ const router = express.Router();
 const resourcesAPI = require('../app/controllers/ResourcesAPI');
 
 router.patch('/lock/:_id', resourcesAPI.editLocked);
+router.post('/exist', resourcesAPI.checkExist);
 router.post('/', resourcesAPI.insert);
 router.get('/nested', resourcesAPI.findAllWithNested);
 

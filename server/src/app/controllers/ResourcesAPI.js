@@ -128,6 +128,9 @@ class ResourcesAPI {
 					},
 				},
 				{
+					$sort: { _id: 1 },
+				},
+				{
 					$group: {
 						_id: null,
 						temp: {
@@ -151,6 +154,25 @@ class ResourcesAPI {
 		}
 	}
 
+	// [POST] /resources/exist
+	/*
+		names: String[]
+	*/
+	async checkExist(req, res, next) {
+		try {
+			const { names } = req.body;
+
+			const resourcesExist = await Resource.find({ name: { $in: names } });
+
+			res.status(200).json({
+				exist: resourcesExist.length > 0 ? true : false,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /resources
 	/*
         name: String,
@@ -162,6 +184,11 @@ class ResourcesAPI {
 	async insert(req, res, next) {
 		try {
 			let { name, operations, ...others } = req.body;
+
+			if (!name) {
+				next({ status: 400, msg: 'Operation name is required!' });
+				return;
+			}
 			name = name.toLowerCase();
 
 			const operationObjs = [];
