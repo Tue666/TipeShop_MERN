@@ -7,7 +7,7 @@ const Resource = new Schema(
 		name: { type: String, required: true, unique: true },
 		description: { type: String, default: '' },
 		parent_id: { type: String, default: null },
-		operations: [{ type: mongoose.Types.ObjectId, ref: 'Operations', default: [] }],
+		operations: [{ type: mongoose.Types.ObjectId, ref: 'Operation', default: [] }],
 		locked: { type: Boolean, default: false },
 	},
 	{

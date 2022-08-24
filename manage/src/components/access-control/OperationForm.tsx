@@ -13,7 +13,7 @@ import type { Operation, ReducerPayloadAction } from '../../models';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { clearAction, selectAccessControl } from '../../redux/slices/accessControl';
 import type { CreateOperationPayload } from '../../redux/actions/accessControl';
-import { createOperationAction, updateOperation } from '../../redux/actions/accessControl';
+import { createOperationAction, updateOperationAction } from '../../redux/actions/accessControl';
 
 const { Text } = Typography;
 
@@ -52,8 +52,11 @@ const handlers: {
 const reducer = (state: InputState, action: ReducerPayloadAction<any, HandleType>): InputState =>
   handlers[action.type] ? handlers[action.type](state, action) : state;
 
-const OperationForm = (props: any) => {
-  const { operation } = props;
+interface OperationFormProps {
+  operation?: Operation;
+}
+
+const OperationForm = ({ operation }: OperationFormProps) => {
   const sliceDispatch = useAppDispatch();
   const { isLoading, error, lastAction } = useAppSelector(selectAccessControl);
   const { closeDrawer } = useDrawer();
@@ -88,8 +91,8 @@ const OperationForm = (props: any) => {
     // update goes here
     message.loading({ content: 'Processing...', key: 'update' });
     sliceDispatch(
-      updateOperation({
-        _id: (operation as Operation)._id,
+      updateOperationAction({
+        _id: operation._id,
         ...values,
       })
     );
@@ -181,7 +184,6 @@ const OperationForm = (props: any) => {
             </Form.Item>
             <Text style={{ marginLeft: '15px' }}>Locked operation</Text>
           </Form.Item>
-
           {error && (
             <Alert
               message={error}

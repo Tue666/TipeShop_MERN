@@ -1,43 +1,25 @@
 import { ChangeEvent, useRef, useReducer, useEffect } from 'react';
-import type { FormItemProps } from 'antd';
-import {
-  Form,
-  Space,
-  Typography,
-  Input,
-  Switch,
-  Spin,
-  Button,
-  Alert,
-  Collapse,
-  message,
-} from 'antd';
-import { NodeExpandOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { FormItemProps, message } from 'antd';
+import { Form, Space, Input, Spin, Button, Alert, Collapse, Typography } from 'antd';
+import { ApartmentOutlined } from '@ant-design/icons';
 
 // apis
-import type { InsertResourceBody } from '../../apis/accessControlApi';
-import accessControlApi from '../../apis/accessControlApi';
-// hooks
-import useDrawer from '../../hooks/useDrawer';
+import accessControlApi, { InsertOperationBody } from '../../apis/accessControlApi';
 // models
-import type { ReducerPayloadAction, Resource } from '../../models';
+import type { ReducerPayloadAction, Role } from '../../models';
 // redux
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import {
-  createResourceAction,
-  CreateResourcePayload,
-  updateResourceAction,
-} from '../../redux/actions/accessControl';
+import { CreateRolePayload } from '../../redux/actions/accessControl';
+import { createRoleAction } from '../../redux/actions/accessControl';
 import { clearAction, selectAccessControl } from '../../redux/slices/accessControl';
 //
-import ResourceSelect from './ResourceSelect';
-import OperationsSelect from './OperationsSelect';
+import PermissionsSelect from './PermissionsSelect';
 
 const { Text } = Typography;
 const { Panel } = Collapse;
 
 type InputState = {
-  [key in keyof InsertResourceBody]: {
+  [key in keyof InsertOperationBody]: {
     validateStatus: FormItemProps['validateStatus'] | undefined;
     help: FormItemProps['help'] | undefined;
   };
@@ -71,15 +53,13 @@ const handlers: {
 const reducer = (state: InputState, action: ReducerPayloadAction<any, HandleType>): InputState =>
   handlers[action.type] ? handlers[action.type](state, action) : state;
 
-interface ResourceFormProps {
-  resource?: Resource;
+interface RoleFormProps {
+  role?: Role;
 }
 
-const ResourceForm = ({ resource }: ResourceFormProps) => {
+const RoleForm = ({ role }: RoleFormProps) => {
   const sliceDispatch = useAppDispatch();
-  const { isLoading, error, lastAction, resources, operations } =
-    useAppSelector(selectAccessControl);
-  const { closeDrawer } = useDrawer();
+  const { isLoading, error, lastAction, resources } = useAppSelector(selectAccessControl);
   const [form] = Form.useForm();
   const { resetFields } = form;
   const searchOperationRef = useRef<ReturnType<typeof setTimeout>>();
@@ -90,9 +70,6 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
         case 'create':
           resetFields();
           break;
-        case 'update':
-          closeDrawer();
-          break;
         default:
           break;
       }
@@ -101,21 +78,10 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
     // eslint-disable-next-line
   }, [lastAction]);
 
-  const onFinish = (values: CreateResourcePayload) => {
-    if (!resource) {
-      // create goes here
-      message.loading({ content: 'Processing...', key: 'create' });
-      sliceDispatch(createResourceAction(values));
-      return;
-    }
-    // update goes here
-    message.loading({ content: 'Processing...', key: 'update' });
-    sliceDispatch(
-      updateResourceAction({
-        _id: resource._id,
-        ...values,
-      })
-    );
+  const onFinish = (values: CreateRolePayload) => {
+    // create goes here
+    message.loading({ content: 'Processing...', key: 'create' });
+    sliceDispatch(createRoleAction(values));
   };
   const handleInputValidationOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -142,15 +108,15 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
           } as InputState[keyof InputState],
         },
       });
-      const { exist } = await accessControlApi.checkResourceExist({
-        names: [value.toLowerCase()],
+      const { exist } = await accessControlApi.checkRoleExist({
+        names: [value],
       });
       dispatch({
         type: HandleType.VALIDATE_INPUT,
         payload: {
           [name]: {
             validateStatus: exist ? 'warning' : 'success',
-            help: exist ? 'Resource exists' : undefined,
+            help: exist ? 'Role exists' : undefined,
           } as InputState[keyof InputState],
         },
       });
@@ -161,11 +127,9 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
       <Form
         form={form}
         initialValues={{
-          name: resource?.name || '',
-          description: resource?.description || '',
-          locked: resource?.locked || false,
-          parent_id: resource?.parent_id || null,
-          operations: resource?.operations.map((operation) => operation._id) || [],
+          name: role?.name || '',
+          description: role?.description || '',
+          permissions: role?.permissions || [],
         }}
         onFinish={onFinish}
       >
@@ -176,7 +140,7 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
             rules={[
               {
                 required: true,
-                message: 'Resource name is required!',
+                message: 'Role name is required!',
               },
             ]}
             validateStatus={state.name.validateStatus && state.name.validateStatus}
@@ -186,8 +150,8 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
               name="name"
               autoComplete="none"
               allowClear
-              prefix={<NodeExpandOutlined />}
-              placeholder="Resource name"
+              prefix={<ApartmentOutlined />}
+              placeholder="Role name"
               onChange={handleInputValidationOnChange}
             />
           </Form.Item>
@@ -197,27 +161,16 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
               allowClear
               maxLength={250}
               autoSize={{ minRows: 3, maxRows: 6 }}
-              placeholder="Describe your resource here..."
+              placeholder="Describe your role here..."
             />
           </Form.Item>
-          <Collapse ghost className="ant-collapse-no-header-padding">
-            <Panel header={<Text strong>Resource's parent</Text>} key="1">
-              <Form.Item name="parent_id" help="Leave blank if create root resource">
-                <ResourceSelect resources={resources} />
-              </Form.Item>
-            </Panel>
-            <Panel header={<Text strong>Resource's actions</Text>} key="2">
-              <Form.Item name="operations">
-                <OperationsSelect operations={operations} />
+          <Collapse defaultActiveKey={['1']} ghost className="ant-collapse-no-header-padding">
+            <Panel header={<Text strong>Role's permissions</Text>} key="1">
+              <Form.Item name="permissions">
+                <PermissionsSelect resources={resources} />
               </Form.Item>
             </Panel>
           </Collapse>
-          <Form.Item>
-            <Form.Item name="locked" valuePropName="checked" noStyle>
-              <Switch checkedChildren={<UnlockOutlined />} unCheckedChildren={<LockOutlined />} />
-            </Form.Item>
-            <Text style={{ marginLeft: '15px' }}>Locked resource</Text>
-          </Form.Item>
           {error && (
             <Alert
               message={error}
@@ -229,7 +182,7 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
           )}
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-              {resource ? 'Save' : 'Create'}
+              {role ? 'Save' : 'Create'}
             </Button>
           </Form.Item>
         </Space>
@@ -238,4 +191,4 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
   );
 };
 
-export default ResourceForm;
+export default RoleForm;

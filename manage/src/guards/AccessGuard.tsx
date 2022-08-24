@@ -11,7 +11,7 @@ import { PATH_EXTERNAL } from '../routes/path';
 export interface ActionsPassedGuardProps {
   currentActions: Permission['operations'];
   actions: Operation[];
-  actionsAllowed: Permission['operations'];
+  actionsAllowed: Operation['name'][];
 }
 
 interface AccessGuardProps {
@@ -34,10 +34,11 @@ const AccessGuard = ({ accessConditions, actionsRequired, children }: AccessGuar
   const currentAccess = permissions?.find((permission) => permission.resource.indexOf(_id) >= 0);
   if (!currentAccess) return <Navigate to={PATH_EXTERNAL.denied} replace />;
 
-  const actionsAllowed: Permission['operations'] = currentAccess.operations.filter((action) => {
-    const operation = operations.find((operation) => operation.name === action);
-    return operation && !operation.locked;
-  });
+  const actionsAllowed = currentAccess.operations.reduce((acc, id) => {
+    const operation: Operation | undefined = operations.find((operation) => operation._id === id);
+    if (!operation || operation.locked) return acc;
+    return [...acc, operation.name];
+  }, [] as Operation['name'][]);
   if (
     actionsRequired &&
     actionsRequired.length > 0 &&

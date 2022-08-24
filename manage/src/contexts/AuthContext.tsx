@@ -89,11 +89,12 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const initRequiredData = async (): Promise<
     Omit<AuthContextStates, 'isInitialized' | 'isAuthenticated'>
   > => {
-    const [resources, operations] = await Promise.all([
+    const [roles, resources, operations] = await Promise.all([
+      accessControlApi.findAllRole(),
       accessControlApi.findAllResourceWithNested(),
       accessControlApi.findAllOperation(),
     ]);
-    sliceDispatch(initializeAccessControl({ resources, operations }));
+    sliceDispatch(initializeAccessControl({ roles, resources, operations }));
 
     const account = await accountApi.getProfile();
     const { permissions, profile } = account;
@@ -101,8 +102,8 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       ...Array.from(
         new Set(
           permissions?.reduce(
-            (result, permission) => [...result, ...permission.resource.split('/')],
-            [] as Permission['resource'][]
+            (result, permission) => [...result, ...permission.resource],
+            [] as Permission['resource']
           )
         )
       ),

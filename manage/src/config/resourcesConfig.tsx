@@ -17,6 +17,7 @@ const getSubKeyByDeepLevel = (level: number, path: string): string => {
 
 export type ResourceConfig = {
   id: Resource['_id'];
+  locked?: Resource['locked'];
   key: string;
   label: ReactNode;
   icon?: ReactNode;
@@ -25,7 +26,15 @@ export type ResourceConfig = {
   avoid?: boolean;
 } | null;
 
-export const generateResources = (resources: Resources): ResourceConfig[] => {
+export const rootResources = (resources: Resource[]): Resources => {
+  return resources.reduce((acc, resource) => {
+    const { _id } = resource;
+    return { ...acc, [_id]: resource };
+  }, {} as Resources);
+};
+
+export const generateResources = (resources: Resource[]): ResourceConfig[] => {
+  const root = rootResources(resources);
   return [
     {
       id: 'dashboard',
@@ -34,66 +43,75 @@ export const generateResources = (resources: Resources): ResourceConfig[] => {
       icon: <DashboardOutlined />,
       avoid: true,
     },
-    (resources.accounts && {
-      id: resources.accounts._id,
+    (root.accounts && {
+      id: root.accounts._id,
+      locked: root.accounts.locked,
       key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.account.root),
-      label: resources.accounts.name,
+      label: root.accounts.name,
       icon: <UserOutlined />,
       children: [
-        (resources.accounts.children.find((e) => e._id === 'administrators') && {
-          id: resources.accounts.children.find((e) => e._id === 'administrators')!._id,
+        (root.accounts.children.find((e) => e._id === 'administrators') && {
+          id: root.accounts.children.find((e) => e._id === 'administrators')!._id,
+          locked: root.accounts.children.find((e) => e._id === 'administrators')!.locked,
           key: PATH_DASHBOARD.account.administrators,
-          label: resources.accounts.children.find((e) => e._id === 'administrators')!.name,
+          label: root.accounts.children.find((e) => e._id === 'administrators')!.name,
           fetching: fetchAccounts({ type: 'Administrator' }),
         }) ||
           null,
-        (resources.accounts.children.find((e) => e._id === 'customers') && {
-          id: resources.accounts.children.find((e) => e._id === 'customers')!._id,
+        (root.accounts.children.find((e) => e._id === 'customers') && {
+          id: root.accounts.children.find((e) => e._id === 'customers')!._id,
+          locked: root.accounts.children.find((e) => e._id === 'customers')!.locked,
           key: PATH_DASHBOARD.account.customers,
-          label: resources.accounts.children.find((e) => e._id === 'customers')!.name,
+          label: root.accounts.children.find((e) => e._id === 'customers')!.name,
           fetching: fetchAccounts({ type: 'Customer' }),
         }) ||
           null,
       ],
     }) ||
       null,
-    (resources.products && {
-      id: resources.products._id,
+    (root.products && {
+      id: root.products._id,
+      locked: root.products.locked,
       key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.products.root),
-      label: resources.products.name,
+      label: root.products.name,
       icon: <SkinOutlined />,
       children: [
-        (resources.products.children.find((e) => e._id === 'list') && {
-          id: resources.products.children.find((e) => e._id === 'list')!._id,
+        (root.products.children.find((e) => e._id === 'list') && {
+          id: root.products.children.find((e) => e._id === 'list')!._id,
+          locked: root.products.children.find((e) => e._id === 'list')!.locked,
           key: PATH_DASHBOARD.products.list,
-          label: resources.products.children.find((e) => e._id === 'list')!.name,
+          label: root.products.children.find((e) => e._id === 'list')!.name,
         }) ||
           null,
       ],
     }) ||
       null,
-    (resources['access control'] && {
-      id: resources['access control']._id,
+    (root['access control'] && {
+      id: root['access control']._id,
+      locked: root['access control'].locked,
       key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.accessControl.root),
-      label: resources['access control'].name,
+      label: root['access control'].name,
       icon: <ControlOutlined />,
       children: [
-        (resources['access control'].children.find((e) => e._id === 'roles') && {
-          id: resources['access control'].children.find((e) => e._id === 'roles')!._id,
+        (root['access control'].children.find((e) => e._id === 'roles') && {
+          id: root['access control'].children.find((e) => e._id === 'roles')!._id,
+          locked: root['access control'].children.find((e) => e._id === 'roles')!.locked,
           key: PATH_DASHBOARD.accessControl.roles,
-          label: resources['access control'].children.find((e) => e._id === 'roles')!.name,
+          label: root['access control'].children.find((e) => e._id === 'roles')!.name,
         }) ||
           null,
-        (resources['access control'].children.find((e) => e._id === 'resources') && {
-          id: resources['access control'].children.find((e) => e._id === 'resources')!._id,
+        (root['access control'].children.find((e) => e._id === 'resources') && {
+          id: root['access control'].children.find((e) => e._id === 'resources')!._id,
+          locked: root['access control'].children.find((e) => e._id === 'resources')!.locked,
           key: PATH_DASHBOARD.accessControl.resources,
-          label: resources['access control'].children.find((e) => e._id === 'resources')!.name,
+          label: root['access control'].children.find((e) => e._id === 'resources')!.name,
         }) ||
           null,
-        (resources['access control'].children.find((e) => e._id === 'operations') && {
-          id: resources['access control'].children.find((e) => e._id === 'operations')!._id,
+        (root['access control'].children.find((e) => e._id === 'operations') && {
+          id: root['access control'].children.find((e) => e._id === 'operations')!._id,
+          locked: root['access control'].children.find((e) => e._id === 'operations')!.locked,
           key: PATH_DASHBOARD.accessControl.operations,
-          label: resources['access control'].children.find((e) => e._id === 'operations')!.name,
+          label: root['access control'].children.find((e) => e._id === 'operations')!.name,
         }) ||
           null,
       ],
@@ -104,12 +122,12 @@ export const generateResources = (resources: Resources): ResourceConfig[] => {
 
 export const filterAccessibleResources = (
   resources: ResourceConfig[],
-  resourcesAllowed: Permission['resource'][]
+  resourcesAllowed: Permission['resource']
 ) => {
   return resources.reduce((result, resource) => {
     if (!resource) return result;
-    const { avoid, ...rest } = resource;
-    if (!resourcesAllowed.includes(rest.id) && !avoid) return result;
+    const { avoid, locked, ...rest } = resource;
+    if ((!resourcesAllowed.includes(rest.id) && !avoid) || locked) return result;
     else if (rest.children) {
       result.push({
         ...rest,

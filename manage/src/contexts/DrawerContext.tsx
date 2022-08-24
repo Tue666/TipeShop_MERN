@@ -4,17 +4,18 @@ import type { DrawerProps } from 'antd';
 // components
 import { ComponentKey } from '../components/Drawer';
 
-interface DrawerContextStates {
+interface DrawerContextStates extends DrawerProps {
   isVisible: boolean;
   key: ComponentKey;
-  title?: string;
-  placement?: DrawerProps['placement'];
   props?: any;
+  sub?: DrawerContextStates;
 }
 
 interface DrawerContextMethods {
   openDrawer: (params: Omit<DrawerContextStates, 'isVisible'>) => void;
+  openSubDrawer: (subParams: Omit<DrawerContextStates, 'isVisible'>) => void;
   closeDrawer: () => void;
+  closeSubDrawer: () => void;
 }
 
 const initialState: DrawerContextStates = {
@@ -26,7 +27,9 @@ const initialState: DrawerContextStates = {
 const DrawerContext = createContext<DrawerContextStates & DrawerContextMethods>({
   ...initialState,
   openDrawer: () => {},
+  openSubDrawer: () => {},
   closeDrawer: () => {},
+  closeSubDrawer: () => {},
 });
 
 interface DrawerProviderProps {
@@ -43,11 +46,28 @@ const DrawerProvider = ({ children }: DrawerProviderProps) => {
       ...params,
     });
   };
+  const openSubDrawer = (params: Omit<DrawerContextStates, 'isVisible'>) => {
+    setState({
+      ...state,
+      sub: {
+        isVisible: true,
+        ...params,
+      },
+    });
+  };
   const closeDrawer = () => {
     setState(initialState);
   };
+  const closeSubDrawer = () => {
+    setState({
+      ...state,
+      sub: undefined,
+    });
+  };
   return (
-    <DrawerContext.Provider value={{ ...state, openDrawer, closeDrawer }}>
+    <DrawerContext.Provider
+      value={{ ...state, openDrawer, openSubDrawer, closeDrawer, closeSubDrawer }}
+    >
       {children}
     </DrawerContext.Provider>
   );

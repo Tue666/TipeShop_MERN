@@ -4,6 +4,7 @@ const router = express.Router();
 // controllers
 const resourcesAPI = require('../app/controllers/ResourcesAPI');
 
+router.put('/:_id', resourcesAPI.edit);
 router.patch('/lock/:_id', resourcesAPI.editLocked);
 router.post('/exist', resourcesAPI.checkExist);
 router.post('/', resourcesAPI.insert);

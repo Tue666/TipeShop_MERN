@@ -23,6 +23,13 @@ export type Resources = {
 };
 
 export interface Permission {
-  resource: Resource['name'];
-  operations: Operation['name'][];
+  resource: Resource['_id'][];
+  operations: Operation['_id'][];
+}
+
+export interface Role {
+  _id: string;
+  name: string;
+  description: string;
+  permissions: Permission[];
 }

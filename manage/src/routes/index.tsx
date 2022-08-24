@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { useRoutes, Navigate } from 'react-router-dom';
 
+// config
+import { rootResources } from '../config';
 // guards
 import AuthGuard from '../guards/AuthGuard';
 import AccessGuard, { ActionGuard } from '../guards/AccessGuard';
@@ -23,6 +25,7 @@ const PageLoader =
 
 const Router = () => {
   const { resources } = useAppSelector(selectAccessControl);
+  const root = rootResources(resources);
   return useRoutes([
     // Main routes
     {
@@ -38,9 +41,7 @@ const Router = () => {
           path: 'accounts/:type',
           element: (
             <AccessGuard
-              accessConditions={({ type }) =>
-                resources.accounts?.children.find((e) => e._id === type)
-              }
+              accessConditions={({ type }) => root.accounts?.children?.find((e) => e._id === type)}
             />
           ),
           children: [
@@ -66,9 +67,7 @@ const Router = () => {
         {
           path: 'products/list',
           element: (
-            <AccessGuard
-              accessConditions={resources.products?.children.find((e) => e._id === 'list')}
-            >
+            <AccessGuard accessConditions={root.products?.children?.find((e) => e._id === 'list')}>
               <ProductList />
             </AccessGuard>
           ),
@@ -81,7 +80,7 @@ const Router = () => {
               path: 'roles',
               element: (
                 <AccessGuard
-                  accessConditions={resources['access control']?.children.find(
+                  accessConditions={root['access control']?.children?.find(
                     (e) => e._id === 'roles'
                   )}
                 >
@@ -93,7 +92,7 @@ const Router = () => {
               path: 'resources',
               element: (
                 <AccessGuard
-                  accessConditions={resources['access control']?.children.find(
+                  accessConditions={root['access control']?.children?.find(
                     (e) => e._id === 'resources'
                   )}
                 >
@@ -105,7 +104,7 @@ const Router = () => {
               path: 'operations',
               element: (
                 <AccessGuard
-                  accessConditions={resources['access control']?.children.find(
+                  accessConditions={root['access control']?.children?.find(
                     (e) => e._id === 'operations'
                   )}
                 >
