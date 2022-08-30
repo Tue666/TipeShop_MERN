@@ -88,7 +88,7 @@ class CategoriesAPI {
 		[banners]: [String],
 		...
 	*/
-	async insert(req, res, next) {
+	async create(req, res, next) {
 		try {
 			const { attributes, ...body } = req.body;
 			const { image, banners } = req.files;

@@ -1,5 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
-import { Space, Button, Table, Tag, Tooltip, Typography } from 'antd';
+import { Space, Button, Table, Tag, Tooltip, Typography, Modal } from 'antd';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -8,15 +9,18 @@ import {
   UnlockOutlined,
 } from '@ant-design/icons';
 
-// guard
-import type { ActionsPassedGuardProps } from '../../guards/AccessGuard';
 // hooks
 import useDrawer from '../../hooks/useDrawer';
 // models
 import type { Operation } from '../../models';
 // redux
-import { useAppSelector } from '../../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectAccessControl } from '../../redux/slices/accessControl';
+import { deleteOperationAction } from '../../redux/actions/accessControl';
+// routes
+import { PATH_DASHBOARD } from '../../routes/path';
+// utils
+import { capitalize } from '../../utils/formatString';
 
 const { Text } = Typography;
 
@@ -24,7 +28,7 @@ const columns: ColumnsType<Operation> = [
   {
     title: 'Name',
     dataIndex: 'name',
-    render: (text) => <Tag>{text}</Tag>,
+    render: (text) => <Tag>{capitalize(text)}</Tag>,
   },
   {
     title: 'Description',
@@ -57,13 +61,26 @@ const columns: ColumnsType<Operation> = [
       };
       return <Tag color={status.color}>{status.text}</Tag>;
     },
+    filters: [
+      {
+        text: 'Available',
+        value: false,
+      },
+      {
+        text: 'Locked',
+        value: true,
+      },
+    ],
+    onFilter: (value, record) => record.locked === value,
   },
 ];
 
-const Operations = ({ actionsAllowed }: ActionsPassedGuardProps) => {
+const Operations = () => {
   const { operations } = useAppSelector(selectAccessControl);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { openDrawer } = useDrawer();
-  const actionsAccessible: ColumnsType<Operation> = [
+  const actionsRequired: ColumnsType<Operation> = [
     {
       title: 'Actions',
       dataIndex: '',
@@ -71,27 +88,41 @@ const Operations = ({ actionsAllowed }: ActionsPassedGuardProps) => {
         const { _id, name } = record;
         return (
           <Space size="middle" align="center">
-            {actionsAllowed.includes('update') && (
-              <Tag
-                icon={<EditOutlined />}
-                color="success"
-                style={{ cursor: 'pointer' }}
-                onClick={() =>
-                  openDrawer({
-                    key: 'operationForm',
-                    title: `Update [${name}] operation`,
-                    props: { operation: operations.find((operation) => operation._id === _id) },
-                  })
-                }
-              >
-                Update
-              </Tag>
-            )}
-            {actionsAllowed.includes('delete') && (
-              <Tag icon={<DeleteOutlined />} color="error" style={{ cursor: 'pointer' }}>
-                Delete
-              </Tag>
-            )}
+            <Tag
+              icon={<EditOutlined />}
+              color="success"
+              style={{ cursor: 'pointer' }}
+              onClick={() =>
+                openDrawer({
+                  key: 'operationForm',
+                  title: `Update [${capitalize(name)}] operation`,
+                  props: { operation: operations.find((operation) => operation._id === _id) },
+                })
+              }
+            >
+              Update
+            </Tag>
+            <Tag
+              icon={<DeleteOutlined />}
+              color="error"
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                Modal.confirm({
+                  centered: true,
+                  title: `Are you sure you want to delete [${capitalize(name)}]?`,
+                  content: 'After deletion, the operation will be saved to the recycle bin',
+                  okButtonProps: {
+                    danger: true,
+                  },
+                  okText: 'Delete',
+                  onOk() {
+                    dispatch(deleteOperationAction({ _id }));
+                  },
+                });
+              }}
+            >
+              Delete
+            </Tag>
           </Space>
         );
       },
@@ -100,20 +131,28 @@ const Operations = ({ actionsAllowed }: ActionsPassedGuardProps) => {
   return (
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
       <Space size="middle">
-        {actionsAllowed.includes('create') && (
-          <Button
-            type="primary"
-            icon={<NodeExpandOutlined />}
-            onClick={() => openDrawer({ key: 'operationForm', title: 'Create operation' })}
-          >
-            Create operation
-          </Button>
-        )}
+        <Button
+          type="primary"
+          shape="round"
+          icon={<NodeExpandOutlined />}
+          onClick={() => openDrawer({ key: 'operationForm', title: 'Create operation' })}
+        >
+          Create operation
+        </Button>
+        <Button
+          type="dashed"
+          shape="round"
+          icon={<DeleteOutlined />}
+          danger
+          onClick={() => navigate(PATH_DASHBOARD.recycleBin.operations)}
+        >
+          Recycle bin
+        </Button>
       </Space>
       <Table
         rowKey="_id"
         tableLayout="fixed"
-        columns={actionsAllowed.length > 0 ? [...columns, ...actionsAccessible] : columns}
+        columns={[...columns, ...actionsRequired]}
         dataSource={operations}
       />
     </Space>

@@ -114,6 +114,20 @@ const Router = () => {
             },
           ],
         },
+        {
+          path: 'recycle-bin/:object',
+          element: (
+            <AccessGuard
+              accessConditions={root['recycle bin']?.children?.find(
+                (e) => e._id === 'operations deleted'
+              )}
+              actionsRequired={['restore', 'destroy']}
+              exactActions={false}
+            >
+              <RecycleBin />
+            </AccessGuard>
+          ),
+        },
       ],
     },
     // Auth routes
@@ -151,6 +165,7 @@ const ProductList = PageLoader(lazy(() => import('../pages/product/ProductList')
 const Roles = PageLoader(lazy(() => import('../pages/access-control/Roles')));
 const Resources = PageLoader(lazy(() => import('../pages/access-control/Resources')));
 const Operations = PageLoader(lazy(() => import('../pages/access-control/Operations')));
+const RecycleBin = PageLoader(lazy(() => import('../pages/RecycleBin')));
 // Auth
 const Login = PageLoader(lazy(() => import('../pages/Login')));
 // External

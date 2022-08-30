@@ -4,12 +4,15 @@ import { Space, Typography } from 'antd';
 
 // components
 import Back from '../../components/Back';
+import type { AccountGeneralFormProps } from '../../components/account/AccountGeneralForm';
 import { AccountGeneralForm } from '../../components/account';
-// models
-import type { AccountType } from '../../models';
+// guard
+import type { ActionsPassedGuardProps } from '../../guards/AccessGuard';
+// redux
+import { useAppSelector } from '../../redux/hooks';
+import { selectAccount } from '../../redux/slices/account';
 // routes
 import { PATH_DASHBOARD } from '../../routes/path';
-
 const { Title, Text } = Typography;
 
 export type Key = 'general';
@@ -37,19 +40,37 @@ const keys = scrollKeys.reduce((accumulator, current) => {
   };
 }, {} as Record<Key, ScrollKeyProps>);
 
-const AccountCreate = () => {
+interface AccountCreateProps extends ActionsPassedGuardProps {}
+
+const AccountCreate = ({ actionsAllowed }: AccountCreateProps) => {
+  const { administrators, customers } = useAppSelector(selectAccount);
   const { type } = useParams();
-  const account_type: AccountType = 'Customer';
-  const backTo =
+  const isEdit = window.location.pathname.indexOf('/edit') >= 0;
+  const _id = window.location.pathname.split('/').pop();
+  const propsByType: Omit<AccountGeneralFormProps, 'actionsAllowed'> & { backTo: string } =
     type === 'administrators'
-      ? PATH_DASHBOARD.account.administrators
-      : PATH_DASHBOARD.account.customers;
+      ? {
+          account: isEdit
+            ? administrators.find((administrator) => administrator._id === _id)
+            : undefined,
+          account_type: 'Administrator',
+          backTo: PATH_DASHBOARD.account.administrators,
+        }
+      : {
+          account: isEdit ? customers.find((customer) => customer._id === _id) : undefined,
+          account_type: 'Customer',
+          backTo: PATH_DASHBOARD.account.customers,
+        };
   return (
     <div>
-      <Back backTo={backTo} scrollKeys={scrollKeys} />
+      <Back backTo={propsByType.backTo} scrollKeys={scrollKeys} />
       <Space direction="vertical" size="small" id={keys.general.key}>
         <Title level={5}>{keys.general.label}</Title>
-        <AccountGeneralForm account_type={account_type} />
+        <AccountGeneralForm
+          account={propsByType.account}
+          account_type={propsByType.account_type}
+          actionsAllowed={actionsAllowed}
+        />
       </Space>
     </div>
   );

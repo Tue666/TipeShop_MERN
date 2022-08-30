@@ -6,8 +6,7 @@ import { Stack, Typography } from '@mui/material';
 import ImageLoader from '../../components/ImageLoader';
 // utils
 import { toVND } from '../../utils/formatMoney';
-// config
-import { apiConfig } from '../../config';
+import { distinguishImage } from '../../utils/formatImage';
 
 const propTypes = {
 	selectedItems: arrayOf(
@@ -52,11 +51,7 @@ const IntendedDelivery = ({ selectedItems }) => {
 								</Typography>
 							</Stack>
 						</ShipFee> */}
-						<ImageLoader
-							alt={name}
-							src={`${apiConfig.image_url}/${images[0]}`}
-							sx={{ width: '60px', height: '60px' }}
-						/>
+						<ImageLoader alt={name} src={distinguishImage(images[0])} sx={{ width: '60px', height: '60px' }} />
 						<Stack sx={{ flex: 1, ml: '10px' }}>
 							<Name variant="body2">{name}</Name>
 							<Typography variant="subtitle2">

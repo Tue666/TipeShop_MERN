@@ -1,5 +1,6 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const mongooseDelete = require('mongoose-delete');
 
 const Types = { customer: 'Customer', administrator: 'Administrator' };
 
@@ -37,6 +38,15 @@ const Customer = Base.discriminator(
 );
 
 const Administrator = Base.discriminator(Types.administrator, new Schema({}));
+
+Account.plugin(mongooseDelete, {
+	deletedAt: true,
+	deletedBy: true,
+	deletedByType: {
+		name: { type: String },
+	},
+	overrideMethods: true,
+});
 
 module.exports = {
 	Types,

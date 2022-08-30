@@ -182,7 +182,7 @@ class ResourcesAPI {
         [operations]: [operations._id],
         [locked]: Boolean,
     */
-	async insert(req, res, next) {
+	async create(req, res, next) {
 		try {
 			let { name, operations, ...others } = req.body;
 
@@ -192,18 +192,22 @@ class ResourcesAPI {
 			}
 			name = name.toLowerCase();
 
-			const operationObjs = [];
-			operations &&
-				operations.map((operation) => {
-					operationObjs.push(mongoose.Types.ObjectId(operation));
-				});
+			const resourceExisted = await Resource.findOne({ name });
+			if (resourceExisted) {
+				next({ status: 400, msg: 'Resource existed!' });
+				return;
+			}
+
+			if (operations) {
+				others.operations = operations.map((operation) => mongoose.Types.ObjectId(operation));
+			}
 
 			const resource = new Resource({
 				name,
-				operations: operationObjs,
 				...others,
 			});
 			await resource.save();
+			await resource.populate('operations');
 
 			res.status(201).json({
 				msg: 'Insert resource successfully!',
@@ -223,31 +227,37 @@ class ResourcesAPI {
         [operations]: [operations._id],
         [locked]: Boolean,
     */
-	async edit(req, res, next) {
+	async update(req, res, next) {
 		try {
 			const { _id } = req.params;
-			let { name, operations } = req.body;
+			let { name, operations, ...others } = req.body;
 
-			if (name !== undefined) {
-				if (name === '') {
-					next({ status: 400, msg: 'Resource name is required!' });
-					return;
+			if (!name) {
+				next({ status: 400, msg: 'Resource name is required!' });
+				return;
+			}
+			name = name.toLowerCase();
+
+			const resourceExisted = await Resource.findOne({ _id: { $ne: _id }, name });
+			if (resourceExisted) {
+				next({ status: 400, msg: 'Resource existed!' });
+				return;
+			}
+
+			if (operations) {
+				others.operations = operations.map((operation) => mongoose.Types.ObjectId(operation));
+			}
+
+			const resource = await Resource.findByIdAndUpdate(
+				_id,
+				{
+					name,
+					...others,
+				},
+				{
+					new: true,
 				}
-				req.body.name = name.toLowerCase();
-			}
-
-			if (operations !== undefined) {
-				const operationObjs = [];
-				operations &&
-					operations.map((operation) => {
-						operationObjs.push(mongoose.Types.ObjectId(operation));
-					});
-				req.body.operations = operationObjs;
-			}
-
-			const resource = await Resource.findByIdAndUpdate(_id, req.body, {
-				new: true,
-			}).populate('operations');
+			).populate('operations');
 
 			res.status(201).json({
 				msg: 'Edit resource successfully!',

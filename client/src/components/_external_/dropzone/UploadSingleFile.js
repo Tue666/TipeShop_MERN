@@ -4,8 +4,8 @@ import { Stack, Box, Typography, Paper } from '@mui/material';
 import { AddAPhoto } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 
-// config
-import { apiConfig } from '../../../config';
+// utils
+import { distinguishImage } from '../../../utils/formatImage';
 
 const propTypes = {
 	file: oneOfType([string, object]),
@@ -66,7 +66,7 @@ const UploadSingleFile = ({ allowed, file, error, caption, sx, ...other }) => {
 						<Box
 							component="img"
 							alt="image"
-							src={typeof file === 'string' ? `${apiConfig.image_url}/${file}` : file.preview}
+							src={typeof file === 'string' ? distinguishImage(file) : file.preview}
 							sx={{ zIndex: 8, objectFit: 'cover' }}
 						/>
 					)}

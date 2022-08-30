@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useEffect } from 'react';
 
+// apis
+import accountApi from './accountApi';
 // hooks
 import useModal from '../hooks/useModal';
 // utils
@@ -35,9 +37,7 @@ const AxiosInterceptor = ({ children }) => {
 					}
 					// generate new token if the authentication is successful
 					try {
-						const newTokens = await axiosInstance.post('/accounts/refreshToken', {
-							refreshToken: tokens.refreshToken,
-						});
+						const newTokens = await accountApi.refreshToken({ refreshToken: tokens.refreshToken });
 						setToken(newTokens);
 						originalRequest.headers['Authorization'] = `Bearer ${newTokens.accessToken}`;
 						return axiosInstance(originalRequest);

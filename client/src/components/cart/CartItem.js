@@ -9,9 +9,8 @@ import ImageLoader from '../../components/ImageLoader';
 import Hidden from '../../components/Hidden';
 // utils
 import { toVND } from '../../utils/formatMoney';
+import { distinguishImage } from '../../utils/formatImage';
 import enqueueSnackbar from '../../utils/snackbar';
-// config
-import { apiConfig } from '../../config';
 // constant
 import { CART_PAGE } from '../../constant';
 //
@@ -105,7 +104,7 @@ const CartItem = ({ item, handleQuantityItemChange, handleSelectItemChange, hand
 					<Link to={linking}>
 						<ImageLoader
 							alt={name}
-							src={`${apiConfig.image_url}/${images[0]}`}
+							src={distinguishImage(images[0])}
 							sx={{
 								width: '80px',
 								height: '80px',

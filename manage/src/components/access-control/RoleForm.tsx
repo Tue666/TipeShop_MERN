@@ -4,13 +4,16 @@ import { Form, Space, Input, Spin, Button, Alert, Collapse, Typography } from 'a
 import { ApartmentOutlined } from '@ant-design/icons';
 
 // apis
-import accessControlApi, { InsertOperationBody } from '../../apis/accessControlApi';
+import accessControlApi, { CreateRoleBody } from '../../apis/accessControlApi';
+// hooks
+import useDrawer from '../../hooks/useDrawer';
+import useAuth from '../../hooks/useAuth';
 // models
 import type { ReducerPayloadAction, Role } from '../../models';
 // redux
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { CreateRolePayload } from '../../redux/actions/accessControl';
-import { createRoleAction } from '../../redux/actions/accessControl';
+import type { CreateRolePayload } from '../../redux/actions/accessControl';
+import { createRoleAction, updateRoleAction } from '../../redux/actions/accessControl';
 import { clearAction, selectAccessControl } from '../../redux/slices/accessControl';
 //
 import PermissionsSelect from './PermissionsSelect';
@@ -19,7 +22,7 @@ const { Text } = Typography;
 const { Panel } = Collapse;
 
 type InputState = {
-  [key in keyof InsertOperationBody]: {
+  [key in keyof CreateRoleBody]: {
     validateStatus: FormItemProps['validateStatus'] | undefined;
     help: FormItemProps['help'] | undefined;
   };
@@ -59,7 +62,9 @@ interface RoleFormProps {
 
 const RoleForm = ({ role }: RoleFormProps) => {
   const sliceDispatch = useAppDispatch();
-  const { isLoading, error, lastAction, resources } = useAppSelector(selectAccessControl);
+  const { isLoading, error, lastAction, resources, roles } = useAppSelector(selectAccessControl);
+  const { closeDrawer } = useDrawer();
+  const { refreshAccessibleResources } = useAuth();
   const [form] = Form.useForm();
   const { resetFields } = form;
   const searchOperationRef = useRef<ReturnType<typeof setTimeout>>();
@@ -70,18 +75,33 @@ const RoleForm = ({ role }: RoleFormProps) => {
         case 'create':
           resetFields();
           break;
+        case 'update':
+          closeDrawer();
+          break;
         default:
           break;
       }
+      refreshAccessibleResources(resources, roles);
       sliceDispatch(clearAction());
     }
     // eslint-disable-next-line
   }, [lastAction]);
 
   const onFinish = (values: CreateRolePayload) => {
-    // create goes here
-    message.loading({ content: 'Processing...', key: 'create' });
-    sliceDispatch(createRoleAction(values));
+    if (!role) {
+      // create goes here
+      message.loading({ content: 'Processing...', key: 'create' });
+      sliceDispatch(createRoleAction(values));
+      return;
+    }
+    // update goes here
+    message.loading({ content: 'Processing...', key: 'update' });
+    sliceDispatch(
+      updateRoleAction({
+        _id: role._id,
+        ...values,
+      })
+    );
   };
   const handleInputValidationOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -150,6 +170,7 @@ const RoleForm = ({ role }: RoleFormProps) => {
               name="name"
               autoComplete="none"
               allowClear
+              disabled={!!role}
               prefix={<ApartmentOutlined />}
               placeholder="Role name"
               onChange={handleInputValidationOnChange}
@@ -178,6 +199,7 @@ const RoleForm = ({ role }: RoleFormProps) => {
               showIcon
               closable
               style={{ marginBottom: '10px' }}
+              onClose={() => sliceDispatch(clearAction())}
             />
           )}
           <Form.Item>

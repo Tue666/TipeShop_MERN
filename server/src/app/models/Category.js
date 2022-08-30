@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const slug = require('mongoose-slug-generator');
+const mongooseDelete = require('mongoose-delete');
 
 // models
 const { autoIncrementModelID } = require('./Counter');
@@ -33,6 +34,15 @@ Category.pre('save', function (next) {
 		return;
 	}
 	autoIncrementModelID('category', this, next);
+});
+
+Category.plugin(mongooseDelete, {
+	deletedAt: true,
+	deletedBy: true,
+	deletedByType: {
+		name: { type: String },
+	},
+	overrideMethods: true,
 });
 
 module.exports = mongoose.model('Category', Category);

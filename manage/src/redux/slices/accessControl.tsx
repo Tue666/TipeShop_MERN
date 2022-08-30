@@ -1,37 +1,49 @@
-import { message } from 'antd';
+import { message, Modal } from 'antd';
 import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 import { takeLatest, call, put } from 'redux-saga/effects';
 import axios from 'axios';
 
 // apis
 import type {
-  InsertOperationResponse,
-  InsertResourceResponse,
-  InsertRoleResponse,
-  UpdateOperationResponse,
+  CreateRoleResponse,
+  UpdateRoleResponse,
+  CreateResourceResponse,
   UpdateResourceResponse,
+  CreateOperationResponse,
+  UpdateOperationResponse,
+  DeleteOperationResponse,
+  RestoreOperationResponse,
 } from '../../apis/accessControlApi';
 import accessControlApi from '../../apis/accessControlApi';
 // models
 import type { Resource, Operation, Role } from '../../models';
 // redux
 import { RootState } from '../store';
-import {
-  CreateOperationPayload,
-  CreateResourcePayload,
+import type {
   CreateRolePayload,
-  CREATE_RESOURCE,
-  CREATE_ROLE,
-  UpdateOperationPayload,
+  UpdateRolePayload,
+  CreateResourcePayload,
   UpdateResourcePayload,
-  UPDATE_RESOURCE,
+  CreateOperationPayload,
+  UpdateOperationPayload,
+  DeleteOperationPayload,
+  RestoreOperationPayload,
 } from '../actions/accessControl';
-import { CREATE_OPERATION, UPDATE_OPERATION } from '../actions/accessControl';
+import {
+  CREATE_ROLE,
+  UPDATE_ROLE,
+  CREATE_RESOURCE,
+  UPDATE_RESOURCE,
+  CREATE_OPERATION,
+  UPDATE_OPERATION,
+  DELETE_OPERATION,
+  RESTORE_OPERATION,
+} from '../actions/accessControl';
 
 export interface AccessControlState {
   isLoading: boolean;
   error: string | undefined;
-  lastAction: 'create' | 'update' | undefined;
+  lastAction: 'create' | 'update' | 'delete' | 'restore' | undefined;
   resources: Resource[];
   operations: Operation[];
   roles: Role[];
@@ -78,10 +90,36 @@ const resourcesChanged = (
   });
 };
 
-const newResources = (resources: Resource[], target: Resource): AccessControlState['resources'] => {
+const newResourcesByResource = (
+  resources: Resource[],
+  target: Resource
+): AccessControlState['resources'] => {
   const isRootTarget = target.parent_id === null;
   const rs = resourcesChanged(resources, target);
   return isRootTarget ? [...rs, target] : rs;
+};
+
+const newResourcesByOperation = (
+  resources: Resource[],
+  target: Operation | Operation['_id'] // will remove target in resources if input is Operation['_id']
+): AccessControlState['resources'] => {
+  const isObject = typeof target === 'object';
+  return resources.map((resource) => {
+    const { operations, children } = resource;
+    if (operations && operations.length > 0) {
+      const targetId = isObject ? target._id : target;
+      const newOperations = isObject
+        ? operations.map((operation) => (operation._id === targetId ? target : operation))
+        : operations.filter((operation) => operation._id !== targetId);
+      return {
+        ...resource,
+        operations: newOperations,
+      };
+    }
+    if (children && children.length > 0)
+      return { ...resource, children: newResourcesByOperation(children, target) };
+    return resource;
+  });
 };
 
 const slice = createSlice({
@@ -119,11 +157,15 @@ const slice = createSlice({
     createRoleSuccess: (state, action: PayloadAction<Role>) => {
       state.roles = [...state.roles, action.payload];
     },
+    updateRoleSuccess: (state, action: PayloadAction<Role>) => {
+      const { _id, ...rest } = action.payload;
+      state.roles = state.roles.map((role) => (role._id === _id ? { ...role, ...rest } : role));
+    },
     createResourceSuccess: (state, action: PayloadAction<Resource>) => {
-      state.resources = newResources(current(state.resources), action.payload);
+      state.resources = newResourcesByResource(current(state.resources), action.payload);
     },
     updateResourceSuccess: (state, action: PayloadAction<Resource>) => {
-      state.resources = newResources(current(state.resources), action.payload);
+      state.resources = newResourcesByResource(current(state.resources), action.payload);
     },
     createOperationSuccess: (state, action: PayloadAction<Operation>) => {
       state.operations = [...state.operations, action.payload];
@@ -133,6 +175,14 @@ const slice = createSlice({
       state.operations = state.operations.map((operation) =>
         operation._id === _id ? { ...operation, ...rest } : operation
       );
+      state.resources = newResourcesByOperation(current(state.resources), action.payload);
+    },
+    deleteOperationSuccess: (state, action: PayloadAction<Operation['_id']>) => {
+      state.operations = state.operations.filter((operation) => operation._id !== action.payload);
+      state.resources = newResourcesByOperation(current(state.resources), action.payload);
+    },
+    restoreOperationSuccess: (state, action: PayloadAction<Operation>) => {
+      state.operations = [...state.operations, action.payload];
     },
   },
 });
@@ -145,7 +195,7 @@ export default reducer;
 function* createRole(action: PayloadAction<CreateRolePayload>) {
   try {
     yield put(actions.startLoading());
-    const response: InsertRoleResponse = yield call(accessControlApi.insertRole, action.payload);
+    const response: CreateRoleResponse = yield call(accessControlApi.createRole, action.payload);
     const { role, msg } = response;
     yield put(actions.createRoleSuccess(role));
     yield put(actions.actionSuccess('create'));
@@ -158,11 +208,28 @@ function* createRole(action: PayloadAction<CreateRolePayload>) {
   }
 }
 
+function* updateRole(action: PayloadAction<UpdateRolePayload>) {
+  try {
+    yield put(actions.startLoading());
+    const { _id, ...values } = action.payload;
+    const response: UpdateRoleResponse = yield call(accessControlApi.updateRole, { _id }, values);
+    const { role, msg } = response;
+    yield put(actions.updateRoleSuccess(role));
+    yield put(actions.actionSuccess('update'));
+    message.success({ content: msg, key: 'update' });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      yield put(actions.hasError(error.response?.statusText));
+      message.error({ content: error.response?.statusText, key: 'update' });
+    }
+  }
+}
+
 function* createResource(action: PayloadAction<CreateResourcePayload>) {
   try {
     yield put(actions.startLoading());
-    const response: InsertResourceResponse = yield call(
-      accessControlApi.insertResource,
+    const response: CreateResourceResponse = yield call(
+      accessControlApi.createResource,
       action.payload
     );
     const { resource, msg } = response;
@@ -182,7 +249,7 @@ function* updateResource(action: PayloadAction<UpdateResourcePayload>) {
     yield put(actions.startLoading());
     const { _id, ...values } = action.payload;
     const response: UpdateResourceResponse = yield call(
-      accessControlApi.editResource,
+      accessControlApi.updateResource,
       { _id },
       values
     );
@@ -201,8 +268,8 @@ function* updateResource(action: PayloadAction<UpdateResourcePayload>) {
 function* createOperation(action: PayloadAction<CreateOperationPayload>) {
   try {
     yield put(actions.startLoading());
-    const response: InsertOperationResponse = yield call(
-      accessControlApi.insertOperation,
+    const response: CreateOperationResponse = yield call(
+      accessControlApi.createOperation,
       action.payload
     );
     const { operation, msg } = response;
@@ -212,6 +279,14 @@ function* createOperation(action: PayloadAction<CreateOperationPayload>) {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       yield put(actions.hasError(error.response?.statusText));
+      if (error.response?.status === 405) {
+        Modal.error({
+          centered: true,
+          title: `Found the operation in the recycle bin, restore it`,
+          content:
+            'Operation name is unique, to continue creating please restore or delete permanently in recycle bin',
+        });
+      }
       message.error({ content: error.response?.statusText, key: 'create' });
     }
   }
@@ -222,7 +297,7 @@ function* updateOperation(action: PayloadAction<UpdateOperationPayload>) {
     yield put(actions.startLoading());
     const { _id, ...values } = action.payload;
     const response: UpdateOperationResponse = yield call(
-      accessControlApi.editOperation,
+      accessControlApi.updateOperation,
       { _id },
       values
     );
@@ -238,12 +313,53 @@ function* updateOperation(action: PayloadAction<UpdateOperationPayload>) {
   }
 }
 
+function* deleteOperation(action: PayloadAction<DeleteOperationPayload>) {
+  try {
+    yield put(actions.startLoading());
+    const response: DeleteOperationResponse = yield call(
+      accessControlApi.deleteOperation,
+      action.payload
+    );
+    const { deletedId, msg } = response;
+    yield put(actions.deleteOperationSuccess(deletedId));
+    yield put(actions.actionSuccess('delete'));
+    message.success({ content: msg, key: 'delete' });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      yield put(actions.hasError(error.response?.statusText));
+      message.error({ content: error.response?.statusText, key: 'delete' });
+    }
+  }
+}
+
+function* restoreOperation(action: PayloadAction<RestoreOperationPayload>) {
+  try {
+    yield put(actions.startLoading());
+    const response: RestoreOperationResponse = yield call(
+      accessControlApi.restoreOperation,
+      action.payload
+    );
+    const { operation, msg } = response;
+    yield put(actions.restoreOperationSuccess(operation));
+    yield put(actions.actionSuccess('restore'));
+    message.success({ content: msg, key: 'restore' });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      yield put(actions.hasError(error.response?.statusText));
+      message.error({ content: error.response?.statusText, key: 'restore' });
+    }
+  }
+}
+
 export function* accessControlSaga() {
   yield takeLatest(CREATE_ROLE, createRole);
+  yield takeLatest(UPDATE_ROLE, updateRole);
 
   yield takeLatest(CREATE_RESOURCE, createResource);
   yield takeLatest(UPDATE_RESOURCE, updateResource);
 
   yield takeLatest(CREATE_OPERATION, createOperation);
   yield takeLatest(UPDATE_OPERATION, updateOperation);
+  yield takeLatest(DELETE_OPERATION, deleteOperation);
+  yield takeLatest(RESTORE_OPERATION, restoreOperation);
 }

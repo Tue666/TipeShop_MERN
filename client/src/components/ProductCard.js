@@ -8,10 +8,10 @@ import ImageLoader from './ImageLoader';
 import Stars from './Stars';
 // utils
 import { toVND } from '../utils/formatMoney';
-// config
-import { apiConfig } from '../config';
 // constant
 import { CARD_WIDTH } from '../constant';
+// utils
+import { distinguishImage } from '../utils/formatImage';
 
 const CARD = {
 	WIDTH: CARD_WIDTH,
@@ -53,7 +53,7 @@ const ProductCard = ({ product }) => {
 		<RootStyle>
 			<Link to={`/${slug}/pid${_id}`}>
 				<ImageLoader
-					src={`${apiConfig.image_url}/${images[0]}`}
+					src={distinguishImage(images[0])}
 					alt={name}
 					sx={{
 						borderRadius: '5px',

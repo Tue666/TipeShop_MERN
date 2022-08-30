@@ -1,54 +1,104 @@
+import { useEffect } from 'react';
 import styled from 'styled-components';
-import { Row, Col, Space, Typography, Input, Radio, Button, RadioChangeEvent, message } from 'antd';
+import {
+  Row,
+  Col,
+  Space,
+  Typography,
+  Input,
+  Radio,
+  Button,
+  RadioChangeEvent,
+  message,
+  Select,
+} from 'antd';
 import { useFormik, FormikProvider, Form } from 'formik';
 
 // components
 import Box from '../Box';
 import { UploadSingleFile } from '../_external_/dropzone';
+// guard
+import type { ActionsPassedGuardProps } from '../../guards/AccessGuard';
 // models
-import type { Account, Administrator, Customer } from '../../models';
+import type { Account, Administrator, Customer, GeneralAccount, Role } from '../../models';
 // redux
-import { useAppDispatch } from '../../redux/hooks';
-import type { CreateAccountPayload } from '../../redux/actions/account';
-import { createAccount } from '../../redux/actions/account';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import type { CreateAccountPayload, UpdateAccountPayload } from '../../redux/actions/account';
+import { createAccountAction, updateAccountAction } from '../../redux/actions/account';
+import { clearAction, selectAccount } from '../../redux/slices/account';
+import { selectAccessControl } from '../../redux/slices/accessControl';
 // utils
-import { createAccountValidation } from '../../utils/validation';
+import { createAccountValidation, updateAccountValidation } from '../../utils/validation';
+import { humanFileSize } from '../../utils/formatNumber';
 
+const { Option } = Select;
 const { Text } = Typography;
 
-const AccountGeneralForm = ({ account_type }: Record<'account_type', Account['type']>) => {
+export interface AccountGeneralFormProps extends Pick<ActionsPassedGuardProps, 'actionsAllowed'> {
+  account?: GeneralAccount;
+  account_type: Account['type'];
+}
+
+const AccountGeneralForm = ({ account, account_type, actionsAllowed }: AccountGeneralFormProps) => {
+  const { lastAction } = useAppSelector(selectAccount);
+  const { roles } = useAppSelector(selectAccessControl);
   const dispatch = useAppDispatch();
-  const isEdit = window.location.pathname.indexOf('/edit') >= 0;
   const customer: Customer = {
-    gender: '',
+    gender: account?.gender || '',
+    social: account?.social || [],
   };
   const administrator: Administrator = {};
   let dependentValues = account_type === 'Administrator' ? administrator : customer;
-  const initialValues: CreateAccountPayload = {
-    name: '',
-    email: '',
-    phone_number: '',
+  const initialValues: CreateAccountPayload | UpdateAccountPayload = {
+    name: account?.name || '',
+    email: account?.email || '',
+    phone_number: account?.phone_number || '',
     password: '',
     passwordConfirm: '',
-    avatar_url: '',
+    avatar_url: account?.avatar_url || null,
+    roles: account?.roles || [],
     account_type,
     ...dependentValues,
   };
   const formik = useFormik({
     initialValues,
-    validationSchema: createAccountValidation,
+    validationSchema: account ? updateAccountValidation : createAccountValidation,
+    validateOnChange: false,
     onSubmit: async (values) => {
-      message.loading({ content: 'Processing...', key: 'create' });
+      if (!account) {
+        // create goes here
+        message.loading({ content: 'Processing...', key: 'create' });
+        dispatch(createAccountAction(values));
+        return;
+      }
+      // update goes here
+      message.loading({ content: 'Processing...', key: 'update' });
       dispatch(
-        createAccount({
+        updateAccountAction({
+          _id: account._id,
           ...values,
-          account_type,
         })
       );
     },
   });
-  const { values, touched, errors, isSubmitting, getFieldProps, setFieldValue } = formik;
+  const { values, touched, errors, isSubmitting, getFieldProps, setFieldValue, resetForm } = formik;
+  useEffect(() => {
+    if (lastAction !== undefined) {
+      switch (lastAction) {
+        case 'create':
+          resetForm();
+          break;
+        default:
+          break;
+      }
+      dispatch(clearAction());
+    }
+    // eslint-disable-next-line
+  }, [lastAction]);
 
+  const handleChangeRoles = (value: Role['name'][]) => {
+    setFieldValue('roles', value);
+  };
   const handleChangeGender = (e: RadioChangeEvent) => {
     const value = e.target.value;
     setFieldValue('gender', value);
@@ -107,7 +157,7 @@ const AccountGeneralForm = ({ account_type }: Record<'account_type', Account['ty
                   )}
                 </Space>
               </Stack>
-              {!isEdit && (
+              {!account && (
                 <>
                   <Space direction="vertical" size="small">
                     <Text strong>Password:</Text>
@@ -141,6 +191,29 @@ const AccountGeneralForm = ({ account_type }: Record<'account_type', Account['ty
                   </Space>
                 </>
               )}
+              {actionsAllowed.includes('authorize') && (
+                <Space direction="vertical" size="small">
+                  <Text strong>Roles:</Text>
+                  <Select
+                    value={values.roles}
+                    mode="multiple"
+                    allowClear
+                    showSearch
+                    placeholder="Specify the role of the account"
+                    style={{ width: '100%' }}
+                    onChange={handleChangeRoles}
+                  >
+                    {roles.map((role) => {
+                      const { _id, name } = role;
+                      return (
+                        <Option key={_id} value={name}>
+                          {name}
+                        </Option>
+                      );
+                    })}
+                  </Select>
+                </Space>
+              )}
               {account_type === 'Customer' && (
                 <>
                   <Space direction="vertical" size="small">
@@ -154,7 +227,7 @@ const AccountGeneralForm = ({ account_type }: Record<'account_type', Account['ty
                 </>
               )}
               <Button htmlType="submit" type="primary" block loading={isSubmitting}>
-                {isEdit ? 'Save changes' : 'Create'}
+                {account ? 'Save changes' : 'Create'}
               </Button>
             </Box>
           </Col>
@@ -178,7 +251,7 @@ const AccountGeneralForm = ({ account_type }: Record<'account_type', Account['ty
                     }}
                   >
                     Allowed *.jpeg, *.jpg, *.png, *.gif
-                    <br /> max size of 1 MB
+                    <br /> max size of {humanFileSize(1048576)}
                   </Text>
                 }
                 showRejected

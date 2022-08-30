@@ -15,10 +15,11 @@ import {
 import { NodeExpandOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 
 // apis
-import type { InsertResourceBody } from '../../apis/accessControlApi';
+import type { CreateResourceBody } from '../../apis/accessControlApi';
 import accessControlApi from '../../apis/accessControlApi';
 // hooks
 import useDrawer from '../../hooks/useDrawer';
+import useAuth from '../../hooks/useAuth';
 // models
 import type { ReducerPayloadAction, Resource } from '../../models';
 // redux
@@ -29,6 +30,8 @@ import {
   updateResourceAction,
 } from '../../redux/actions/accessControl';
 import { clearAction, selectAccessControl } from '../../redux/slices/accessControl';
+// utils
+import { capitalize } from '../../utils/formatString';
 //
 import ResourceSelect from './ResourceSelect';
 import OperationsSelect from './OperationsSelect';
@@ -37,7 +40,7 @@ const { Text } = Typography;
 const { Panel } = Collapse;
 
 type InputState = {
-  [key in keyof InsertResourceBody]: {
+  [key in keyof CreateResourceBody]: {
     validateStatus: FormItemProps['validateStatus'] | undefined;
     help: FormItemProps['help'] | undefined;
   };
@@ -77,9 +80,10 @@ interface ResourceFormProps {
 
 const ResourceForm = ({ resource }: ResourceFormProps) => {
   const sliceDispatch = useAppDispatch();
-  const { isLoading, error, lastAction, resources, operations } =
+  const { isLoading, error, lastAction, resources, roles, operations } =
     useAppSelector(selectAccessControl);
   const { closeDrawer } = useDrawer();
+  const { refreshAccessibleResources } = useAuth();
   const [form] = Form.useForm();
   const { resetFields } = form;
   const searchOperationRef = useRef<ReturnType<typeof setTimeout>>();
@@ -96,6 +100,7 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
         default:
           break;
       }
+      refreshAccessibleResources(resources, roles);
       sliceDispatch(clearAction());
     }
     // eslint-disable-next-line
@@ -161,7 +166,7 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
       <Form
         form={form}
         initialValues={{
-          name: resource?.name || '',
+          name: capitalize(resource?.name) || '',
           description: resource?.description || '',
           locked: resource?.locked || false,
           parent_id: resource?.parent_id || null,
@@ -186,6 +191,7 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
               name="name"
               autoComplete="none"
               allowClear
+              disabled={!!resource}
               prefix={<NodeExpandOutlined />}
               placeholder="Resource name"
               onChange={handleInputValidationOnChange}
@@ -225,6 +231,7 @@ const ResourceForm = ({ resource }: ResourceFormProps) => {
               showIcon
               closable
               style={{ marginBottom: '10px' }}
+              onClose={() => sliceDispatch(clearAction())}
             />
           )}
           <Form.Item>

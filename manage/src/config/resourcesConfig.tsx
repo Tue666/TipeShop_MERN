@@ -1,11 +1,17 @@
 import { ReactNode } from 'react';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { UserOutlined, DashboardOutlined, SkinOutlined, ControlOutlined } from '@ant-design/icons';
+import {
+  UserOutlined,
+  DashboardOutlined,
+  SkinOutlined,
+  ControlOutlined,
+  RestOutlined,
+} from '@ant-design/icons';
 
 // models
 import type { Resources, Resource, Permission } from '../models';
 // redux
-import { fetchAccounts } from '../redux/actions/account';
+import { getAccountsAction } from '../redux/actions/account';
 // routes
 import { PATH_DASHBOARD } from '../routes/path';
 // utils
@@ -50,20 +56,20 @@ export const generateResources = (resources: Resource[]): ResourceConfig[] => {
       label: root.accounts.name,
       icon: <UserOutlined />,
       children: [
-        (root.accounts.children.find((e) => e._id === 'administrators') && {
-          id: root.accounts.children.find((e) => e._id === 'administrators')!._id,
-          locked: root.accounts.children.find((e) => e._id === 'administrators')!.locked,
+        (root.accounts.children?.find((e) => e._id === 'administrators') && {
+          id: root.accounts.children?.find((e) => e._id === 'administrators')!._id,
+          locked: root.accounts.children?.find((e) => e._id === 'administrators')!.locked,
           key: PATH_DASHBOARD.account.administrators,
-          label: root.accounts.children.find((e) => e._id === 'administrators')!.name,
-          fetching: fetchAccounts({ type: 'Administrator' }),
+          label: root.accounts.children?.find((e) => e._id === 'administrators')!.name,
+          fetching: getAccountsAction({ type: 'Administrator' }),
         }) ||
           null,
-        (root.accounts.children.find((e) => e._id === 'customers') && {
-          id: root.accounts.children.find((e) => e._id === 'customers')!._id,
-          locked: root.accounts.children.find((e) => e._id === 'customers')!.locked,
+        (root.accounts.children?.find((e) => e._id === 'customers') && {
+          id: root.accounts.children?.find((e) => e._id === 'customers')!._id,
+          locked: root.accounts.children?.find((e) => e._id === 'customers')!.locked,
           key: PATH_DASHBOARD.account.customers,
-          label: root.accounts.children.find((e) => e._id === 'customers')!.name,
-          fetching: fetchAccounts({ type: 'Customer' }),
+          label: root.accounts.children?.find((e) => e._id === 'customers')!.name,
+          fetching: getAccountsAction({ type: 'Customer' }),
         }) ||
           null,
       ],
@@ -76,11 +82,11 @@ export const generateResources = (resources: Resource[]): ResourceConfig[] => {
       label: root.products.name,
       icon: <SkinOutlined />,
       children: [
-        (root.products.children.find((e) => e._id === 'list') && {
-          id: root.products.children.find((e) => e._id === 'list')!._id,
-          locked: root.products.children.find((e) => e._id === 'list')!.locked,
+        (root.products.children?.find((e) => e._id === 'list') && {
+          id: root.products.children?.find((e) => e._id === 'list')!._id,
+          locked: root.products.children?.find((e) => e._id === 'list')!.locked,
           key: PATH_DASHBOARD.products.list,
-          label: root.products.children.find((e) => e._id === 'list')!.name,
+          label: root.products.children?.find((e) => e._id === 'list')!.name,
         }) ||
           null,
       ],
@@ -93,25 +99,42 @@ export const generateResources = (resources: Resource[]): ResourceConfig[] => {
       label: root['access control'].name,
       icon: <ControlOutlined />,
       children: [
-        (root['access control'].children.find((e) => e._id === 'roles') && {
-          id: root['access control'].children.find((e) => e._id === 'roles')!._id,
-          locked: root['access control'].children.find((e) => e._id === 'roles')!.locked,
+        (root['access control'].children?.find((e) => e._id === 'roles') && {
+          id: root['access control'].children?.find((e) => e._id === 'roles')!._id,
+          locked: root['access control'].children?.find((e) => e._id === 'roles')!.locked,
           key: PATH_DASHBOARD.accessControl.roles,
-          label: root['access control'].children.find((e) => e._id === 'roles')!.name,
+          label: root['access control'].children?.find((e) => e._id === 'roles')!.name,
         }) ||
           null,
-        (root['access control'].children.find((e) => e._id === 'resources') && {
-          id: root['access control'].children.find((e) => e._id === 'resources')!._id,
-          locked: root['access control'].children.find((e) => e._id === 'resources')!.locked,
+        (root['access control'].children?.find((e) => e._id === 'resources') && {
+          id: root['access control'].children?.find((e) => e._id === 'resources')!._id,
+          locked: root['access control'].children?.find((e) => e._id === 'resources')!.locked,
           key: PATH_DASHBOARD.accessControl.resources,
-          label: root['access control'].children.find((e) => e._id === 'resources')!.name,
+          label: root['access control'].children?.find((e) => e._id === 'resources')!.name,
         }) ||
           null,
-        (root['access control'].children.find((e) => e._id === 'operations') && {
-          id: root['access control'].children.find((e) => e._id === 'operations')!._id,
-          locked: root['access control'].children.find((e) => e._id === 'operations')!.locked,
+        (root['access control'].children?.find((e) => e._id === 'operations') && {
+          id: root['access control'].children?.find((e) => e._id === 'operations')!._id,
+          locked: root['access control'].children?.find((e) => e._id === 'operations')!.locked,
           key: PATH_DASHBOARD.accessControl.operations,
-          label: root['access control'].children.find((e) => e._id === 'operations')!.name,
+          label: root['access control'].children?.find((e) => e._id === 'operations')!.name,
+        }) ||
+          null,
+      ],
+    }) ||
+      null,
+    (root['recycle bin'] && {
+      id: root['recycle bin']._id,
+      locked: root['recycle bin'].locked,
+      key: getSubKeyByDeepLevel(1, PATH_DASHBOARD.recycleBin.root),
+      label: root['recycle bin'].name,
+      icon: <RestOutlined />,
+      children: [
+        (root['recycle bin'].children?.find((e) => e._id === 'operations deleted') && {
+          id: root['recycle bin'].children?.find((e) => e._id === 'operations deleted')!._id,
+          locked: root['recycle bin'].children?.find((e) => e._id === 'operations deleted')!.locked,
+          key: PATH_DASHBOARD.recycleBin.operations,
+          label: root['recycle bin'].children?.find((e) => e._id === 'operations deleted')!.name,
         }) ||
           null,
       ],

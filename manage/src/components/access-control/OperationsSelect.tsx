@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Space, Tag, Typography, Tooltip, Select, Button, Divider } from 'antd';
-import { NodeExpandOutlined, PlusOutlined } from '@ant-design/icons';
+import { LockOutlined, NodeExpandOutlined, PlusOutlined } from '@ant-design/icons';
 
 // models
 import { Operation } from '../../models';
@@ -97,16 +97,16 @@ const ActionsSelect = ({ operations, value, onChange }: ActionsSelectProps) => {
       )}
       <Space wrap>
         {operationsTaken.map((operation) => {
-          const { _id, name, description } = operation;
+          const { _id, name, description, locked } = operation;
           return (
             <Tooltip key={_id} title={description}>
               <Tag
-                icon={<NodeExpandOutlined />}
-                color="success"
-                closable
+                icon={locked ? <LockOutlined /> : <NodeExpandOutlined />}
+                color={locked ? 'default' : 'success'}
+                closable={!locked}
                 onClose={() => handleRemoveOperation(_id)}
               >
-                <Text type="success" strong>
+                <Text type={locked ? undefined : 'success'} strong>
                   {name}
                 </Text>
               </Tag>

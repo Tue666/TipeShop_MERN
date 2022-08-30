@@ -30,8 +30,7 @@ import { PATH_CUSTOMER } from '../../routes/path';
 // utils
 import { toVND } from '../../utils/formatMoney';
 import { fDate } from '../../utils/formatDate';
-// config
-import { apiConfig } from '../../config';
+import { distinguishImage } from '../../utils/formatImage';
 
 const SkeletonLoad = (
 	<Stack spacing={2}>
@@ -198,7 +197,7 @@ const OrderDetail = () => {
 												<Stack direction="row" spacing={2}>
 													<ImageLoader
 														alt={name}
-														src={`${apiConfig.image_url}/${images[0]}`}
+														src={distinguishImage(images[0])}
 														sx={{
 															width: '80px',
 															height: '80px',

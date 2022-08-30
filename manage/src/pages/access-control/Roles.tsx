@@ -1,5 +1,5 @@
 import type { ColumnsType } from 'antd/es/table';
-import { Button, Space, Table, Tag, Tooltip, Typography } from 'antd';
+import { Button, Modal, Space, Table, Tag, Tooltip, Typography } from 'antd';
 import { EditOutlined, DeleteOutlined, ApartmentOutlined } from '@ant-design/icons';
 
 // guard
@@ -11,8 +11,6 @@ import type { Role } from '../../models';
 // redux
 import { useAppSelector } from '../../redux/hooks';
 import { selectAccessControl } from '../../redux/slices/accessControl';
-// utils
-import { capitalize } from '../../utils/formatString';
 
 const { Text } = Typography;
 
@@ -20,7 +18,7 @@ const columns: ColumnsType<Role> = [
   {
     title: 'Name',
     dataIndex: 'name',
-    render: (text) => <Text strong>{capitalize(text)}</Text>,
+    render: (text) => <Text strong>{text}</Text>,
   },
   {
     title: 'Description',
@@ -55,7 +53,7 @@ const Roles = ({ actionsAllowed }: ActionsPassedGuardProps) => {
                 onClick={() =>
                   openDrawer({
                     key: 'roleForm',
-                    title: `Update [${capitalize(name)}] role`,
+                    title: `Update [${name}] role`,
                     props: { role: roles.find((role) => role._id === _id) },
                   })
                 }
@@ -64,7 +62,23 @@ const Roles = ({ actionsAllowed }: ActionsPassedGuardProps) => {
               </Tag>
             )}
             {actionsAllowed.includes('delete') && (
-              <Tag icon={<DeleteOutlined />} color="error" style={{ cursor: 'pointer' }}>
+              <Tag
+                icon={<DeleteOutlined />}
+                color="error"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  Modal.confirm({
+                    centered: true,
+                    title: `Are you sure you want to delete [${name}]?`,
+                    content: 'After deletion, the role will be saved to the recycle bin',
+                    okButtonProps: {
+                      danger: true,
+                    },
+                    okText: 'Delete',
+                    onOk() {},
+                  });
+                }}
+              >
                 Delete
               </Tag>
             )}
@@ -79,6 +93,7 @@ const Roles = ({ actionsAllowed }: ActionsPassedGuardProps) => {
         {actionsAllowed.includes('create') && (
           <Button
             type="primary"
+            shape="round"
             icon={<ApartmentOutlined />}
             onClick={() =>
               openDrawer({
@@ -90,6 +105,9 @@ const Roles = ({ actionsAllowed }: ActionsPassedGuardProps) => {
             Create role
           </Button>
         )}
+        <Button type="dashed" shape="round" icon={<DeleteOutlined />} danger>
+          Recycle bin
+        </Button>
       </Space>
       <Table
         rowKey="_id"

@@ -2,6 +2,7 @@ import Cookies from 'js-cookie';
 
 // apis
 import axiosInstance from '../apis/axiosInstance';
+import accountApi from '../apis/accountApi';
 
 const getToken = () => {
 	const accessToken = Cookies.get('accessToken');
@@ -20,7 +21,7 @@ const setToken = (tokens) => {
 
 const isValidToken = async (tokens) => {
 	if (!tokens) return false;
-	return await axiosInstance.get('/accounts/verify');
+	return await accountApi.verifyToken();
 };
 
 export { getToken, setToken, isValidToken };

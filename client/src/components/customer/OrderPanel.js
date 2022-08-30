@@ -16,8 +16,9 @@ import { PATH_CUSTOMER } from '../../routes/path';
 // utils
 import { toVND } from '../../utils/formatMoney';
 import { fDate } from '../../utils/formatDate';
+import { distinguishImage } from '../../utils/formatImage';
 // config
-import { apiConfig, appConfig } from '../../config';
+import { appConfig } from '../../config';
 
 const propTypes = {
 	orders: arrayOf(
@@ -164,7 +165,7 @@ const OrderPanel = ({ orders }) => {
 											<Stack direction="row" spacing={2}>
 												<ImageLoader
 													alt={name}
-													src={`${apiConfig.image_url}/${images[0]}`}
+													src={distinguishImage(images[0])}
 													sx={{
 														width: '80px',
 														height: '80px',

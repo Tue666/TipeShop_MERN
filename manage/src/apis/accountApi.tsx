@@ -4,34 +4,36 @@ import axiosInstance from './axiosInstance';
 import type {
   ListResponse,
   Account,
-  Administrator,
-  Customer,
+  GeneralAccount,
   StatusResponse,
   UploadFileType,
-  Permission,
 } from '../models';
 // utils
 import { TokenProps } from '../utils/jwt';
 
 export interface FindAllAccountByTypeParams extends Pick<Account, 'type'> {}
+export interface FindAllAccountByTypeResponse extends ListResponse<GeneralAccount> {}
 
 export interface GetProfileResponse {
-  profile: Account;
-  permissions: Permission[];
+  profile: GeneralAccount;
 }
 
-export interface InsertAccountBody
-  extends Omit<Account, '_id' | 'avatar_url' | 'type'>,
-    Partial<Administrator>,
-    Partial<Customer> {
+export interface CreateAccountBody extends Omit<GeneralAccount, '_id' | 'avatar_url' | 'type'> {
   avatar_url: UploadFileType;
   password: string;
   passwordConfirm: string;
   account_type: Account['type'];
 }
-export interface InsertAccountResponse extends StatusResponse {
-  account: Account;
+export interface CreateAccountResponse extends StatusResponse {
+  account: GeneralAccount;
 }
+
+export interface UpdateAccountParams extends Pick<Account, '_id'> {}
+export interface UpdateAccountBody extends Omit<GeneralAccount, '_id' | 'avatar_url' | 'type'> {
+  avatar_url: UploadFileType;
+  account_type: Account['type'];
+}
+export interface UpdateAccountResponse extends CreateAccountResponse {}
 
 export interface LoginParams {
   phone_number: string;
@@ -42,9 +44,13 @@ export interface LoginResponse {
   tokens: TokenProps;
 }
 
+export interface RefreshTokenParams {
+  refreshToken: TokenProps['refreshToken'];
+}
+
 const accountApi = {
   // [GET] /accounts/:type
-  findAllByType: (params: FindAllAccountByTypeParams): Promise<ListResponse<Account>> => {
+  findAllByType: (params: FindAllAccountByTypeParams): Promise<FindAllAccountByTypeResponse> => {
     const { type } = params;
     const url = `/accounts/${type}`;
     return axiosInstance.get(url);
@@ -57,15 +63,37 @@ const accountApi = {
   },
 
   // [POST] /accounts
-  insert: (body: InsertAccountBody): Promise<InsertAccountResponse> => {
+  create: (body: CreateAccountBody): Promise<CreateAccountResponse> => {
     const formData = new FormData();
     Object.entries(body).forEach(([key, value]) => {
-      if (key === 'avatar_url' && typeof value !== 'string')
-        formData.append('avatar_url', value.file);
-      else formData.append(key, value);
+      if (value) {
+        if (key === 'avatar_url' && typeof value !== 'string')
+          formData.append('avatar_url', value.file);
+        else if (value instanceof Array) value.map((e) => formData.append(key, e));
+        else formData.append(key, value);
+      }
     });
     const url = `/accounts`;
     return axiosInstance.post(url, formData);
+  },
+
+  // [PUT] /accounts/:_id
+  update: (
+    params: UpdateAccountParams,
+    body: UpdateAccountBody
+  ): Promise<UpdateAccountResponse> => {
+    const { _id } = params;
+    const formData = new FormData();
+    Object.entries(body).forEach(([key, value]) => {
+      if (value) {
+        if (key === 'avatar_url' && typeof value !== 'string')
+          formData.append('avatar_url', value.file);
+        else if (value instanceof Array) value.map((e) => formData.append(key, e));
+        else formData.append(key, value);
+      }
+    });
+    const url = `/accounts/${_id}`;
+    return axiosInstance.put(url, formData);
   },
 
   // [POST] /accounts/login
@@ -77,16 +105,16 @@ const accountApi = {
   },
 
   // [POST] /accounts/refreshToken
-  refreshToken: (body: Record<'refreshToken', TokenProps['refreshToken']>): Promise<TokenProps> => {
+  refreshToken: (body: RefreshTokenParams): Promise<TokenProps> => {
     const url = `/accounts/refreshToken`;
     return axiosInstance.post(url, {
       ...body,
     });
   },
 
-  // [GET] /accounts/verify
+  // [GET] /accounts/verify/:type
   verifyToken: (): Promise<boolean> => {
-    const url = `/accounts/verify`;
+    const url = `/accounts/verify/administrator`;
     return axiosInstance.get(url);
   },
 };

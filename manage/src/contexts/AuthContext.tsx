@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useReducer, createContext } from 'react';
+import { Space, Modal } from 'antd';
 
 // apis
 import type { GetProfileResponse, LoginParams } from '../apis/accountApi';
@@ -8,7 +9,7 @@ import accessControlApi from '../apis/accessControlApi';
 import type { ResourceConfig } from '../config';
 import { generateResources, filterAccessibleResources } from '../config';
 // models
-import type { Nullable, Permission, ReducerPayloadAction } from '../models';
+import type { Nullable, Permission, ReducerPayloadAction, Resource, Role } from '../models';
 // redux
 import { useAppDispatch } from '../redux/hooks';
 import { initializeAccessControl } from '../redux/slices/accessControl';
@@ -18,28 +19,41 @@ import { getToken, setToken, isValidToken } from '../utils/jwt';
 interface AuthContextStates extends Nullable<GetProfileResponse> {
   isInitialized: boolean;
   isAuthenticated: boolean;
+  permissions: Permission[];
   accessibleResources: ResourceConfig[];
 }
 
 interface AuthContextMethods {
+  refreshAccessibleResources: (
+    resources: Resource[],
+    roles: Role[],
+    rolesAllowed?: GetProfileResponse['profile']['roles'],
+    firstInit?: boolean
+  ) => Pick<AuthContextStates, 'permissions' | 'accessibleResources'>;
   login: (params: LoginParams) => Promise<string>;
+  logout: () => void;
 }
 
 const initialState: AuthContextStates = {
   isInitialized: false,
   isAuthenticated: false,
-  accessibleResources: [],
   profile: null,
-  permissions: null,
+  permissions: [],
+  accessibleResources: [],
 };
 const AuthContext = createContext<AuthContextStates & AuthContextMethods>({
   ...initialState,
+  refreshAccessibleResources: () =>
+    ({} as Pick<AuthContextStates, 'permissions' | 'accessibleResources'>),
   login: () => Promise.resolve(''),
+  logout: () => {},
 });
 
 enum HandleType {
   INITIALIZE = 'INITIALIZE',
+  REFRESH_ACCESSIBLE_RESOURCES = 'REFRESH_ACCESSIBLE_RESOURCES',
   LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT',
 }
 
 const handlers: {
@@ -55,11 +69,26 @@ const handlers: {
       ...action?.payload,
     };
   },
+  [HandleType.REFRESH_ACCESSIBLE_RESOURCES]: (state, action) => {
+    return {
+      ...state,
+      ...action?.payload,
+    };
+  },
   [HandleType.LOGIN]: (state, action) => {
     return {
       ...state,
       isAuthenticated: true,
       ...action?.payload,
+    };
+  },
+  [HandleType.LOGOUT]: (state) => {
+    return {
+      ...state,
+      isAuthenticated: false,
+      profile: null,
+      permissions: [],
+      accessibleResources: [],
     };
   },
 };
@@ -86,18 +115,18 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
   };
-  const initRequiredData = async (): Promise<
-    Omit<AuthContextStates, 'isInitialized' | 'isAuthenticated'>
-  > => {
-    const [roles, resources, operations] = await Promise.all([
-      accessControlApi.findAllRole(),
-      accessControlApi.findAllResourceWithNested(),
-      accessControlApi.findAllOperation(),
-    ]);
-    sliceDispatch(initializeAccessControl({ roles, resources, operations }));
-
-    const account = await accountApi.getProfile();
-    const { permissions, profile } = account;
+  const refreshAccessibleResources = (
+    resources: Resource[],
+    roles: Role[],
+    rolesAllowed = state.profile?.roles,
+    firstInit = false
+  ) => {
+    const permissions = roles.reduce((acc, role) => {
+      const { name, permissions } = role;
+      if (!rolesAllowed) return acc;
+      else if (rolesAllowed.indexOf(name) >= 0) return [...acc, ...permissions];
+      return acc;
+    }, [] as Permission[]);
     const resourcesAllowed = [
       ...Array.from(
         new Set(
@@ -114,7 +143,36 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     );
     // fetch data depend accessible objects
     initNecessaryData(accessibleResources);
-    return { permissions, profile, accessibleResources };
+    // only refresh if not first initialization
+    !firstInit &&
+      dispatch({
+        type: HandleType.REFRESH_ACCESSIBLE_RESOURCES,
+        payload: {
+          permissions,
+          accessibleResources,
+        },
+      });
+    return { permissions, accessibleResources };
+  };
+  const initRequiredData = async (): Promise<
+    Omit<AuthContextStates, 'isInitialized' | 'isAuthenticated'>
+  > => {
+    const [roles, resources, operations] = await Promise.all([
+      accessControlApi.findAllRole(),
+      accessControlApi.findAllResourceWithNested(),
+      accessControlApi.findAllOperation(),
+    ]);
+    sliceDispatch(initializeAccessControl({ roles, resources, operations }));
+
+    const account = await accountApi.getProfile();
+    const { profile } = account;
+    const { permissions, accessibleResources } = refreshAccessibleResources(
+      resources,
+      roles,
+      profile.roles,
+      true
+    );
+    return { profile, permissions, accessibleResources };
   };
   useEffect(() => {
     const initialize = async () => {
@@ -142,7 +200,23 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
           });
         }
       } catch (error) {
-        console.log(error);
+        Modal.error({
+          centered: true,
+          title: 'Something went wrong!',
+          content: (
+            <Space direction="vertical">
+              <span>Please reload the page</span>
+              <span>
+                If this problem does not go away,{' '}
+                <a href="https://www.facebook.com/exe.shiro">contact us</a>
+              </span>
+            </Space>
+          ),
+          okText: 'Reload',
+          onOk() {
+            window.location.reload();
+          },
+        });
       }
     };
     initialize();
@@ -164,7 +238,17 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     });
     return name;
   };
-  return <AuthContext.Provider value={{ ...state, login }}>{children}</AuthContext.Provider>;
+  const logout = () => {
+    setToken(null);
+    dispatch({
+      type: HandleType.LOGOUT,
+    });
+  };
+  return (
+    <AuthContext.Provider value={{ ...state, refreshAccessibleResources, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export { AuthProvider, AuthContext };

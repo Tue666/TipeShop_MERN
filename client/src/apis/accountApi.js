@@ -67,6 +67,20 @@ const accountApi = {
 		return axiosInstance.delete(url);
 	},
 
+	// [POST] /accounts/refreshToken
+	refreshToken: (body) => {
+		const url = `/accounts/refreshToken`;
+		return axiosInstance.post(url, {
+			...body,
+		});
+	},
+
+	// [GET] /accounts/verify/:type
+	verifyToken: () => {
+		const url = `/accounts/verify/customer`;
+		return axiosInstance.get(url);
+	},
+
 	// google apis
 	getGoogleProfile: (tokenResponse) => {
 		const url = 'https://www.googleapis.com/oauth2/v3/userinfo';

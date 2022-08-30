@@ -3,9 +3,12 @@ const router = express.Router();
 
 // controllers
 const rolesAPI = require('../app/controllers/RolesAPI');
+// middlewares
+const verifyToken = require('../app/middlewares/verifyToken');
 
-router.post('/exist', rolesAPI.checkExist);
-router.post('/', rolesAPI.insert);
-router.get('/', rolesAPI.findAll);
+router.put('/:_id', verifyToken, rolesAPI.update);
+router.post('/exist', verifyToken, rolesAPI.checkExist);
+router.post('/', verifyToken, rolesAPI.create);
+router.get('/', verifyToken, rolesAPI.findAll);
 
 module.exports = router;

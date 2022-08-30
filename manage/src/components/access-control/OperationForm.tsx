@@ -4,7 +4,7 @@ import { Form, Space, Typography, Input, Switch, Spin, Button, Alert, message } 
 import { NodeExpandOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 
 // apis
-import accessControlApi, { InsertOperationBody } from '../../apis/accessControlApi';
+import accessControlApi, { CreateOperationBody } from '../../apis/accessControlApi';
 // hooks
 import useDrawer from '../../hooks/useDrawer';
 // models
@@ -14,11 +14,13 @@ import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { clearAction, selectAccessControl } from '../../redux/slices/accessControl';
 import type { CreateOperationPayload } from '../../redux/actions/accessControl';
 import { createOperationAction, updateOperationAction } from '../../redux/actions/accessControl';
+// utils
+import { capitalize } from '../../utils/formatString';
 
 const { Text } = Typography;
 
 type InputState = {
-  [key in keyof InsertOperationBody]: {
+  [key in keyof CreateOperationBody]: {
     validateStatus: FormItemProps['validateStatus'] | undefined;
     help: FormItemProps['help'] | undefined;
   };
@@ -141,7 +143,7 @@ const OperationForm = ({ operation }: OperationFormProps) => {
       <Form
         form={form}
         initialValues={{
-          name: operation?.name || '',
+          name: capitalize(operation?.name) || '',
           description: operation?.description || '',
           locked: operation?.locked || false,
         }}
@@ -164,6 +166,7 @@ const OperationForm = ({ operation }: OperationFormProps) => {
               name="name"
               autoComplete="none"
               allowClear
+              disabled={!!operation}
               prefix={<NodeExpandOutlined />}
               placeholder="Operation name"
               onChange={handleInputValidationOnChange}
@@ -191,6 +194,7 @@ const OperationForm = ({ operation }: OperationFormProps) => {
               showIcon
               closable
               style={{ marginBottom: '10px' }}
+              onClose={() => sliceDispatch(clearAction())}
             />
           )}
           <Form.Item>

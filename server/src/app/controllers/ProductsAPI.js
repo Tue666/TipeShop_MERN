@@ -500,7 +500,7 @@ class ProductsAPI {
 		[specifications]: [specification._id],
 		...
 	*/
-	async insert(req, res, next) {
+	async create(req, res, next) {
 		try {
 			const { warranty_infor, specifications, ...body } = req.body;
 			const images = req.files;

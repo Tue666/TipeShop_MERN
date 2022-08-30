@@ -15,6 +15,17 @@ class OperationsAPI {
 		}
 	}
 
+	// [GET] /operations/deleted
+	async findAllDeleted(req, res, next) {
+		try {
+			const operations = await Operation.findDeleted({});
+			res.status(200).json(operations);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [POST] /operations/exist
 	/*
 		names: String[]
@@ -40,7 +51,7 @@ class OperationsAPI {
         [description]: String,
 		[locked]: Boolean,
     */
-	async insert(req, res, next) {
+	async create(req, res, next) {
 		try {
 			let { name, ...others } = req.body;
 
@@ -49,6 +60,16 @@ class OperationsAPI {
 				return;
 			}
 			name = name.toLowerCase();
+
+			const operationExisted = await Operation.findOneWithDeleted({ name });
+			if (operationExisted?.deleted) {
+				next({ status: 405, msg: 'Operation existed in recycle bin!' });
+				return;
+			}
+			if (operationExisted) {
+				next({ status: 400, msg: 'Operation existed!' });
+				return;
+			}
 
 			const operation = new Operation({
 				name,
@@ -72,27 +93,98 @@ class OperationsAPI {
         [description]: String,
 		[locked]: Boolean,
     */
-	async edit(req, res, next) {
+	async update(req, res, next) {
 		try {
 			let { _id } = req.params;
 			_id = mongoose.Types.ObjectId(_id);
-			let { name } = req.body;
+			let { name, ...others } = req.body;
 
-			if (name !== undefined) {
-				if (name === '') {
-					next({ status: 400, msg: 'Operation name is required!' });
-					return;
-				}
-				req.body.name = name.toLowerCase();
+			if (!name) {
+				next({ status: 400, msg: 'Operation name is required!' });
+				return;
+			}
+			name = name.toLowerCase();
+
+			const operationExisted = await Operation.findOneWithDeleted({ _id: { $ne: _id }, name });
+			if (operationExisted) {
+				next({ status: 400, msg: 'Operation existed!' });
+				return;
 			}
 
-			const operation = await Operation.findByIdAndUpdate(_id, req.body, {
-				new: true,
-			});
+			const operation = await Operation.findByIdAndUpdate(
+				_id,
+				{
+					name,
+					...others,
+				},
+				{
+					new: true,
+				}
+			);
 
 			res.status(201).json({
 				msg: 'Edit operation successfully!',
 				operation,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [DELETE] /operations/:_id
+	async delete(req, res, next) {
+		try {
+			const deletedBy = {
+				_id: mongoose.Types.ObjectId(req.account._id),
+				name: req.account.name,
+			};
+			let { _id } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
+
+			await Operation.deleteById(_id, deletedBy);
+
+			res.status(200).json({
+				msg: 'Delete operation successfully!',
+				deletedId: _id,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [PATCH] /operations/restore/:_id
+	async restore(req, res, next) {
+		try {
+			let { _id } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
+
+			const operationDeleted = await Operation.findOneDeleted({ _id });
+
+			await Operation.restore({ _id });
+
+			res.status(200).json({
+				msg: 'Restore operation successfully!',
+				operation: operationDeleted,
+			});
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
+	// [DELETE] /operations/destroy/:_id
+	async destroy(req, res, next) {
+		try {
+			let { _id } = req.params;
+			_id = mongoose.Types.ObjectId(_id);
+
+			await Operation.deleteOne({ _id });
+
+			res.status(200).json({
+				msg: 'Permanently delete operation successfully!',
+				deletedId: _id,
 			});
 		} catch (error) {
 			console.error(error);

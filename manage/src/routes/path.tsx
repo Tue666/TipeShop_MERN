@@ -9,6 +9,7 @@ const ROOT_EXTERNAL = '/external';
 const ROOT_ACCOUNT = path(ROOT_DASHBOARD, 'accounts');
 const ROOT_PRODUCT = path(ROOT_DASHBOARD, 'products');
 const ROOT_ACCESS_CONTROL = path(ROOT_DASHBOARD, 'access-control');
+const ROOT_RECYCLE_BIN = path(ROOT_DASHBOARD, 'recycle-bin');
 
 export const PATH_DASHBOARD = {
   root: ROOT_DASHBOARD,
@@ -28,6 +29,10 @@ export const PATH_DASHBOARD = {
     roles: path(ROOT_ACCESS_CONTROL, '/roles'),
     resources: path(ROOT_ACCESS_CONTROL, '/resources'),
     operations: path(ROOT_ACCESS_CONTROL, '/operations'),
+  },
+  recycleBin: {
+    root: ROOT_RECYCLE_BIN,
+    operations: path(ROOT_RECYCLE_BIN, '/operations'),
   },
 };
 

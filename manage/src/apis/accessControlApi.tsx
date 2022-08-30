@@ -1,7 +1,14 @@
 import axiosInstance from './axiosInstance';
 
 // models
-import type { Resource, Operation, StatusResponse, RequiredBy, Role } from '../models';
+import type {
+  Resource,
+  Operation,
+  StatusResponse,
+  RequiredBy,
+  Role,
+  DeletedProps,
+} from '../models';
 
 export interface CheckExistBody {
   names: Operation['name'][];
@@ -10,29 +17,44 @@ export interface CheckExistResponse {
   exist: boolean;
 }
 
-export interface InsertRoleBody extends RequiredBy<Partial<Omit<Role, '_id'>>, 'name'> {}
-export interface InsertRoleResponse extends StatusResponse {
+export interface CreateRoleBody extends RequiredBy<Partial<Omit<Role, '_id'>>, 'name'> {}
+export interface CreateRoleResponse extends StatusResponse {
   role: Role;
 }
 
-export interface InsertResourceBody
+export interface UpdateRoleParams extends Pick<Role, '_id'> {}
+export interface UpdateRoleBody extends CreateRoleBody {}
+export interface UpdateRoleResponse extends CreateRoleResponse {}
+
+export interface CreateResourceBody
   extends RequiredBy<Partial<Omit<Resource, '_id' | 'children'>>, 'name'> {}
-export interface InsertResourceResponse extends StatusResponse {
+export interface CreateResourceResponse extends StatusResponse {
   resource: Resource;
 }
 
-export interface UpdateResourceParams extends Pick<Role, '_id'> {}
-export interface UpdateResourceBody extends InsertResourceBody {}
-export interface UpdateResourceResponse extends InsertResourceResponse {}
+export interface UpdateResourceParams extends Pick<Resource, '_id'> {}
+export interface UpdateResourceBody extends CreateResourceBody {}
+export interface UpdateResourceResponse extends CreateResourceResponse {}
 
-export interface InsertOperationBody extends RequiredBy<Partial<Omit<Operation, '_id'>>, 'name'> {}
-export interface InsertOperationResponse extends StatusResponse {
+export interface CreateOperationBody extends RequiredBy<Partial<Omit<Operation, '_id'>>, 'name'> {}
+export interface CreateOperationResponse extends StatusResponse {
   operation: Operation;
 }
 
 export interface UpdateOperationParams extends Pick<Operation, '_id'> {}
-export interface UpdateOperationBody extends InsertOperationBody {}
-export interface UpdateOperationResponse extends InsertOperationResponse {}
+export interface UpdateOperationBody extends CreateOperationBody {}
+export interface UpdateOperationResponse extends CreateOperationResponse {}
+
+export interface DeleteOperationParams extends Pick<Operation, '_id'> {}
+export interface DeleteOperationResponse extends StatusResponse {
+  deletedId: DeleteOperationParams['_id'];
+}
+
+export interface RestoreOperationParams extends Pick<Operation, '_id'> {}
+export interface RestoreOperationResponse extends CreateOperationResponse {}
+
+export interface DestroyOperationParams extends Pick<Operation, '_id'> {}
+export interface DestroyOperationResponse extends DeleteOperationResponse {}
 
 const accessControlApi = {
   //#region Role
@@ -49,9 +71,16 @@ const accessControlApi = {
   },
 
   // [POST] /roles
-  insertRole: (body: InsertRoleBody): Promise<InsertRoleResponse> => {
+  createRole: (body: CreateRoleBody): Promise<CreateRoleResponse> => {
     const url = `/roles`;
     return axiosInstance.post(url, body);
+  },
+
+  // [PUT] /roles/:_id
+  updateRole: (params: UpdateRoleParams, body: UpdateRoleBody): Promise<UpdateRoleResponse> => {
+    const { _id } = params;
+    const url = `/roles/${_id}`;
+    return axiosInstance.put(url, body);
   },
   //#endregion
 
@@ -69,13 +98,13 @@ const accessControlApi = {
   },
 
   // [POST] /resources
-  insertResource: (body: InsertResourceBody): Promise<InsertResourceResponse> => {
+  createResource: (body: CreateResourceBody): Promise<CreateResourceResponse> => {
     const url = `/resources`;
     return axiosInstance.post(url, body);
   },
 
   // [PUT] /resources/:_id
-  editResource: (
+  updateResource: (
     params: UpdateResourceParams,
     body: UpdateResourceBody
   ): Promise<UpdateResourceResponse> => {
@@ -92,6 +121,12 @@ const accessControlApi = {
     return axiosInstance.get(url);
   },
 
+  // [GET] /operations/deleted
+  findAllOperationDeleted: (): Promise<Array<Operation & DeletedProps>> => {
+    const url = `/operations/deleted`;
+    return axiosInstance.get(url);
+  },
+
   // [POST] /operations/exist
   checkOperationExist: (body: CheckExistBody): Promise<CheckExistResponse> => {
     const url = `/operations/exist`;
@@ -99,19 +134,40 @@ const accessControlApi = {
   },
 
   // [POST] /operations
-  insertOperation: (body: InsertOperationBody): Promise<InsertOperationResponse> => {
+  createOperation: (body: CreateOperationBody): Promise<CreateOperationResponse> => {
     const url = `/operations`;
     return axiosInstance.post(url, body);
   },
 
   // [PUT] /operations/:_id
-  editOperation: (
+  updateOperation: (
     params: UpdateOperationParams,
     body: UpdateOperationBody
   ): Promise<UpdateOperationResponse> => {
     const { _id } = params;
     const url = `/operations/${_id}`;
     return axiosInstance.put(url, body);
+  },
+
+  // [DELETE] /operations/:_id
+  deleteOperation: (params: DeleteOperationParams): Promise<DeleteOperationResponse> => {
+    const { _id } = params;
+    const url = `/operations/${_id}`;
+    return axiosInstance.delete(url);
+  },
+
+  // [PATCH] /operations/restore/:_id
+  restoreOperation: (params: RestoreOperationParams): Promise<RestoreOperationResponse> => {
+    const { _id } = params;
+    const url = `/operations/restore/${_id}`;
+    return axiosInstance.patch(url);
+  },
+
+  // [DELETE] /operations/destroy/:_id
+  destroyOperation: (params: DestroyOperationParams): Promise<DestroyOperationResponse> => {
+    const { _id } = params;
+    const url = `/operations/destroy/${_id}`;
+    return axiosInstance.delete(url);
   },
   //#endregion
 };

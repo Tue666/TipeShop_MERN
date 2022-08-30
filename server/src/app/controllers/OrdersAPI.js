@@ -110,7 +110,7 @@ class OrdersAPI {
 			status_text: String,
 		}
 	*/
-	async insert(req, res, next) {
+	async create(req, res, next) {
 		try {
 			let customer_id = req.account._id;
 			customer_id = mongoose.Types.ObjectId(customer_id);

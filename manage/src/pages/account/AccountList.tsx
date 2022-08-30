@@ -1,14 +1,8 @@
 import { useState, Key } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
-import { Table, Space, Avatar, Image, Typography, Tag, Button } from 'antd';
-import {
-  UserOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ControlOutlined,
-  FolderAddOutlined,
-} from '@ant-design/icons';
+import { Table, Space, Avatar, Image, Typography, Tag, Button, Modal } from 'antd';
+import { UserOutlined, EditOutlined, DeleteOutlined, FolderAddOutlined } from '@ant-design/icons';
 
 // config
 import { appConfig } from '../../config';
@@ -71,14 +65,14 @@ const AccountList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const navigate = useNavigate();
   const { type } = useParams();
-  const { isLoading, ...rest } = useAppSelector(selectAccount);
+  const { isLoading, administrators, customers } = useAppSelector(selectAccount);
   let accounts: Account[] = [];
   switch (type) {
     case 'administrators':
-      accounts = rest.administrators;
+      accounts = administrators;
       break;
     case 'customers':
-      accounts = rest.customers;
+      accounts = customers;
       break;
     default:
       break;
@@ -87,31 +81,44 @@ const AccountList = () => {
     {
       title: 'Actions',
       dataIndex: '',
-      render: (_, record) => (
-        <Space size="middle" align="center">
-          {actionsAllowed.includes('update') && (
-            <Tag
-              icon={<EditOutlined />}
-              color="success"
-              onClick={() => navigate(PATH_DASHBOARD.account.edit(type, record._id))}
-              style={{ cursor: 'pointer' }}
-            >
-              Update
-            </Tag>
-          )}
-          {actionsAllowed.includes('delete') && (
-            <Tag icon={<DeleteOutlined />} color="error" style={{ cursor: 'pointer' }}>
-              Delete
-            </Tag>
-          )}
-          {/* Administrator account type */}
-          {actionsAllowed.includes('authorize') && (
-            <Tag icon={<ControlOutlined />} color="warning" style={{ cursor: 'pointer' }}>
-              Authorize
-            </Tag>
-          )}
-        </Space>
-      ),
+      render: (_, record) => {
+        const { name } = record;
+        return (
+          <Space size="middle" align="center">
+            {actionsAllowed.includes('update') && (
+              <Tag
+                icon={<EditOutlined />}
+                color="success"
+                onClick={() => navigate(PATH_DASHBOARD.account.edit(type, record._id))}
+                style={{ cursor: 'pointer' }}
+              >
+                Update
+              </Tag>
+            )}
+            {actionsAllowed.includes('delete') && (
+              <Tag
+                icon={<DeleteOutlined />}
+                color="error"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  Modal.confirm({
+                    centered: true,
+                    title: `Are you sure you want to delete [${name}]?`,
+                    content: 'After deletion, the account will be saved to the recycle bin',
+                    okButtonProps: {
+                      danger: true,
+                    },
+                    okText: 'Delete',
+                    onOk() {},
+                  });
+                }}
+              >
+                Delete
+              </Tag>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -125,12 +132,15 @@ const AccountList = () => {
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
       <Space size="middle">
         {actionsAllowed.includes('create') && (
-          <Button type="primary" icon={<FolderAddOutlined />} onClick={handleCreate}>
+          <Button type="primary" shape="round" icon={<FolderAddOutlined />} onClick={handleCreate}>
             Create account
           </Button>
         )}
+        <Button type="dashed" shape="round" icon={<DeleteOutlined />} danger>
+          Recycle bin
+        </Button>
         {selectedRowKeys.length > 0 && (
-          <Button type="primary" danger icon={<DeleteOutlined />}>
+          <Button type="primary" shape="round" danger icon={<DeleteOutlined />}>
             Delete selected accounts
           </Button>
         )}

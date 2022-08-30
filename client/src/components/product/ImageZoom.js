@@ -6,8 +6,8 @@ import Lightbox from 'react-image-lightbox';
 
 // components
 import ImageLoader from '../ImageLoader';
-// config
-import { apiConfig } from '../../config';
+// utils
+import { distinguishImage } from '../../utils/formatImage';
 // constant
 import { PRODUCT_PAGE } from '../../constant';
 
@@ -37,7 +37,7 @@ const ImageZoom = ({ images }) => {
 		<Fragment>
 			<RootStyle>
 				<ImageLoader
-					src={`${apiConfig.image_url}/${imageShow[index]}`}
+					src={distinguishImage(imageShow[index])}
 					alt={imageShow[index]}
 					sx={{
 						height: '370px',
@@ -53,7 +53,7 @@ const ImageZoom = ({ images }) => {
 					{imageShow.map((image, i) => (
 						<MiniImage key={i} className={index === i ? 'active' : ''} onClick={() => handleSwitchImage(i)}>
 							<ImageLoader
-								src={`${apiConfig.image_url}/${image}`}
+								src={distinguishImage(image)}
 								alt={image}
 								sx={{
 									width: '100%',
@@ -70,9 +70,9 @@ const ImageZoom = ({ images }) => {
 			</RootStyle>
 			{isOpenLightbox && (
 				<Lightbox
-					mainSrc={`${apiConfig.image_url}/${images[lightboxIndex]}`}
-					nextSrc={`${apiConfig.image_url}/${images[(lightboxIndex + 1) % images.length]}`}
-					prevSrc={`${apiConfig.image_url}/${images[(lightboxIndex + images.length - 1) % images.length]}`}
+					mainSrc={distinguishImage(images[lightboxIndex])}
+					nextSrc={distinguishImage(images[(lightboxIndex + 1) % images.length])}
+					prevSrc={distinguishImage(images[(lightboxIndex + images.length - 1) % images.length])}
 					onCloseRequest={handleCloseLightbox}
 					onMovePrevRequest={() => setLightboxIndex((lightboxIndex + images.length - 1) % images.length)}
 					onMoveNextRequest={() => setLightboxIndex((lightboxIndex + 1) % images.length)}

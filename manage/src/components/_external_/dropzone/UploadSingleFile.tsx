@@ -6,6 +6,9 @@ import { useDropzone, DropzoneOptions } from 'react-dropzone';
 
 // models
 import { UploadFileType } from '../../../models';
+// utils
+import { humanFileSize } from '../../../utils/formatNumber';
+import { distinguishImage } from '../../../utils/formatImage';
 
 const { Text } = Typography;
 
@@ -39,7 +42,7 @@ const UploadSingleFile = ({
           <Tag key={index} color="error" style={{ whiteSpace: 'normal' }}>
             <div>
               <Text strong>
-                {name} - {size}
+                {name} - {humanFileSize(size)}
               </Text>
               <div style={{ paddingLeft: '5px' }}>
                 {errors.map((error) => (
@@ -68,7 +71,7 @@ const UploadSingleFile = ({
           {file && (
             <img
               alt=""
-              src={typeof file === 'string' ? file : file.preview}
+              src={typeof file === 'string' ? distinguishImage(file) : file.preview}
               style={{ zIndex: 1 }}
             />
           )}

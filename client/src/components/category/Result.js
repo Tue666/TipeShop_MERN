@@ -9,10 +9,9 @@ import { settingBanners } from '../../components/_external_/slick-carousel/Setti
 // component
 import ImageLoader from '../../components/ImageLoader';
 import ProductCard from '../../components/ProductCard';
-// config
-import { apiConfig } from '../../config';
 // constant
 import { HEADER_HEIGHT, CATEGORY_PAGE } from '../../constant';
+import { distinguishImage } from '../../utils/formatImage';
 
 const FILTER_NAVS = [
 	{
@@ -80,7 +79,7 @@ const Result = ({ queryParams, parts, chips, result, handleNavigate, handleClear
 				<Wrapper pb={1}>
 					<Carousel settings={settingBanners}>
 						{banners.map((image, index) => (
-							<ImageLoader key={index} src={`${apiConfig.image_url}/${image}`} alt={`banner-${name}`} />
+							<ImageLoader key={index} src={distinguishImage(image)} alt={`banner-${name}`} />
 						))}
 					</Carousel>
 				</Wrapper>

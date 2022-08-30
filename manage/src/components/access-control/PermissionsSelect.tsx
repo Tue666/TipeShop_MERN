@@ -92,7 +92,9 @@ const PermissionsSelect = ({ resources, value, onChange }: PermissionsSelectProp
     resource: [],
     operations: [],
   });
-  const [activeKeys, setActiveKeys] = useState<string[]>([]);
+  const [activeKeys, setActiveKeys] = useState<string[]>(
+    Array.from(Array(value?.length), (_, index) => index.toString())
+  );
   const isOpenSelect = activeKeys.indexOf('select') >= 0;
   const resourcesOptions = generateCascader(resources);
   const operationsOptions = findOperationsByResource(resources, intendedPermission.resource);

@@ -12,7 +12,7 @@ router.post(
 		{ name: 'image', maxCount: 1 },
 		{ name: 'banners', maxCount: 5 },
 	]),
-	categoriesAPI.insert
+	categoriesAPI.create
 );
 router.get('/:_id', categoriesAPI.findById);
 router.get('/', categoriesAPI.findAllRoot);

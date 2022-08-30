@@ -8,8 +8,8 @@ import { Box, Grid, Typography, Skeleton, Tooltip } from '@mui/material';
 import categoryApi from '../../apis/categoryApi';
 // components
 import ImageLoader from '../ImageLoader';
-// config
-import { apiConfig } from '../../config';
+// utils
+import { distinguishImage } from '../../utils/formatImage';
 
 const propTypes = {
 	id: PropTypes.string,
@@ -37,7 +37,7 @@ const Categories = ({ id, title }) => {
 								<Link to={`/${slug}/cid${_id}`}>
 									<Category>
 										<ImageLoader
-											src={`${apiConfig.image_url}/${image}`}
+											src={distinguishImage(image)}
 											alt={name}
 											sx={{
 												width: '50px',
