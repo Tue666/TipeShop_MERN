@@ -10,6 +10,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider as ReduxProvider } from 'react-redux';
 import { AxiosInterceptor } from './apis/axiosInstance';
 // contexts
+import { SocketProvider } from './contexts/SocketContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { DrawerProvider } from './contexts/DrawerContext';
@@ -18,19 +19,21 @@ import store from './redux/store';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
-  <ReduxProvider store={store}>
-    <BrowserRouter>
-      <DrawerProvider>
-        <AuthProvider>
-          <AxiosInterceptor>
-            <SettingsProvider>
-              <App />
-            </SettingsProvider>
-          </AxiosInterceptor>
-        </AuthProvider>
-      </DrawerProvider>
-    </BrowserRouter>
-  </ReduxProvider>
+  <SocketProvider>
+    <ReduxProvider store={store}>
+      <BrowserRouter>
+        <DrawerProvider>
+          <AuthProvider>
+            <AxiosInterceptor>
+              <SettingsProvider>
+                <App />
+              </SettingsProvider>
+            </AxiosInterceptor>
+          </AuthProvider>
+        </DrawerProvider>
+      </BrowserRouter>
+    </ReduxProvider>
+  </SocketProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

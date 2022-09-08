@@ -13,6 +13,7 @@ const ROOT_RECYCLE_BIN = path(ROOT_DASHBOARD, 'recycle-bin');
 
 export const PATH_DASHBOARD = {
   root: ROOT_DASHBOARD,
+  liveChat: path(ROOT_DASHBOARD, 'live-chat'),
   account: {
     root: ROOT_ACCOUNT,
     administrators: path(ROOT_ACCOUNT, '/administrators'),
@@ -22,7 +23,8 @@ export const PATH_DASHBOARD = {
   },
   products: {
     root: ROOT_PRODUCT,
-    list: path(ROOT_PRODUCT, '/list'),
+    productList: path(ROOT_PRODUCT, '/list'),
+    categories: path(ROOT_PRODUCT, '/categories'),
   },
   accessControl: {
     root: ROOT_ACCESS_CONTROL,

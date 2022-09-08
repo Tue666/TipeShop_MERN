@@ -121,7 +121,7 @@ const RecycleBin = ({ actionsAllowed }: ActionsPassedGuardProps) => {
       let response: any = [];
       switch (object) {
         case 'operations':
-          response = await accessControlApi.findAllOperationDeleted();
+          response = await accessControlApi.findAllOperationsDeleted();
           break;
         default:
           break;

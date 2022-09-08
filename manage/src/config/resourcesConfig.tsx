@@ -3,6 +3,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import {
   UserOutlined,
   DashboardOutlined,
+  CustomerServiceOutlined,
   SkinOutlined,
   ControlOutlined,
   RestOutlined,
@@ -49,6 +50,13 @@ export const generateResources = (resources: Resource[]): ResourceConfig[] => {
       icon: <DashboardOutlined />,
       avoid: true,
     },
+    {
+      id: 'live-chat',
+      key: PATH_DASHBOARD.liveChat,
+      label: 'Customer Service',
+      icon: <CustomerServiceOutlined />,
+      avoid: true,
+    },
     (root.accounts && {
       id: root.accounts._id,
       locked: root.accounts.locked,
@@ -82,11 +90,18 @@ export const generateResources = (resources: Resource[]): ResourceConfig[] => {
       label: root.products.name,
       icon: <SkinOutlined />,
       children: [
-        (root.products.children?.find((e) => e._id === 'list') && {
-          id: root.products.children?.find((e) => e._id === 'list')!._id,
-          locked: root.products.children?.find((e) => e._id === 'list')!.locked,
-          key: PATH_DASHBOARD.products.list,
-          label: root.products.children?.find((e) => e._id === 'list')!.name,
+        (root.products.children?.find((e) => e._id === 'product list') && {
+          id: root.products.children?.find((e) => e._id === 'product list')!._id,
+          locked: root.products.children?.find((e) => e._id === 'product list')!.locked,
+          key: PATH_DASHBOARD.products.productList,
+          label: root.products.children?.find((e) => e._id === 'product list')!.name,
+        }) ||
+          null,
+        (root.products.children?.find((e) => e._id === 'categories') && {
+          id: root.products.children?.find((e) => e._id === 'categories')!._id,
+          locked: root.products.children?.find((e) => e._id === 'categories')!.locked,
+          key: PATH_DASHBOARD.products.categories,
+          label: root.products.children?.find((e) => e._id === 'categories')!.name,
         }) ||
           null,
       ],

@@ -65,12 +65,30 @@ const Router = () => {
           ],
         },
         {
-          path: 'products/list',
-          element: (
-            <AccessGuard accessConditions={root.products?.children?.find((e) => e._id === 'list')}>
-              <ProductList />
-            </AccessGuard>
-          ),
+          path: 'products',
+          children: [
+            { path: '', element: <Navigate to="/products/list" replace /> },
+            {
+              path: 'list',
+              element: (
+                <AccessGuard
+                  accessConditions={root.products?.children?.find((e) => e._id === 'product list')}
+                >
+                  <ProductList />
+                </AccessGuard>
+              ),
+            },
+            {
+              path: 'categories',
+              element: (
+                <AccessGuard
+                  accessConditions={root.products?.children?.find((e) => e._id === 'categories')}
+                >
+                  <Categories />
+                </AccessGuard>
+              ),
+            },
+          ],
         },
         {
           path: 'access-control',
@@ -128,6 +146,10 @@ const Router = () => {
             </AccessGuard>
           ),
         },
+        {
+          path: 'live-chat',
+          element: <LiveChat />,
+        },
       ],
     },
     // Auth routes
@@ -161,11 +183,13 @@ const Router = () => {
 const Dashboard = PageLoader(lazy(() => import('../pages/Dashboard')));
 const AccountList = PageLoader(lazy(() => import('../pages/account/AccountList')));
 const AccountCreate = PageLoader(lazy(() => import('../pages/account/AccountCreate')));
+const Categories = PageLoader(lazy(() => import('../pages/product/Categories')));
 const ProductList = PageLoader(lazy(() => import('../pages/product/ProductList')));
 const Roles = PageLoader(lazy(() => import('../pages/access-control/Roles')));
 const Resources = PageLoader(lazy(() => import('../pages/access-control/Resources')));
 const Operations = PageLoader(lazy(() => import('../pages/access-control/Operations')));
 const RecycleBin = PageLoader(lazy(() => import('../pages/RecycleBin')));
+const LiveChat = PageLoader(lazy(() => import('../pages/LiveChat')));
 // Auth
 const Login = PageLoader(lazy(() => import('../pages/Login')));
 // External

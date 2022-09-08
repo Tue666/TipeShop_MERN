@@ -7,6 +7,26 @@ const AttributeValue = require('../models/AttributeValue');
 const cloudinaryUpload = require('../../utils/cloudinaryUpload');
 
 class ProductsAPI {
+	// [GET] /products
+	async findAll(req, res, next) {
+		try {
+			const data = await Product.find({})
+				.populate({
+					path: 'category',
+					select: 'name image',
+				})
+				.populate({
+					path: 'attribute_values',
+					select: 'display_value query_value',
+				});
+
+			res.status(200).json(data);
+		} catch (error) {
+			console.error(error);
+			next({ status: 500, msg: error.message });
+		}
+	}
+
 	// [GET] /products/:_id
 	async findById(req, res, next) {
 		try {

@@ -158,9 +158,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     Omit<AuthContextStates, 'isInitialized' | 'isAuthenticated'>
   > => {
     const [roles, resources, operations] = await Promise.all([
-      accessControlApi.findAllRole(),
-      accessControlApi.findAllResourceWithNested(),
-      accessControlApi.findAllOperation(),
+      accessControlApi.findAllRoles(),
+      accessControlApi.findAllResourcesWithNested(),
+      accessControlApi.findAllOperations(),
     ]);
     sliceDispatch(initializeAccessControl({ roles, resources, operations }));
 

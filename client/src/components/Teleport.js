@@ -50,7 +50,7 @@ const Teleport = ({ actions }) => {
 const StyledDial = styled(SpeedDial)({
 	position: 'fixed',
 	right: '20px',
-	bottom: '20px',
+	bottom: '90px',
 	transition: '0.5s',
 });
 

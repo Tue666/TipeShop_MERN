@@ -25,7 +25,7 @@ const MainLayout = () => {
         <Content style={{ padding: '20px' }}>
           <Outlet />
         </Content>
-        <Footer style={{ textAlign: 'center' }}>©{new Date().getFullYear()} Created by Pihe</Footer>
+        <Footer style={{ textAlign: 'center' }}>©2022 Created by Pihe</Footer>
       </Layout>
     </Layout>
   );

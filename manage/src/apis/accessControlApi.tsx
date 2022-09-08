@@ -59,7 +59,7 @@ export interface DestroyOperationResponse extends DeleteOperationResponse {}
 const accessControlApi = {
   //#region Role
   // [GET] /roles
-  findAllRole: (): Promise<Role[]> => {
+  findAllRoles: (): Promise<Role[]> => {
     const url = `/roles`;
     return axiosInstance.get(url);
   },
@@ -86,7 +86,7 @@ const accessControlApi = {
 
   //#region Resource
   // [GET] /resources/nested
-  findAllResourceWithNested: (): Promise<Resource[]> => {
+  findAllResourcesWithNested: (): Promise<Resource[]> => {
     const url = `/resources/nested`;
     return axiosInstance.get(url);
   },
@@ -116,13 +116,13 @@ const accessControlApi = {
 
   //#region Operation
   // [GET] /operations
-  findAllOperation: (): Promise<Operation[]> => {
+  findAllOperations: (): Promise<Operation[]> => {
     const url = `/operations`;
     return axiosInstance.get(url);
   },
 
   // [GET] /operations/deleted
-  findAllOperationDeleted: (): Promise<Array<Operation & DeletedProps>> => {
+  findAllOperationsDeleted: (): Promise<Array<Operation & DeletedProps>> => {
     const url = `/operations/deleted`;
     return axiosInstance.get(url);
   },
