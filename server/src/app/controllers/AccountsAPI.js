@@ -398,10 +398,11 @@ class AccountsAPI {
 		id: String,
 	*/
 	async socialLogin(req, res, next) {
+		// API for accout Customer type only
 		try {
 			const { id } = req.body;
 
-			const account = await Account.findOne({ 'social.id': id }).select('name');
+			const account = await Customer.findOne({ 'social.id': id }).select('name');
 			if (!account) {
 				next({ status: 400, msg: 'Account not found!' });
 				return;
@@ -444,19 +445,7 @@ class AccountsAPI {
 	*/
 	async register(req, res, next) {
 		try {
-			const { account_type, phone_number, password, passwordConfirm } = req.body;
-			const capitalizedType = capitalize(account_type);
-
-			const valueOfTypes = Object.values(Types);
-			if (!valueOfTypes.includes(capitalizedType)) {
-				next({
-					status: 400,
-					msg: `Type of ${capitalizedType} not included. Try the following: ${valueOfTypes.join(
-						', '
-					)} instead!`,
-				});
-				return;
-			}
+			const { phone_number, password, passwordConfirm } = req.body;
 
 			const accountExisted = await Account.findOne({ phone_number });
 			if (accountExisted) {
@@ -477,15 +466,7 @@ class AccountsAPI {
 				...req.body,
 				password: hashedPassword,
 			};
-			switch (capitalizedType) {
-				case Types.customer:
-					account = new Customer(details);
-					break;
-				// user type which can be register such as shipper, seller, ... goes here
-				default:
-					next({ status: 400, msg: `Unable to resolve, type of ${capitalizedType} not matched!` });
-					return;
-			}
+			account = new Customer(details);
 			await account.save();
 
 			const { _id, name, type } = account;

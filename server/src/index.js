@@ -3,12 +3,13 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 
-// middlewares
-const errorsHandling = require('./app/middlewares/errorsHandling');
 // config
 const db = require('./config/db');
 const corsOptions = require('./config/cors');
 const { corsConfig } = require('./config/config');
+// handlers
+const errorsHandling = require('./handlers/errorsHandler');
+const liveChatHandler = require('./handlers/socket/liveChatHandler');
 // routes
 const initialRoutes = require('./routes');
 
@@ -21,14 +22,10 @@ const io = require('socket.io')(server, {
 });
 const PORT = process.env.PORT || 5000;
 
-io.on('connection', (socket) => {
-	console.log(socket.id);
-
-	socket.on('client-send-message', (message) => {
-		console.log(message);
-		io.emit('manage-receive-message', message);
-	});
-});
+const onSocketConnection = (socket) => {
+	liveChatHandler(io, socket);
+};
+io.on('connection', onSocketConnection);
 
 db.connect();
 

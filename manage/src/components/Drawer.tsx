@@ -17,7 +17,7 @@ export type ComponentKey = keyof typeof components;
 const Drawer = () => {
   const { isVisible, key, props, sub, closeDrawer, closeSubDrawer, ...params } = useDrawer();
   return (
-    <AntDrawer visible={isVisible} onClose={closeDrawer} {...params}>
+    <AntDrawer open={isVisible} onClose={closeDrawer} {...params}>
       {components[key](props)}
       {sub && (
         <AntDrawer visible={sub.isVisible} onClose={closeSubDrawer} {...params}>

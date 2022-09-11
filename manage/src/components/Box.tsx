@@ -1,11 +1,22 @@
+import styled from 'styled-components';
 import { Space, SpaceProps } from 'antd';
 
-const Box = ({ children, className, ...props }: SpaceProps) => {
+interface BoxProps extends SpaceProps {
+  iw?: number;
+}
+
+const Box = ({ iw = 100, children, className, ...props }: BoxProps) => {
   return (
-    <Space className={`box-component ${className}`} {...props}>
+    <RootStyled iw={iw} className={`box-component ${className}`} {...props}>
       {children}
-    </Space>
+    </RootStyled>
   );
 };
+
+const RootStyled = styled(Space)<BoxProps>(({ iw }) => ({
+  '& > .ant-space-item': {
+    width: `${iw}%`,
+  },
+}));
 
 export default Box;

@@ -50,13 +50,14 @@ export const generateResources = (resources: Resource[]): ResourceConfig[] => {
       icon: <DashboardOutlined />,
       avoid: true,
     },
-    {
-      id: 'live-chat',
-      key: PATH_DASHBOARD.liveChat,
-      label: 'Customer Service',
+    (root['customer service'] && {
+      id: root['customer service']._id,
+      locked: root['customer service'].locked,
+      key: PATH_DASHBOARD.customerService,
+      label: root['customer service'].name,
       icon: <CustomerServiceOutlined />,
-      avoid: true,
-    },
+    }) ||
+      null,
     (root.accounts && {
       id: root.accounts._id,
       locked: root.accounts.locked,

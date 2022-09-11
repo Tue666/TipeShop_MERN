@@ -13,7 +13,7 @@ const ROOT_RECYCLE_BIN = path(ROOT_DASHBOARD, 'recycle-bin');
 
 export const PATH_DASHBOARD = {
   root: ROOT_DASHBOARD,
-  liveChat: path(ROOT_DASHBOARD, 'live-chat'),
+  customerService: path(ROOT_DASHBOARD, 'customer-service'),
   account: {
     root: ROOT_ACCOUNT,
     administrators: path(ROOT_ACCOUNT, '/administrators'),

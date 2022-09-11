@@ -40,7 +40,6 @@ const Back = ({ backTo, scrollKeys }: BackProps) => {
   };
   return (
     <RootStyle
-      align="center"
       className={`${isOffsetTop ? 'main-header' : ''}`}
       style={{ ...(isOffsetTop && active) }}
     >
@@ -62,9 +61,10 @@ const Back = ({ backTo, scrollKeys }: BackProps) => {
   );
 };
 
-const RootStyle = styled(Space)({
+const RootStyle = styled('div')({
   display: 'flex',
   justifyContent: 'space-between',
+  alignItems: 'center',
   padding: '5px 10px',
   position: 'sticky',
   top: `${HEADER_HEIGHT - 14}px`,

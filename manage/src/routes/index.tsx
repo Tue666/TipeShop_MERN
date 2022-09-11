@@ -38,6 +38,14 @@ const Router = () => {
       children: [
         { path: '', element: <Dashboard /> },
         {
+          path: 'customer-service',
+          element: (
+            <AccessGuard accessConditions={root['customer service']}>
+              <LiveChat />
+            </AccessGuard>
+          ),
+        },
+        {
           path: 'accounts/:type',
           element: (
             <AccessGuard
@@ -145,10 +153,6 @@ const Router = () => {
               <RecycleBin />
             </AccessGuard>
           ),
-        },
-        {
-          path: 'live-chat',
-          element: <LiveChat />,
         },
       ],
     },
