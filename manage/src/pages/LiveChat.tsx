@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent, MouseEvent, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef, ChangeEvent, MouseEvent, KeyboardEvent } from 'react';
 import styled from 'styled-components';
 import { Typography, Tabs, Input, Button, Alert, Modal, Empty, message, Badge } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
@@ -62,8 +62,11 @@ const ChatInput = ({ room, onSendMessage }: ChatInputProps) => {
 
 const LiveChat = () => {
   const socket = useSocket();
+  const rootRef = useRef<HTMLDivElement>(null);
   const [activeRoom, setActiveRoom] = useState<Client['room'] | undefined>();
   const [clients, setClients] = useState<Client[]>([]);
+  const isChating = clients.find((client) => client.room === activeRoom);
+  console.log(isChating);
   useEffect(() => {
     socket?.on('chat:server-manage(client-joined)', (client: Client) => {
       message.info(`Client [${client.name}] joined`);
@@ -100,10 +103,20 @@ const LiveChat = () => {
     };
     // eslint-disable-next-line
   }, [activeRoom]);
+  useEffect(() => {
+    if (isChating && rootRef.current) {
+      const messagesRef = rootRef.current.querySelector(`.${isChating.room}`);
+      messagesRef &&
+        messagesRef.scrollIntoView({
+          behavior: 'smooth',
+          block: 'end',
+        });
+    }
+  }, [isChating]);
 
   const handleSendMessage = (room: Client['room'], input: Message['content']) => {
     const message: Message = {
-      sender: 'Tipe',
+      sender: 'Tipe-Bot',
       content: input,
     };
     socket?.emit('chat:manage-server(message)', room, message);
@@ -158,7 +171,7 @@ const LiveChat = () => {
     }
   };
   return (
-    <RootStyle>
+    <RootStyle ref={rootRef}>
       <Box>
         {clients.length > 0 && (
           <Tabs
@@ -210,6 +223,7 @@ const LiveChat = () => {
                           </MessageText>
                         );
                       })}
+                      <div className={room}></div>
                     </Scroll>
                     {isActive && <ChatInput room={room} onSendMessage={handleSendMessage} />}
                     {!isActive && <Alert description="Client has left the chat 🥳" type="error" />}
@@ -251,6 +265,7 @@ const MessageText = styled(Text)<{ object: 'sender' | 'other' }>(({ object }) =>
   padding: '10px',
   margin: '2px 0',
   borderRadius: '15px',
+  wordBreak: 'break-word',
   alignSelf: object === 'sender' ? 'end' : 'start',
 }));
 

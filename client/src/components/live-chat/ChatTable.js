@@ -1,5 +1,5 @@
 import { bool, string, func } from 'prop-types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { styled } from '@mui/material/styles';
 import { Stack, Typography, TextField, Button, Alert } from '@mui/material';
 import { Close, Send } from '@mui/icons-material';
@@ -73,6 +73,7 @@ const ChatTable = ({
 	onCloseChat,
 }) => {
 	const socket = useSocket();
+	const messagesRef = useRef();
 	const [messages, setMessages] = useState([]);
 	const [roomClosed, setRoomClosed] = useState(false);
 	useEffect(() => {
@@ -96,10 +97,19 @@ const ChatTable = ({
 		};
 		// eslint-disable-next-line
 	}, []);
+	useEffect(() => {
+		// const scrollableToBottom = messages.length > 0 && messages[messages.length - 1].sender === name;
+		if (messagesRef.current)
+			messagesRef.current.scrollIntoView({
+				behavior: 'smooth',
+				block: 'end',
+			});
+		// eslint-disable-next-line
+	}, [messages]);
 
 	const handleChangeName = (e) => {
 		const value = e.target.value;
-		onChangeName(value);
+		if (!/[-]/.test(value)) onChangeName(value);
 	};
 	const handleStartChat = () => {
 		onVisitedChat();
@@ -133,6 +143,7 @@ const ChatTable = ({
 				<Stack justifyContent="center" alignItems="center" spacing={2} sx={{ height: '100%' }}>
 					<Typography variant="subtitle2">What's your name?</Typography>
 					<TextField
+						value={name}
 						autoComplete="none"
 						variant="standard"
 						size="small"
@@ -156,6 +167,7 @@ const ChatTable = ({
 								</Message>
 							);
 						})}
+						<div ref={messagesRef}></div>
 					</Scroll>
 					{roomClosed && (
 						<Alert severity="error" sx={{ margin: '10px' }}>
@@ -180,6 +192,10 @@ const RootStyle = styled('div')(({ theme }) => ({
 	borderRadius: '5px',
 	backgroundColor: theme.palette.background.paper,
 	boxShadow: theme.shadows[3],
+	[theme.breakpoints.down('sm')]: {
+		right: '60px',
+		width: '300px',
+	},
 }));
 
 const Scroll = styled(Stack)(({ theme }) => ({
@@ -192,6 +208,7 @@ const Message = styled(Typography)(({ theme, object }) => ({
 	padding: '10px',
 	margin: '2px 0',
 	borderRadius: '15px',
+	wordBreak: 'break-word',
 	alignSelf: object === 'sender' ? 'end' : 'start',
 	color: object === 'sender' ? '#fff' : theme.palette.text.primary,
 	backgroundColor: object === 'sender' ? theme.palette.error.main : theme.palette.background.default,
