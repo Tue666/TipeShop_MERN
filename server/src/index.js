@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(cors(corsOptions));
 
-app.use('/images', express.static(path.join(__dirname, '../uploads')));
+app.use(express.static(path.join(__dirname, '../uploads')));
 
 initialRoutes(app);
 
